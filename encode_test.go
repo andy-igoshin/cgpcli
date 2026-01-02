@@ -127,26 +127,40 @@ func TestFormatCGPSize(t *testing.T) {
 	}
 }
 
-func TestIsCGPLiteral(t *testing.T) {
-	cases := []struct {
-		in   string
-		want bool
-	}{
-		{"unlimited", true},
-		{"default", true},
-		{"none", true},
-		{"30G", true},
-		{"100m", true},
-		{"123", true},
-		{"hello", false},
-		{"", false},
-		{"30GB", false}, // CGP использует только одну букву
-	}
-
-	for _, c := range cases {
-		got := isCGPLiteral(c.in)
-		if got != c.want {
-			t.Errorf("isCGPLiteral(%q) = %v, want %v", c.in, got, c.want)
+func TestLiterals(t *testing.T) {
+	// Тестируем логику КЛЮЧЕЙ
+	t.Run("Identifiers", func(t *testing.T) {
+		cases := []struct {
+			in   string
+			want bool
+		}{
+			{"RealName", true},
+			{"Storage_Used", true},
+			{"vsu.ru", false},    // точка требует кавычек
+			{"my-domain", false}, // тире требует кавычек
 		}
-	}
+		for _, c := range cases {
+			if got := isCGPIdentifier(c.in); got != c.want {
+				t.Errorf("isCGPIdentifier(%q) = %v, want %v", c.in, got, c.want)
+			}
+		}
+	})
+
+	// Тестируем логику ЗНАЧЕНИЙ
+	t.Run("SystemLiterals", func(t *testing.T) {
+		cases := []struct {
+			in   string
+			want bool
+		}{
+			{"unlimited", true},
+			{"YES", true},
+			{"10M", true},
+			{"text", false}, // обычная строка-значение должна быть в кавычках
+		}
+		for _, c := range cases {
+			if got := isCGPSystemLiteral(c.in); got != c.want {
+				t.Errorf("isCGPSystemLiteral(%q) = %v, want %v", c.in, got, c.want)
+			}
+		}
+	})
 }
