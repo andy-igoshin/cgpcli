@@ -72,7 +72,7 @@ func TestUnmarshal(t *testing.T) {
 			input: `{ a = { b = (1, 2, { c = 3 }); }; }`,
 			want: map[string]any{
 				"a": map[string]any{
-					"b": []any{"1", "2", map[string]any{"c": "3"}},
+					"b": []any{int64(1), int64(2), map[string]any{"c": int64(3)}},
 				},
 			},
 		},
