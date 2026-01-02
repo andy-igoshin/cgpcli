@@ -8,8 +8,12 @@ export CGO_ENABLED=0
 
 if   [ "$1" == "fmt" ]; then
     go $*
+elif [ "$1" == "run" ]; then
+    . .env
+    go run $2 $3 $4 $5
 elif [ "$1" == "test" ]; then
-    CGPUSER=postmaster CGPPASS=B4lbpK1GTEaypwJdbIZQaG go test -v
+    . .env
+    go test -v
 elif [ "$1" == "tidy" ]; then
     go mod tidy
 elif [ "$1" == "vet" ]; then
