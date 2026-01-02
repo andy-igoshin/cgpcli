@@ -83,6 +83,54 @@ func TestMarshal(t *testing.T) {
 			},
 			contains: []string{`( 1K, unlimited, "text" )`, `Size = 2K`},
 		},
+		{
+			name: "Strict String Map (ACL/Aliases)",
+			// Проверяем то, что реально уходит в SETMAILBOXACL
+			input: map[string]string{
+				"anyone":  "l",
+				"admin":   "lirs",
+				"trusted": "+rs",
+			},
+			contains: []string{
+				"anyone = \"l\"",
+				"admin = \"lirs\"",
+				"trusted = \"+rs\"",
+			},
+		},
+		{
+			name: "Strict String Slice (Subscriptions)",
+			// Проверяем то, что уходит в SETMAILBOXSUBSCRIPTION
+			input: []string{"INBOX", "Sent Messages", "Trash"},
+			contains: []string{
+				"( \"INBOX\", \"Sent Messages\", \"Trash\" )",
+			},
+		},
+		{
+			name: "Mixed Case System Literals",
+			// CGP понимает YES/yes, но наш маршал должен быть консистентен
+			input: map[string]any{
+				"Enabled":  true,
+				"Disabled": false,
+				"Value":    "unlimited",
+			},
+			contains: []string{
+				"Enabled = YES",
+				"Disabled = NO",
+				"Value = unlimited",
+			},
+			excludes: []string{"\"YES\"", "\"unlimited\""},
+		},
+		{
+			name: "Nested Map in map[string]any",
+			input: map[string]any{
+				"Rights": map[string]string{
+					"user1": "r",
+				},
+			},
+			contains: []string{
+				"Rights = { user1 = \"r\"; }",
+			},
+		},
 	}
 
 	for _, tt := range tests {

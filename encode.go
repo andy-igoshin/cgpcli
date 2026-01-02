@@ -90,6 +90,22 @@ func marshal(v any, asKey bool) string {
 		b.WriteString(" )")
 		return b.String()
 
+	case map[string]string:
+		// Приводим к map[string]any для переиспользования логики
+		m := make(map[string]any, len(val))
+		for k, v := range val {
+			m[k] = v
+		}
+		return marshal(m, false)
+
+	case []string:
+		// Приводим к []any
+		s := make([]any, len(val))
+		for i, v := range val {
+			s[i] = v
+		}
+		return marshal(s, false)
+
 	default:
 		if val == nil {
 			return `""`
