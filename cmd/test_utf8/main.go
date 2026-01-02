@@ -26,7 +26,7 @@ func main() {
 	defer cli.Logout()
 
 	targetAccount := "testuser1@test.domain.name" // замените на ваш боевой/тестовый
-	russianName := "Алексей Самылов"              // Используем имя автора из ваших любимых книг для теста
+	russianName := "Иван Иванов"
 
 	fmt.Printf("Updating RealName for %s to: %s\n", targetAccount, russianName)
 
