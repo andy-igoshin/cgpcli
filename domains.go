@@ -6,17 +6,19 @@ import (
 	"strings"
 )
 
-// ObjectType определяет битовую маску для категорий объектов домена
+// -----------------------------------------------------------------------------
+// Types
+// -----------------------------------------------------------------------------
+
 type ObjectType int
 
 const (
-	TypeAccount   ObjectType = 1 << iota // 1
-	TypeAlias                            // 2
-	TypeForwarder                        // 4
+	TypeAccount   ObjectType = 1 << iota
+	TypeAlias
+	TypeForwarder
 	TypeAll       = TypeAccount | TypeAlias | TypeForwarder
 )
 
-// DomainObject представляет детализированный объект домена
 type DomainObject struct {
 	Name    string
 	Type    ObjectType
@@ -24,52 +26,20 @@ type DomainObject struct {
 	Targets []string
 }
 
-// DomainObjectsResult структура ответа с поддержкой пагинации
 type DomainObjectsResult struct {
 	Objects map[string]DomainObject
 	Total   int
 	Cookie  string
 }
 
-// DomainSetResult представляет результат глобального поиска по всем доменам
 type DomainSetResult struct {
-	Items map[string]string // Карта Объект -> Аккаунт-владелец
-	Total int               // Общее количество найденных записей
+	Items map[string]string
+	Total int
 }
 
 // -----------------------------------------------------------------------------
-// Cli Methods (Alphabetical Order)
+// Methods (Alphabetical Order)
 // -----------------------------------------------------------------------------
-
-func (cli *Cli) CreateDomain(domain string, shared bool, storage string, settings map[string]any) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
-	}
-	parts := []string{"CREATEDOMAIN", Marshal(domain)}
-	if shared {
-		parts = append(parts, "SHARED")
-	}
-	if storage != "" {
-		parts = append(parts, "PATH", Marshal(storage))
-	}
-	if settings != nil {
-		parts = append(parts, Marshal(settings))
-	}
-	_, err := cli.query(strings.Join(parts, " "))
-	return err
-}
-
-func (cli *Cli) DeleteDomain(domain string, force bool) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
-	}
-	parts := []string{"DELETEDOMAIN", Marshal(domain)}
-	if force {
-		parts = append(parts, "FORCE")
-	}
-	_, err := cli.query(strings.Join(parts, " "))
-	return err
-}
 
 func (cli *Cli) GetDomainAliases(domain string) ([]string, error) {
 	if domain == "" {
@@ -118,30 +88,31 @@ func (cli *Cli) GetDomainSettings(domain string) (map[string]any, error) {
 	return settings, nil
 }
 
+func (cli *Cli) IsDomainExists(domain string) (bool, error) {
+	loc, err := cli.GetDomainLocation(domain)
+	if err != nil {
+		return false, err
+	}
+	return loc != "", nil
+}
+
 func (cli *Cli) ListAccounts(domain string) (map[string]string, error) {
 	parts := []string{"LISTACCOUNTS"}
 	if domain != "" {
 		parts = append(parts, Marshal(domain))
 	}
-
 	res, err := cli.query(strings.Join(parts, " "))
 	if err != nil {
 		return nil, err
 	}
-
 	dict, ok := res.(map[string]any)
 	if !ok {
-		if _, isStr := res.(string); isStr {
-			return make(map[string]string), nil
-		}
-		return nil, fmt.Errorf("LISTACCOUNTS: expected dictionary response, got %T", res)
+		return make(map[string]string), nil
 	}
-
 	accounts := make(map[string]string, len(dict))
 	for name, val := range dict {
 		accounts[name] = fmt.Sprint(val)
 	}
-
 	return accounts, nil
 }
 
@@ -151,11 +122,9 @@ func (cli *Cli) ListDomainObjects(domainName string, limit int, filter string, w
 		parts = append(parts, "FILTER", Marshal(filter))
 	}
 	parts = append(parts, strconv.Itoa(limit))
-
 	if what != 0 {
 		parts = append(parts, what.ToCGPString())
 	}
-
 	parts = append(parts, "COOKIE", Marshal(cookie))
 
 	res, err := cli.query(strings.Join(parts, " "))
@@ -213,22 +182,6 @@ func (cli *Cli) ListDomainObjects(domainName string, limit int, filter string, w
 	return result, nil
 }
 
-func (cli *Cli) ListDomains() ([]string, error) {
-	res, err := cli.query("LISTDOMAINS")
-	if err != nil {
-		return nil, err
-	}
-	raw, ok := res.([]any)
-	if !ok {
-		return []string{}, nil
-	}
-	domains := make([]string, len(raw))
-	for i, v := range raw {
-		domains[i] = fmt.Sprint(v)
-	}
-	return domains, nil
-}
-
 func (cli *Cli) ListDomainTelnums(domain, filter string, limit int) (*DomainSetResult, error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain name is required for LISTDOMAINTELNUMS")
@@ -239,27 +192,6 @@ func (cli *Cli) ListDomainTelnums(domain, filter string, limit int) (*DomainSetR
 	}
 	parts = append(parts, strconv.Itoa(limit))
 	return cli.parseDomainSet(strings.Join(parts, " "))
-}
-
-func (cli *Cli) ListServerTelnums(filter string, limit int) (*DomainSetResult, error) {
-	parts := []string{"LISTSERVERTELNUMS"}
-	if filter != "" {
-		parts = append(parts, "FILTER", Marshal(filter))
-	}
-	parts = append(parts, strconv.Itoa(limit))
-	return cli.parseDomainSet(strings.Join(parts, " "))
-}
-
-func (cli *Cli) RenameDomain(oldName, newName string, storage string) error {
-	if oldName == "" || newName == "" {
-		return fmt.Errorf("both old and new domain names are required")
-	}
-	parts := []string{"RENAMEDOMAIN", Marshal(oldName), "INTO", Marshal(newName)}
-	if storage != "" {
-		parts = append(parts, "PATH", Marshal(storage))
-	}
-	_, err := cli.query(strings.Join(parts, " "))
-	return err
 }
 
 func (cli *Cli) ResumeDomain(domain string) error {
@@ -274,11 +206,7 @@ func (cli *Cli) SetDomainAliases(domain string, aliases []string) error {
 	if domain == "" {
 		return fmt.Errorf("domain name is required for SETDOMAINALIASES")
 	}
-	anyAliases := make([]any, len(aliases))
-	for i, a := range aliases {
-		anyAliases[i] = a
-	}
-	parts := []string{"SETDOMAINALIASES", Marshal(domain), Marshal(anyAliases)}
+	parts := []string{"SETDOMAINALIASES", Marshal(domain), Marshal(aliases)}
 	_, err := cli.query(strings.Join(parts, " "))
 	return err
 }
@@ -314,7 +242,7 @@ func (cli *Cli) UpdateDomainSettings(domain string, settings map[string]any) err
 }
 
 // -----------------------------------------------------------------------------
-// Type & Parser Helpers
+// Helpers
 // -----------------------------------------------------------------------------
 
 func (cli *Cli) parseDomainSet(cmd string) (*DomainSetResult, error) {
@@ -337,19 +265,6 @@ func (cli *Cli) parseDomainSet(cmd string) (*DomainSetResult, error) {
 	return result, nil
 }
 
-func (t ObjectType) String() string {
-	switch t {
-	case TypeAccount:
-		return "Account"
-	case TypeAlias:
-		return "Alias"
-	case TypeForwarder:
-		return "Forwarder"
-	default:
-		return "Unknown"
-	}
-}
-
 func (t ObjectType) ToCGPString() string {
 	var parts []string
 	if t&TypeAccount != 0 {
@@ -362,17 +277,4 @@ func (t ObjectType) ToCGPString() string {
 		parts = append(parts, "FORWARDERS")
 	}
 	return strings.Join(parts, " ")
-}
-
-// -----------------------------------------------------------------------------
-// Extended API
-// -----------------------------------------------------------------------------
-
-// IsDomainExists проверяет существование домена.
-func (cli *Cli) IsDomainExists(domain string) (bool, error) {
-	loc, err := cli.GetDomainLocation(domain)
-	if err != nil {
-		return false, err
-	}
-	return loc != "", nil
 }
