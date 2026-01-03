@@ -19,7 +19,7 @@ func main() {
 
 	// 2. Инициализация клиента
 	// Используем ваш конструктор New
-	cli, err := cgpcli.New("127.0.0.1", cgpuser, cgppass, cgpcli.Plain, false)
+	cli, err := cgpcli.New("127.0.0.1", cgpuser, cgppass, cgpcli.APOP, false)
 	if err != nil {
 		log.Fatalf("Failed to connect: %v", err)
 	}
