@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+type DataBlock []byte
+
 // Marshal преобразует типы Go в формат строк CommuniGate Pro CLI.
 // По умолчанию вызывается в контексте значения.
 func Marshal(v any) string {
@@ -17,6 +19,14 @@ func Marshal(v any) string {
 // marshal — внутренняя функция, учитывающая контекст (ключ словаря или значение).
 func marshal(v any, asKey bool) string {
 	switch val := v.(type) {
+	case DataBlock:
+		// Формат Datablock: [BASE64]
+		return "[" + string(val) + "]"
+
+	case []byte:
+		// Бинарные данные передаются как #[HEX]
+		return fmt.Sprintf("#[%X]", val)
+
 	case string:
 		// 1. Если это КЛЮЧ: разрешаем без кавычек только простые идентификаторы (буквы, цифры, _)
 		if asKey && isCGPIdentifier(val) {
@@ -53,10 +63,6 @@ func marshal(v any, asKey bool) string {
 		}
 		// Формат времени для CLI команд
 		return fmt.Sprintf("%q", val.Format("02-Jan-2006 15:04:05 -0700"))
-
-	case []byte:
-		// Бинарные данные передаются как #[HEX]
-		return fmt.Sprintf("#[%X]", val)
 
 	case map[string]any:
 		var b strings.Builder

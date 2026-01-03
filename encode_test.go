@@ -65,6 +65,20 @@ func TestMarshal(t *testing.T) {
 			contains: []string{`Data = #[01020AFF]`},
 		},
 		{
+			name: "DataBlock vs Binary",
+			input: map[string]any{
+				"AsHex":   []byte("Hello"),          // Обычный слайс байт
+				"AsBlock": DataBlock("MIIDlTCC..."), // Наш новый тип
+			},
+			contains: []string{
+				"AsHex = #[48656C6C6F]",   // HEX представление
+				"AsBlock = [MIIDlTCC...]", // Datablock (без кавычек!)
+			},
+			excludes: []string{
+				`"[MIIDlTCC...]"`, // Убеждаемся, что кавычек нет
+			},
+		},
+		{
 			name: "System Literals",
 			input: map[string]any{
 				"Mode": "default",
