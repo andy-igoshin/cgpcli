@@ -97,12 +97,10 @@ func (cli *Cli) GetClusterDirectoryIntegration() (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	dict, ok := res.(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("GETCLUSTERDIRECTORYINTEGRATION: unexpected response type: %T", res)
 	}
-
 	return dict, nil
 }
 
@@ -349,12 +347,10 @@ func (cli *Cli) MainDomainName() (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	name, ok := res.(string)
 	if !ok {
 		return "", fmt.Errorf("MAINDOMAINNAME: unexpected response type: %T", res)
 	}
-
 	return name, nil
 }
 
