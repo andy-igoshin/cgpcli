@@ -140,10 +140,11 @@ func isCGPSystemLiteral(s string) bool {
 	if s == "" {
 		return false
 	}
-	low := strings.ToLower(s)
-	if low == "unlimited" || low == "default" || low == "none" || low == "yes" || low == "no" {
-		return true
-	}
+
+	switch strings.ToLower(s) {
+    case "default", "unlimited", "yes", "no", "none", "any":
+        return true
+    }
 
 	// Проверка на число или квоту (например, 10G)
 	isNumeric := true
