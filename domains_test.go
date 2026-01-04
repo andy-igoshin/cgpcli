@@ -168,13 +168,13 @@ func TestDomainAliasesTypeJuggling(t *testing.T) {
 	tempDomain := "type-test.local"
 	// 1. Создаем домен для теста (если его нет)
 	// Примечание: предполагаем, что права позволяют создание домена
-	_, _ = cli.query("CREATEDOMAIN " + Marshal(tempDomain)) 
+	_, _ = cli.query("CREATEDOMAIN " + Marshal(tempDomain))
 
 	t.Run("DigitalAliases", func(t *testing.T) {
 		// Подготавливаем микс из строкового и цифрового алиаса
 		// В CLI CGP это будет выглядеть как (string, string) или (string, number)
 		testAliases := []string{"normal.alias", "999888"}
-		
+
 		err := cli.SetDomainAliases(tempDomain, testAliases)
 		if err != nil {
 			t.Fatalf("Failed to set aliases: %v", err)

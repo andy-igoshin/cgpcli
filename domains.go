@@ -13,10 +13,10 @@ import (
 type ObjectType int
 
 const (
-	TypeAccount   ObjectType = 1 << iota
+	TypeAccount ObjectType = 1 << iota
 	TypeAlias
 	TypeForwarder
-	TypeAll       = TypeAccount | TypeAlias | TypeForwarder
+	TypeAll = TypeAccount | TypeAlias | TypeForwarder
 )
 
 type DomainObject struct {
