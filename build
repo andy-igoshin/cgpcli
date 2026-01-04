@@ -11,6 +11,23 @@ if   [ "$1" == "fmt" ]; then
 elif [ "$1" == "run" ]; then
     . .env
     go run $2 $3 $4 $5
+
+elif [ "$1" == "sandbox-test" ]; then
+
+    REMOTE_HOST="ai@netman.uic.vsu.ru"
+    REMOTE_PATH="src/cgpcli/.sandbox"
+
+    echo "--- Syncing sources to sandbox ---"
+    rsync -avz --delete \
+          --exclude '.git/' \
+          --exclude '*.bin' \
+          --exclude 'vendor/' \
+          "./" "${REMOTE_HOST}:${REMOTE_PATH}/"
+
+    echo ""
+    echo "--- Running tests on sandbox ---"
+    ssh "${REMOTE_HOST}" "cd ${REMOTE_PATH} && ./build test"
+
 elif [ "$1" == "test" ]; then
     . .env
     go test -v
