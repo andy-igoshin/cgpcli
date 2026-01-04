@@ -221,11 +221,11 @@ func (cli *Cli) InsertDirectoryRecords(domain string) error {
 }
 
 func (cli *Cli) IsDomainExists(domain string) (bool, error) {
-	loc, err := cli.GetDomainLocation(domain)
+	location, err := cli.GetDomainLocation(domain)
 	if err != nil {
 		return false, err
 	}
-	return loc != "", nil
+	return location != "", nil
 }
 
 func (cli *Cli) ListAccounts(domain string) (map[string]string, error) {
