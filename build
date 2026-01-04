@@ -14,8 +14,7 @@ elif [ "$1" == "run" ]; then
 
 elif [ "$1" == "sandbox-test" ]; then
 
-    REMOTE_HOST="ai@netman.uic.vsu.ru"
-    REMOTE_PATH="src/cgpcli/.sandbox"
+    . .env
 
     echo "--- Syncing sources to sandbox ---"
     rsync -avz --delete \
