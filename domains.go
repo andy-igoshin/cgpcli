@@ -220,14 +220,6 @@ func (cli *Cli) InsertDirectoryRecords(domain string) error {
 	return err
 }
 
-func (cli *Cli) IsDomainExists(domain string) (bool, error) {
-	location, err := cli.GetDomainLocation(domain)
-	if err != nil {
-		return false, err
-	}
-	return location != "", nil
-}
-
 func (cli *Cli) ListAccounts(domain string) (map[string]string, error) {
 	parts := []string{"LISTACCOUNTS"}
 	if domain != "" {
@@ -541,8 +533,16 @@ func (cli *Cli) UpdateDomainSettings(domain string, settings map[string]any) err
 }
 
 // -----------------------------------------------------------------------------
-// Helpers
+// Helpers / Extended API
 // -----------------------------------------------------------------------------
+
+func (cli *Cli) IsDomainExists(domain string) (bool, error) {
+	location, err := cli.GetDomainLocation(domain)
+	if err != nil {
+		return false, err
+	}
+	return location != "", nil
+}
 
 func (cli *Cli) parseDomainSet(cmd string) (*DomainSetResult, error) {
 	res, err := cli.query(cmd)
