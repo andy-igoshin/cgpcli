@@ -104,16 +104,16 @@ func (cli *Cli) GetDomainLocation(domain string) (string, error) {
 	return location, nil
 }
 
-func (cli *Cli) GetDomainMailRules(domain string) ([]any, error) {
-	return cli.getRules("GETDOMAINMAILRULES", domain)
+func (cli *Cli) GetDomainMailRules(domain string) ([]MailRule, error) {
+	return cli.getMailRules("GETDOMAINMAILRULES", domain)
 }
 
 func (cli *Cli) GetDomainSettings(domain string) (map[string]any, error) {
 	return cli.getSettingsMapAlt("GETDOMAINSETTINGS", domain)
 }
 
-func (cli *Cli) GetDomainSignalRules(domain string) ([]any, error) {
-	return cli.getRules("GETDOMAINSIGNALRULES", domain)
+func (cli *Cli) GetDomainSignalRules(domain string) ([]SignalRule, error) {
+	return cli.getSignalRules("GETDOMAINSIGNALRULES", domain)
 }
 
 func (cli *Cli) InsertDirectoryRecords(domain string) error {
@@ -324,9 +324,8 @@ func (cli *Cli) SetDomainAliases(domain string, aliases []string) error {
 	return err
 }
 
-func (cli *Cli) SetDomainMailRules(domain string, rules []any) error {
-	_, err := cli.Query("SETDOMAINMAILRULES", domain, rules)
-	return err
+func (cli *Cli) SetDomainMailRules(domain string, rules []MailRule) error {
+	return setRulesGeneric(cli, "SETDOMAINMAILRULES", domain, rules)
 }
 
 func (cli *Cli) SetDomainSettings(domain string, settings map[string]any) error {
@@ -334,9 +333,8 @@ func (cli *Cli) SetDomainSettings(domain string, settings map[string]any) error 
 	return err
 }
 
-func (cli *Cli) SetDomainSignalRules(domain string, rules []any) error {
-	_, err := cli.Query("SETDOMAINSIGNALRULES", domain, rules)
-	return err
+func (cli *Cli) SetDomainSignalRules(domain string, rules []SignalRule) error {
+	return setRulesGeneric(cli, "SETDOMAINSIGNALRULES", domain, rules)
 }
 
 func (cli *Cli) SuspendDomain(domain string) error {
@@ -430,20 +428,6 @@ func (cli *Cli) domSet(cmd, domain string, settings map[string]any) error {
 	args = append(args, settings)
 	_, err := cli.Query(args...)
 	return err
-}
-
-func (cli *Cli) getRules(cmd, domain string) ([]any, error) {
-	if domain == "" {
-		return nil, fmt.Errorf("domain name is required")
-	}
-	res, err := cli.Query(cmd, domain)
-	if err != nil {
-		return nil, err
-	}
-	if rules, ok := res.([]any); ok {
-		return rules, nil
-	}
-	return []any{}, nil
 }
 
 func (cli *Cli) IsDomainExists(domain string) (bool, error) {
