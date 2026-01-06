@@ -386,3 +386,100 @@ func TestUpdateAccountInfo(t *testing.T) {
 		}
 	})
 }
+
+func TestAccountSignalRulesLogic(t *testing.T) {
+	cgpuser := os.Getenv("CGPUSER")
+	cgppass := os.Getenv("CGPPASS")
+	if cgpuser == "" || cgppass == "" {
+		t.Skip("CGPUSER or CGPPASS not set")
+	}
+
+	cli, err := New("127.0.0.1", cgpuser, cgppass, APOP, false)
+	if err != nil {
+		t.Fatalf("Failed to connect: %v", err)
+	}
+	defer cli.Logout()
+
+	testAcc := "*"
+
+	// Тестовые сценарии: проверяем все типы упаковки
+	testCases := []AccountSignalRule{
+		{
+			Name:       "#ForkOnTimer",
+			Priority:   1,
+			Delay:      10, // 10 сек -> 99001
+			Conditions: []any{[]any{"Method", "is", "INVITE"}},
+			Actions:    []any{[]any{"Discard", ""}},
+		},
+		{
+			Name:       "LongDelayRule",
+			Priority:   50,
+			Delay:      600, // 10 мин -> 40050
+			Conditions: []any{[]any{"From", "is", "external@domain.tld"}},
+			Actions:    []any{[]any{"Fork to", "manager@domain.tld"}},
+		},
+		{
+			Name:       "EventBusyRule",
+			Priority:   5,
+			EventCode:  EventBusy, // 3 -> 305
+			Conditions: []any{[]any{"From", "is", "8*@*"}},
+			Actions:    []any{[]any{"Reject with", "486 Busy Here"}},
+		},
+		{
+			Name:       "#Block",
+			Priority:   99,
+			Delay:      30, // Должно быть проигнорировано (не в белом списке)
+			Conditions: []any{[]any{"From", "in", "#Blocked"}},
+			Actions:    []any{[]any{"Reject with", "680 No registered devices"}},
+		},
+	}
+
+	t.Run("WriteAndVerifyRules", func(t *testing.T) {
+		// 1. Записываем набор правил
+		if err := cli.SetAccountSignalRules(testAcc, testCases); err != nil {
+			t.Fatalf("SetAccountSignalRules failed: %v", err)
+		}
+
+		// 2. Читаем актуальное состояние с сервера
+		readRules, err := cli.GetAccountSignalRules(testAcc)
+		if err != nil {
+			t.Fatalf("GetAccountSignalRules failed: %v", err)
+		}
+
+		// 3. Сверяем каждое правило по имени
+		for _, expected := range testCases {
+			found := false
+			for _, read := range readRules {
+				if read.Name == expected.Name {
+					found = true
+
+					// Проверка приоритета (базовое поле)
+					if read.Priority != expected.Priority {
+						t.Errorf("[%s] Priority mismatch: want %d, got %d", expected.Name, expected.Priority, read.Priority)
+					}
+
+					// Отработка специфичной логики
+					switch expected.Name {
+					case "#ForkOnTimer", "LongDelayRule":
+						if read.Delay != expected.Delay {
+							t.Errorf("[%s] Delay mismatch: want %d, got %d", expected.Name, expected.Delay, read.Delay)
+						}
+					case "EventBusyRule":
+						if read.EventCode != expected.EventCode {
+							t.Errorf("[%s] EventCode mismatch: want %d, got %d", expected.Name, expected.EventCode, read.EventCode)
+						}
+					case "#Block":
+						// Проверка защиты: задержка для этого правила должна быть 0
+						if read.Delay != 0 {
+							t.Errorf("[%s] Security breach: delay should be 0, got %d", expected.Name, read.Delay)
+						}
+					}
+					break
+				}
+			}
+			if !found {
+				t.Errorf("Rule %s not found in server response", expected.Name)
+			}
+		}
+	})
+}

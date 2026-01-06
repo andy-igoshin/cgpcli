@@ -15,6 +15,26 @@ type AccountRule struct {
 	Comment    string `json:"comment,omitempty"`
 }
 
+type AccountSignalRule struct {
+	Priority   int    `json:"priority"`
+	Delay      int    `json:"delay"`
+	EventCode  int    `json:"event_code,omitempty"` // 1, 3, 5
+	Name       string `json:"name"`
+	Conditions []any  `json:"conditions"`
+	Actions    []any  `json:"actions"`
+	Comment    string `json:"comment,omitempty"`
+}
+
+const (
+	delayBase     = 1000
+	priorityScale = 100
+
+	// Константы событий для пользовательских правил
+	EventError    = 1 // 100
+	EventBusy     = 3 // 300
+	EventNoAnswer = 5 // 500
+)
+
 type AccountType int
 
 const (
@@ -386,27 +406,32 @@ func (cli *Cli) GetAccountTelnums(account string) ([]string, error) {
 	return cli.toStrictStringSlice(list), nil
 }
 
-// GetAccountSignalRules возвращает список сигнальных правил (Signal Rules) аккаунта.
-func (cli *Cli) GetAccountSignalRules(account string) ([]AccountRule, error) {
+func (cli *Cli) GetAccountSignalRules(account string) ([]AccountSignalRule, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
 
-	res, err := cli.Query("GETACCOUNTSIGNALRULES", account)
+	// Помним про наше соглашение об Atom для имен аккаунтов
+	res, err := cli.Query("GETACCOUNTSIGNALRULES", Atom(account))
 	if err != nil {
 		return nil, err
 	}
 
 	rawList, ok := res.([]any)
 	if !ok {
-		return []AccountRule{}, nil
+		return []AccountSignalRule{}, nil
 	}
 
-	rules := make([]AccountRule, 0, len(rawList))
+	rules := make([]AccountSignalRule, 0, len(rawList))
 	for _, item := range rawList {
 		if r, ok := item.([]any); ok && len(r) >= 4 {
-			rule := AccountRule{
-				Priority:   cli.toInt(r[0]),
+			packedPriority := cli.toInt(r[0])
+			prio, delay, eventCode := unpackSignalPriority(packedPriority)
+
+			rule := AccountSignalRule{
+				Priority:   prio,
+				Delay:      delay,
+				EventCode:	eventCode,
 				Name:       fmt.Sprint(r[1]),
 				Conditions: cli.toAnySlice(r[2]),
 				Actions:    cli.toAnySlice(r[3]),
@@ -599,17 +624,15 @@ func (cli *Cli) SetAccountSettings(account string, settings map[string]any) erro
 }
 
 // SetAccountSignalRules полностью заменяет список сигнальных правил аккаунта.
-func (cli *Cli) SetAccountSignalRules(account string, rules []AccountRule) error {
+func (cli *Cli) SetAccountSignalRules(account string, rules []AccountSignalRule) error {
 	if account == "" {
 		return fmt.Errorf("account name is required")
 	}
-
 	rawRules := make([]any, len(rules))
 	for i, r := range rules {
 		rawRules[i] = r.ToSlice()
 	}
-
-	_, err := cli.Query("SETACCOUNTSIGNALRULES", account, rawRules)
+	_, err := cli.Query("SETACCOUNTSIGNALRULES", Atom(account), rawRules)
 	return err
 }
 
@@ -668,12 +691,11 @@ func (cli *Cli) UpdateAccountSettings(account string, settings map[string]any) e
 	return err
 }
 
-// UpdateAccountSignalRule обновляет или создает сигнальное правило.
-func (cli *Cli) UpdateAccountSignalRule(account string, rule AccountRule) error {
+func (cli *Cli) UpdateAccountSignalRule(account string, rule AccountSignalRule) error {
 	if account == "" || rule.Name == "" {
 		return fmt.Errorf("account name and rule name are required")
 	}
-	_, err := cli.Query("UPDATEACCOUNTSIGNALRULE", account, rule.ToSlice())
+	_, err := cli.Query("UPDATEACCOUNTSIGNALRULE", Atom(account), rule.ToSlice())
 	return err
 }
 
@@ -757,9 +779,69 @@ func (r AccountRule) ToSlice() []any {
 	return res
 }
 
+// ToSlice преобразует структуру в формат, пригодный для маршалинга в CLI.
+// Здесь происходит магия упаковки Priority + { Delay | EventCode }
+func (r AccountSignalRule) ToSlice() []any {
+	// Теперь передаем имя в упаковщик, чтобы он применил логику для служебных правил
+	packed := packSignalPriority(r.Name, r.Priority, r.Delay, r.EventCode)
+
+	slice := []any{packed, r.Name, r.Conditions, r.Actions}
+	if r.Comment != "" {
+		slice = append(slice, r.Comment)
+	}
+	return slice
+}
+
 func (t AccountType) String() string {
 	return [...]string{
 		"", "MultiMailbox", "TextMailbox", "MailDirMailbox",
 		"SlicedMailbox", "AGrade", "BGrade", "CGrade", "DGrade",
 	}[t]
+}
+
+// packSignalPriority упаковывает данные с учетом типа правила (служебное/пользовательское).
+func packSignalPriority(name string, priority int, delay int, eventCode int) int {
+	safePriority := priority % priorityScale
+
+	// 1. Обработка служебных правил
+	if strings.HasPrefix(name, "#") {
+		// Разрешенные для Delay правила
+		if name == "#ForkOnTimer" || name == "#MailOnTimer" {
+			return (delayBase-delay)*priorityScale + safePriority
+		}
+		// Для остальных служебных правил используем delayBase (задержка 0)
+		return delayBase*priorityScale + safePriority
+	}
+
+	// 2. Обработка пользовательских правил
+	// Если указан eventCode (Ошибка/Занято/...), он имеет приоритет над Delay
+	if eventCode == EventError || eventCode == EventBusy || eventCode == EventNoAnswer {
+		return eventCode*priorityScale + safePriority
+	}
+
+	// Если события нет, пакуем обычную задержку
+	if delay > 0 {
+		return (delayBase-delay)*priorityScale + safePriority
+	}
+
+	return safePriority
+}
+
+// unpackSignalPriority извлекает приоритет, задержку или код события.
+func unpackSignalPriority(packed int) (priority int, delay int, eventCode int) {
+	priority = packed % priorityScale
+	rawPrefix := packed / priorityScale
+
+	// Если префикс 1, 3 или 5 — это коды событий (Error, Busy, NoAnswer)
+	switch rawPrefix {
+	case EventError, EventBusy, EventNoAnswer:
+		eventCode = rawPrefix
+		delay = 0
+	default:
+		// В остальных случаях это задержка (включая служебные правила)
+		if rawPrefix > 0 {
+			delay = delayBase - rawPrefix
+		}
+	}
+	return
 }
