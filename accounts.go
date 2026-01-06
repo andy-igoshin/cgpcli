@@ -230,9 +230,6 @@ func (cli *Cli) GetAccountLocation(account string) (string, error) {
 }
 
 func (cli *Cli) GetAccountMailRules(account string) ([]MailRule, error) {
-	if account == "" {
-		return nil, fmt.Errorf("account name is required")
-	}
 	return cli.getMailRules("GETACCOUNTMAILRULES", account)
 }
 
@@ -350,9 +347,6 @@ func (cli *Cli) GetAccountTelnums(account string) ([]string, error) {
 }
 
 func (cli *Cli) GetAccountSignalRules(account string) ([]SignalRule, error) {
-	if account == "" {
-		return nil, fmt.Errorf("account name is required")
-	}
 	return cli.getSignalRules("GETACCOUNTSIGNALRULES", account)
 }
 
@@ -454,9 +448,6 @@ func (cli *Cli) SetAccountAliases(account string, aliases []string) error {
 
 // SetAccountMailRules полностью заменяет список почтовых правил аккаунта.
 func (cli *Cli) SetAccountMailRules(account string, rules []MailRule) error {
-	if account == "" {
-		return fmt.Errorf("account name is required")
-	}
 	return setRulesGeneric(cli, "SETACCOUNTMAILRULES", account, rules)
 }
 
@@ -527,9 +518,6 @@ func (cli *Cli) SetAccountSettings(account string, settings map[string]any) erro
 
 // SetAccountSignalRules полностью заменяет список сигнальных правил аккаунта.
 func (cli *Cli) SetAccountSignalRules(account string, rules []SignalRule) error {
-	if account == "" {
-		return fmt.Errorf("account name is required")
-	}
 	return setRulesGeneric(cli, "SETACCOUNTSIGNALRULES", account, rules)
 }
 
@@ -570,9 +558,6 @@ func (cli *Cli) UpdateAccountInfo(account string, info map[string]any) error {
 
 // UpdateAccountMailRule обновляет или создает почтовое правило.
 func (cli *Cli) UpdateAccountMailRule(account string, rule MailRule) error {
-	if account == "" || rule.GetName() == "" {
-		return fmt.Errorf("account name and rule name are required")
-	}
 	return updateRuleGeneric(cli, "UPDATEACCOUNTMAILRULE", account, rule)
 }
 
@@ -586,9 +571,6 @@ func (cli *Cli) UpdateAccountSettings(account string, settings map[string]any) e
 }
 
 func (cli *Cli) UpdateAccountSignalRule(account string, rule SignalRule) error {
-	if account == "" || rule.GetName() == "" {
-		return fmt.Errorf("account name and rule name are required")
-	}
 	return updateRuleGeneric(cli, "UPDATEACCOUNTSIGNALRULE", account, rule)
 }
 
