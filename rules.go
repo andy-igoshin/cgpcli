@@ -59,7 +59,6 @@ func (r SignalRule) ToSlice() []any {
 	return slice
 }
 
-// Вспомогательный метод для извлечения комментария, если он есть
 func (cli *Cli) getComment(r []any) string {
 	if len(r) > 4 {
 		comment, _ := r[4].(string)
@@ -115,6 +114,10 @@ func (cli *Cli) getSignalRules(cmd, subject string) ([]SignalRule, error) {
 
 // getRawRules — базовый метод для получения сырого списка правил от сервера.
 func (cli *Cli) getRawRules(cmd, subject string) ([][]any, error) {
+	if subject == "" {
+		return nil, fmt.Errorf("parameter is required")
+	}
+
 	args := make([]any, 0, 2)
 	args = append(args, cmd)
 	if subject != "" {
@@ -141,6 +144,10 @@ func (cli *Cli) getRawRules(cmd, subject string) ([][]any, error) {
 }
 
 func setRulesGeneric[T ruleConstraint](cli *Cli, cmd, subject string, rules []T) error {
+	if subject == "" || rules == nil {
+		return fmt.Errorf("parameters are required")
+	}
+
 	rawRules := make([]any, len(rules))
 	for i := range rules {
 		rawRules[i] = rules[i].ToSlice()
@@ -158,6 +165,9 @@ func setRulesGeneric[T ruleConstraint](cli *Cli, cmd, subject string, rules []T)
 }
 
 func updateRuleGeneric[T ruleConstraint](cli *Cli, cmd, subject string, rule T) error {
+	if subject == "" {
+		return fmt.Errorf("parameter is required")
+	}
 	if rule.GetName() == "" {
 		return fmt.Errorf("rule name is required")
 	}
