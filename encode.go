@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+type Atom string
 type DataBlock []byte
 
 var cgpSafeTable = [256]byte{
@@ -222,6 +223,10 @@ func MarshalTo(w *bufio.Writer, v any) error {
 
 func marshalTo(w *bufio.Writer, v any, asKey bool) error {
 	switch val := v.(type) {
+	case Atom:
+        _, err := w.WriteString(string(val))
+        return err
+
 	case DataBlock:
 		w.WriteByte('[')
 		w.Write(val)
