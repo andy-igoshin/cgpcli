@@ -142,7 +142,7 @@ func (cli *Cli) GetAccountACL(account, authAccount string) (map[string]any, erro
 	}
 
 	args := make([]any, 0, 4)
-	args = append(args, "GETACCOUNTACL", account)
+	args = append(args, "GETACCOUNTACL", Atom(account))
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
@@ -163,7 +163,7 @@ func (cli *Cli) GetAccountACLRights(account, authAccount string) (string, error)
 	if account == "" || authAccount == "" {
 		return "", fmt.Errorf("target account and auth account names are required")
 	}
-	res, err := cli.Query("GETACCOUNTACLRIGHTS", account, "AUTH", authAccount)
+	res, err := cli.Query("GETACCOUNTACLRIGHTS", Atom(account), "AUTH", authAccount)
 	if err != nil {
 		return "", err
 	}
@@ -202,7 +202,7 @@ func (cli *Cli) GetAccountInfo(account string, keys []string) (map[string]any, e
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
-	res, err := cli.Query("GETACCOUNTINFO", account, keys)
+	res, err := cli.Query("GETACCOUNTINFO", Atom(account), keys)
 	if err != nil {
 		return nil, err
 	}
@@ -279,7 +279,7 @@ func (cli *Cli) GetAccountOneSetting(account, key string) (any, error) {
 		return nil, fmt.Errorf("account name and key name are required")
 	}
 
-	return cli.Query("GETACCOUNTONESETTING", account, key)
+	return cli.Query("GETACCOUNTONESETTING", Atom(account), key)
 }
 
 // GetAccountPlainPassword возвращает пароль аккаунта в открытом виде (недокументировано).
@@ -495,7 +495,7 @@ func (cli *Cli) SetAccountACL(account, authAccount string, newACL map[string]any
 		return fmt.Errorf("account name and ACL dictionary are required")
 	}
 	args := make([]any, 0, 5)
-	args = append(args, "SETACCOUNTACL", account)
+	args = append(args, "SETACCOUNTACL", Atom(account))
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}

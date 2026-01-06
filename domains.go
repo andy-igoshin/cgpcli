@@ -401,7 +401,7 @@ func (cli *Cli) getDomainData(cmd, domain string) (any, error) {
 	args := make([]any, 0, 2)
 	args = append(args, cmd)
 	if domain != "" {
-		args = append(args, domain)
+		args = append(args, Atom(domain))
 	}
 	return cli.Query(args...)
 }

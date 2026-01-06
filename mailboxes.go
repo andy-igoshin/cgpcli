@@ -11,7 +11,7 @@ func (cli *Cli) CreateMailbox(account, mailbox, class, authAccount string) error
 	}
 
 	args := make([]any, 0, 8)
-	args = append(args, "CREATEMAILBOX", account, "MAILBOX", mailbox)
+	args = append(args, "CREATEMAILBOX", Atom(account), "MAILBOX", mailbox)
 	if class != "" {
 		args = append(args, "CLASS", class)
 	}
@@ -35,7 +35,7 @@ func (cli *Cli) DeleteMailbox(account, mailbox string, recursive bool, authAccou
 	}
 
 	args := make([]any, 0, 6)
-	args = append(args, "DELETEMAILBOX", account, keyword, mailbox)
+	args = append(args, "DELETEMAILBOX", Atom(account), keyword, mailbox)
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
@@ -51,7 +51,7 @@ func (cli *Cli) GetMailboxACL(account, mailbox, authAccount string) (map[string]
 	}
 
 	args := make([]any, 0, 6)
-	args = append(args, "GETMAILBOXACL", account, "MAILBOX", mailbox)
+	args = append(args, "GETMAILBOXACL", Atom(account), "MAILBOX", mailbox)
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
@@ -83,7 +83,7 @@ func (cli *Cli) GetMailboxAliases(account string) (map[string]string, error) {
 		return nil, fmt.Errorf("account name is required")
 	}
 
-	res, err := cli.Query("GETMAILBOXALIASES", account)
+	res, err := cli.Query("GETMAILBOXALIASES", Atom(account))
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func (cli *Cli) GetMailboxInfo(account, mailbox, authAccount string) (map[string
 	}
 
 	args := make([]any, 0, 6)
-	args = append(args, "GETMAILBOXINFO", account, "MAILBOX", mailbox)
+	args = append(args, "GETMAILBOXINFO", Atom(account), "MAILBOX", mailbox)
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
@@ -134,7 +134,7 @@ func (cli *Cli) GetMailboxRights(account, mailbox, authAccount string) (string, 
 		return "", fmt.Errorf("account, mailbox and authAccount names are required")
 	}
 
-	res, err := cli.Query("GETMAILBOXRIGHTS", account, "MAILBOX", mailbox, "AUTH", authAccount)
+	res, err := cli.Query("GETMAILBOXRIGHTS", Atom(account), "MAILBOX", mailbox, "AUTH", authAccount)
 	if err != nil {
 		return "", err
 	}
@@ -151,7 +151,7 @@ func (cli *Cli) GetMailboxSubscription(account string) ([]string, error) {
 		return nil, fmt.Errorf("account name is required")
 	}
 
-	res, err := cli.Query("GETMAILBOXSUBSCRIPTION", account)
+	res, err := cli.Query("GETMAILBOXSUBSCRIPTION", Atom(account))
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func (cli *Cli) ListMailboxes(account, filter, authAccount string) (map[string]a
 	}
 
 	args := make([]any, 0, 6)
-	args = append(args, "LISTMAILBOXES", account)
+	args = append(args, "LISTMAILBOXES", Atom(account))
 	if filter != "" {
 		args = append(args, "FILTER", filter)
 	}
@@ -198,7 +198,7 @@ func (cli *Cli) RenameMailbox(account, oldName, newName string, recursive bool, 
 	}
 
 	args := make([]any, 0, 8)
-	args = append(args, "RENAMEMAILBOX", account, keyword, oldName, "INTO", newName)
+	args = append(args, "RENAMEMAILBOX", Atom(account), keyword, oldName, "INTO", newName)
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
@@ -214,7 +214,7 @@ func (cli *Cli) SetMailboxACL(account, mailbox, authAccount string, newACL map[s
 	}
 
 	args := make([]any, 0, 8)
-	args = append(args, "SETMAILBOXACL", account, "MAILBOX", mailbox)
+	args = append(args, "SETMAILBOXACL", Atom(account), "MAILBOX", mailbox)
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
@@ -229,8 +229,7 @@ func (cli *Cli) SetMailboxAliases(account string, newAliases map[string]string) 
 	if account == "" {
 		return fmt.Errorf("account name is required")
 	}
-
-	_, err := cli.Query("SETMAILBOXALIASES", account, newAliases)
+	_, err := cli.Query("SETMAILBOXALIASES", Atom(account), newAliases)
 	return err
 }
 
@@ -241,7 +240,7 @@ func (cli *Cli) SetMailboxClass(account, mailbox, newClass, authAccount string) 
 	}
 
 	args := make([]any, 0, 8)
-	args = append(args, "SETMAILBOXCLASS", account, "MAILBOX", mailbox)
+	args = append(args, "SETMAILBOXCLASS", Atom(account), "MAILBOX", mailbox)
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
@@ -256,7 +255,6 @@ func (cli *Cli) SetMailboxSubscription(account string, newSub []string) error {
 	if account == "" {
 		return fmt.Errorf("account name is required")
 	}
-
-	_, err := cli.Query("SETMAILBOXSUBSCRIPTION", account, newSub)
+	_, err := cli.Query("SETMAILBOXSUBSCRIPTION", Atom(account), newSub)
 	return err
 }
