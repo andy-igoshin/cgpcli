@@ -152,7 +152,7 @@ func TestAccountMailRules(t *testing.T) {
 	_ = cli.CreateAccount(testAcc, nil, TypeDefault, "", false)
 	defer cli.DeleteAccount(testAcc)
 
-	rule := AccountRule{
+	rule := MailRule{
 		Priority: 7,
 		Name:     "TestRule",
 		Conditions: []any{
@@ -403,7 +403,7 @@ func TestAccountSignalRulesLogic(t *testing.T) {
 	testAcc := "*"
 
 	// Тестовые сценарии: проверяем все типы упаковки
-	testCases := []AccountSignalRule{
+	testCases := []SignalRule{
 		{
 			Name:       "#ForkOnTimer",
 			Priority:   1,
