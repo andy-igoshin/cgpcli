@@ -457,7 +457,7 @@ func (cli *Cli) SetAccountMailRules(account string, rules []MailRule) error {
 	if account == "" {
 		return fmt.Errorf("account name is required")
 	}
-	return cli.setRulesGeneric("SETACCOUNTMAILRULES", account, castToRulable(rules))
+	return setRulesGeneric(cli, "SETACCOUNTMAILRULES", account, rules)
 }
 
 // SetAccountPassword обновляет пароль аккаунта.
@@ -530,7 +530,7 @@ func (cli *Cli) SetAccountSignalRules(account string, rules []SignalRule) error 
 	if account == "" {
 		return fmt.Errorf("account name is required")
 	}
-	return cli.setRulesGeneric("SETACCOUNTSIGNALRULES", account, castToRulable(rules))
+	return setRulesGeneric(cli, "SETACCOUNTSIGNALRULES", account, rules)
 }
 
 // SetAccountTelnums полностью заменяет список телефонных номеров аккаунта.
@@ -573,11 +573,10 @@ func (cli *Cli) UpdateAccountMailRule(account string, rule MailRule) error {
 	if account == "" || rule.GetName() == "" {
 		return fmt.Errorf("account name and rule name are required")
 	}
-	return cli.updateRuleGeneric("UPDATEACCOUNTMAILRULE", account, rule)
+	return updateRuleGeneric(cli, "UPDATEACCOUNTMAILRULE", account, rule)
 }
 
 // UpdateAccountSettings точечно обновляет настройки аккаунта.
-// Пропущенные в словаре ключи сохраняют свои текущие значения.
 func (cli *Cli) UpdateAccountSettings(account string, settings map[string]any) error {
 	if account == "" || settings == nil {
 		return fmt.Errorf("account name and settings dictionary are required")
@@ -590,7 +589,7 @@ func (cli *Cli) UpdateAccountSignalRule(account string, rule SignalRule) error {
 	if account == "" || rule.GetName() == "" {
 		return fmt.Errorf("account name and rule name are required")
 	}
-	return cli.updateRuleGeneric("UPDATEACCOUNTSIGNALRULE", account, rule)
+	return updateRuleGeneric(cli, "UPDATEACCOUNTSIGNALRULE", account, rule)
 }
 
 // UpdateScheduledTask создает, обновляет или удаляет запланированную задачу.
