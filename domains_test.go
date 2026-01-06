@@ -125,7 +125,7 @@ func TestDomainAdministration(t *testing.T) {
 		if err != nil {
 			t.Errorf("ListDomainObjects failed: %v", err)
 		} else {
-			t.Logf("Total domain objects: %d, Cookie: %s", res.Total, res.Cookie)
+			t.Logf("Total domain objects: %d, Cookie: %s", len(res.Objects), res.Cookie)
 			for name, obj := range res.Objects {
 				t.Logf("Found %s: Type=%v, Targets=%v", name, obj.Subtype, obj.Targets)
 			}
@@ -168,7 +168,7 @@ func TestDomainAliasesTypeJuggling(t *testing.T) {
 	tempDomain := "type-test.local"
 	// 1. Создаем домен для теста (если его нет)
 	// Примечание: предполагаем, что права позволяют создание домена
-	_, _ = cli.query("CREATEDOMAIN " + Marshal(tempDomain))
+	_, _ = cli.Query("CREATEDOMAIN", tempDomain)
 
 	t.Run("DigitalAliases", func(t *testing.T) {
 		// Подготавливаем микс из строкового и цифрового алиаса
@@ -206,5 +206,5 @@ func TestDomainAliasesTypeJuggling(t *testing.T) {
 	})
 
 	// Удаляем тестовый домен
-	_, _ = cli.query("DELETEDOMAIN " + Marshal(tempDomain))
+	_, _ = cli.Query("DELETEDOMAIN", tempDomain)
 }

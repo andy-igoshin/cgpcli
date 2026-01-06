@@ -5,11 +5,11 @@ import (
 	"bytes"
 	"crypto/md5"
 	"crypto/tls"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -21,8 +21,14 @@ const (
 	WebUser
 )
 
+var (
+	cmdSTLS   = []byte("STLS\n")
+	cmdQUIT   = []byte("QUIT\n")
+	cmdINLINE = []byte("INLINE\n")
+)
+
 const (
-	cgpLineSize = 128 * 1024
+	cgpLineSize = 129 * 1024
 	cgpTimeout  = 5*time.Minute - 5*time.Second
 	cmdTimeout  = 1 * time.Minute
 	connTimeout = 7 * time.Second
@@ -39,7 +45,7 @@ const (
 	CodeStrange          = 10000
 )
 
-const defaultPort = ":106"
+const defaultPort = "106"
 
 type Cli struct {
 	host        string
@@ -50,6 +56,7 @@ type Cli struct {
 	debug       bool
 	conn        net.Conn
 	reader      *bufio.Reader
+	writer      *bufio.Writer
 	isConnected bool
 	lastAccess  time.Time
 	respCode    CliCode
@@ -71,8 +78,8 @@ func (cli *Cli) IsSuccess() bool {
 func (cli *Cli) Logout() (err error) {
 
 	if cli.conn != nil {
-		_, err = cli.conn.Write([]byte("QUIT\n"))
-		if err != nil {
+		cli.writer.Write(cmdQUIT)
+		if err = cli.writer.Flush(); err != nil {
 			cli.close()
 			return
 		}
@@ -91,12 +98,7 @@ func New(host, login, password string, secure Secure, tls bool) (cli *Cli, err e
 
 	cli = new(Cli)
 
-	if strings.Contains(host, ":") {
-		cli.host = host
-	} else {
-		cli.host = host + defaultPort
-	}
-
+	cli.host = net.JoinHostPort(host, defaultPort)
 	cli.login = login
 	cli.password = password
 	cli.secure = secure
@@ -128,6 +130,7 @@ func (cli *Cli) connect() (err error) {
 
 	// Инициализируем буферизированный ридер один раз при подключении
 	cli.reader = bufio.NewReaderSize(cli.conn, cgpLineSize)
+	cli.writer = bufio.NewWriterSize(cli.conn, cgpLineSize)
 
 	// Читаем приветствие сервера (Banner)
 	err = cli.parseResponse()
@@ -141,8 +144,8 @@ func (cli *Cli) connect() (err error) {
 
 	// 2. Обработка STARTTLS (STLS)
 	if cli.tls {
-		_, err = cli.conn.Write([]byte("STLS\n"))
-		if err != nil {
+		cli.writer.Write(cmdSTLS)
+		if err = cli.writer.Flush(); err != nil {
 			cli.close()
 			return
 		}
@@ -155,7 +158,6 @@ func (cli *Cli) connect() (err error) {
 			return
 		}
 
-		// Апгрейд соединения до TLS
 		tlsconfig := &tls.Config{
 			InsecureSkipVerify: true,
 		}
@@ -164,17 +166,19 @@ func (cli *Cli) connect() (err error) {
 			cli.close()
 			return
 		}
-		cli.conn = net.Conn(tlsConn)
 
-		// Пересоздаем ридер для нового TLS-слоя
-		cli.reader = bufio.NewReaderSize(cli.conn, cgpLineSize)
+		cli.conn = net.Conn(tlsConn)
+		cli.reader.Reset(cli.conn)
+		cli.writer.Reset(cli.conn)
 	}
 
 	// 3. Аутентификация
 	switch cli.secure {
 	case Plain:
-		_, err = cli.conn.Write([]byte("USER " + cli.login + "\n"))
-		if err != nil {
+		cli.writer.WriteString("USER ")
+		cli.writer.WriteString(cli.login)
+		cli.writer.WriteByte('\n')
+		if err = cli.writer.Flush(); err != nil {
 			cli.close()
 			return
 		}
@@ -187,8 +191,10 @@ func (cli *Cli) connect() (err error) {
 			return
 		}
 
-		_, err = cli.conn.Write([]byte("PASS " + cli.password + "\n"))
-		if err != nil {
+		cli.writer.WriteString("PASS ")
+		cli.writer.WriteString(cli.password)
+		cli.writer.WriteByte('\n')
+		if err = cli.writer.Flush(); err != nil {
 			cli.close()
 			return
 		}
@@ -206,10 +212,15 @@ func (cli *Cli) connect() (err error) {
 			return
 		}
 		id := cli.respData[idStart:]
-		digest := fmt.Sprintf("%x", md5.Sum(append(id, []byte(cli.password)...)))
+		hash := md5.Sum(append(id, cli.password...))
+		digest := hex.EncodeToString(hash[:])
 
-		_, err = cli.conn.Write([]byte("APOP " + cli.login + " " + digest + "\n"))
-		if err != nil {
+		cli.writer.WriteString("APOP ")
+		cli.writer.WriteString(cli.login)
+		cli.writer.WriteByte(' ')
+		cli.writer.WriteString(digest)
+		cli.writer.WriteByte('\n')
+		if err = cli.writer.Flush(); err != nil {
 			cli.close()
 			return
 		}
@@ -220,8 +231,12 @@ func (cli *Cli) connect() (err error) {
 		}
 
 	case WebUser:
-		_, err = cli.conn.Write([]byte("AUTH WEBUSER " + cli.login + " " + cli.password + "\n"))
-		if err != nil {
+		cli.writer.WriteString("AUTH WEBUSER ")
+		cli.writer.WriteString(cli.login)
+		cli.writer.WriteByte(' ')
+		cli.writer.WriteString(cli.password)
+		cli.writer.WriteByte('\n')
+		if err = cli.writer.Flush(); err != nil {
 			cli.close()
 			return
 		}
@@ -245,8 +260,8 @@ func (cli *Cli) connect() (err error) {
 	}
 
 	// 4. Переход в режим INLINE
-	_, err = cli.conn.Write([]byte("INLINE\n"))
-	if err != nil {
+	cli.writer.Write(cmdINLINE)
+	if err = cli.writer.Flush(); err != nil {
 		cli.close()
 		return
 	}
@@ -267,17 +282,16 @@ func (cli *Cli) connect() (err error) {
 func (cli *Cli) parseResponse() (err error) {
 	cli.conn.SetReadDeadline(time.Now().Add(cmdTimeout))
 
-	line, err := cli.reader.ReadBytes('\n')
+	// Внутренний буфер CGP имеет размер 128k
+	line, err := cli.reader.ReadSlice('\n')
 	if err != nil {
 		return fmt.Errorf("can't read line: %s", err)
 	}
 
 	line = bytes.TrimRight(line, "\r\n")
 
-	// Ищем первый пробел для отделения кода
 	idx := bytes.IndexByte(line, ' ')
 	if idx == -1 {
-		// Если пробела нет (редко, но бывает), считаем всё кодом или ошибкой
 		code, _ := strconv.Atoi(string(line))
 		cli.respCode = CliCode(code)
 		cli.respData = nil
@@ -298,43 +312,42 @@ func (cli *Cli) parseResponse() (err error) {
 	return nil
 }
 
-func (cli *Cli) query(command string) (any, error) {
-	if err := cli.send(command); err != nil {
+func (cli *Cli) Query(args ...any) (any, error) {
+	if err := cli.Send(args...); err != nil {
 		return nil, err
 	}
 	if err := cli.parseResponse(); err != nil {
 		return nil, err
 	}
-
-	// Проверяем успешность (200 или 201)
 	if !cli.IsSuccess() {
 		return nil, fmt.Errorf("CGP Error %d: %s", cli.respCode, string(cli.respData))
 	}
 
 	var res any
-	// Unmarshal теперь работает безопасно
 	err := Unmarshal(cli.respData, &res)
 	return res, err
 }
 
-func (cli *Cli) send(command string) (err error) {
-
-	if time.Now().Sub(cli.lastAccess) > cgpTimeout || cli.conn == nil {
+func (cli *Cli) Send(args ...any) (err error) {
+	if time.Since(cli.lastAccess) > cgpTimeout || cli.conn == nil {
 		cli.close()
-		err = cli.connect()
-		if err != nil {
-			err = fmt.Errorf("can't reopen CLI connection: %s", err)
-			return
+		if err := cli.connect(); err != nil {
+			return err
 		}
 	}
 
 	cli.lastAccess = time.Now()
 	cli.conn.SetWriteDeadline(time.Now().Add(cmdTimeout))
 
-	_, err = cli.conn.Write([]byte(command + "\n"))
-	if err != nil {
-		return
+	for i, arg := range args {
+		if i > 0 {
+			cli.writer.WriteByte(' ')
+		}
+		if err := marshalTo(cli.writer, arg, false); err != nil {
+			return err
+		}
 	}
 
-	return
+	cli.writer.WriteByte('\n')
+	return cli.writer.Flush()
 }

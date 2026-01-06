@@ -49,7 +49,7 @@ func TestGroups(t *testing.T) {
 		if err != nil {
 			t.Errorf("Set failed: %v", err)
 		}
-		
+
 		res, err := cli.GetGroup(groupName)
 		if err != nil {
 			t.Fatalf("GetGroup failed: %v", err)
@@ -69,7 +69,7 @@ func TestGroups(t *testing.T) {
 		if err != nil {
 			t.Errorf("Delete failed: %v", err)
 		}
-		
+
 		ex, _ = cli.IsGroupExists(renamedGroupName)
 		if ex {
 			t.Error("Group should be deleted")

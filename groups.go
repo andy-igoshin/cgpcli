@@ -2,7 +2,6 @@ package cgpcli
 
 import (
 	"fmt"
-	"strings"
 )
 
 // GroupResult объединяет настройки и список участников
@@ -20,11 +19,14 @@ func (cli *Cli) CreateGroup(group string, settings map[string]any) error {
 	if group == "" {
 		return fmt.Errorf("group name is required")
 	}
-	parts := []string{"CREATEGROUP", Marshal(group)}
+
+	args := make([]any, 0, 3)
+	args = append(args, "CREATEGROUP", group)
 	if settings != nil {
-		parts = append(parts, Marshal(settings))
+		args = append(args, settings)
 	}
-	_, err := cli.query(strings.Join(parts, " "))
+
+	_, err := cli.Query(args...)
 	return err
 }
 
@@ -33,7 +35,7 @@ func (cli *Cli) DeleteGroup(group string) error {
 	if group == "" {
 		return fmt.Errorf("group name is required")
 	}
-	_, err := cli.query("DELETEGROUP " + Marshal(group))
+	_, err := cli.Query("DELETEGROUP", group)
 	return err
 }
 
@@ -42,7 +44,7 @@ func (cli *Cli) GetGroup(group string) (*GroupResult, error) {
 	if group == "" {
 		return nil, fmt.Errorf("group name is required")
 	}
-	res, err := cli.query("GETGROUP " + Marshal(group))
+	res, err := cli.Query("GETGROUP", group)
 	if err != nil {
 		return nil, err
 	}
@@ -54,15 +56,13 @@ func (cli *Cli) GetGroup(group string) (*GroupResult, error) {
 
 	result := &GroupResult{
 		Settings: make(map[string]any),
-		Members:  make([]string, 0),
+		Members:  []string{},
 	}
 
 	for k, v := range dict {
 		if k == "Members" {
 			if mRaw, ok := v.([]any); ok {
-				for _, m := range mRaw {
-					result.Members = append(result.Members, fmt.Sprint(m))
-				}
+				result.Members = cli.toStringSlice(mRaw)
 			}
 			continue
 		}
@@ -73,33 +73,18 @@ func (cli *Cli) GetGroup(group string) (*GroupResult, error) {
 
 // ListGroups возвращает список имен всех групп в указанном домене.
 func (cli *Cli) ListGroups(domain string) ([]string, error) {
-	parts := []string{"LISTGROUPS"}
+	args := make([]any, 0, 2)
+	args = append(args, "LISTGROUPS")
 	if domain != "" {
-		parts = append(parts, Marshal(domain))
+		args = append(args, domain)
 	}
 
-	var res any
-	var err error
-	if len(parts) > 1 {
-		res, err = cli.query(strings.Join(parts, " "))
-	} else {
-		res, err = cli.query(parts[0])
-	}
-
+	res, err := cli.Query(args...)
 	if err != nil {
 		return nil, err
 	}
 
-	raw, ok := res.([]any)
-	if !ok {
-		return []string{}, nil
-	}
-
-	list := make([]string, len(raw))
-	for i, v := range raw {
-		list[i] = fmt.Sprint(v)
-	}
-	return list, nil
+	return cli.toStringSlice(res), nil
 }
 
 // RenameGroup переименовывает группу или переносит её в другой домен.
@@ -107,8 +92,7 @@ func (cli *Cli) RenameGroup(oldName, newName string) error {
 	if oldName == "" || newName == "" {
 		return fmt.Errorf("both old and new group names are required")
 	}
-	parts := []string{"RENAMEGROUP", Marshal(oldName), "INTO", Marshal(newName)}
-	_, err := cli.query(strings.Join(parts, " "))
+	_, err := cli.Query("RENAMEGROUP", oldName, "INTO", newName)
 	return err
 }
 
@@ -118,11 +102,15 @@ func (cli *Cli) SetGroup(group string, settings map[string]any, members []string
 		return fmt.Errorf("group name is required")
 	}
 
+	// Подготавливаем полный словарь настроек
 	fullData := make(map[string]any)
-	for k, v := range settings {
-		fullData[k] = v
+	if settings != nil {
+		for k, v := range settings {
+			fullData[k] = v
+		}
 	}
 
+	// Добавляем список участников, если он передан
 	if members != nil {
 		anyMembers := make([]any, len(members))
 		for i, m := range members {
@@ -131,8 +119,7 @@ func (cli *Cli) SetGroup(group string, settings map[string]any, members []string
 		fullData["Members"] = anyMembers
 	}
 
-	parts := []string{"SETGROUP", Marshal(group), Marshal(fullData)}
-	_, err := cli.query(strings.Join(parts, " "))
+	_, err := cli.Query("SETGROUP", group, fullData)
 	return err
 }
 
@@ -145,7 +132,7 @@ func (cli *Cli) IsGroupExists(group string) (bool, error) {
 	if group == "" {
 		return false, nil
 	}
-	_, err := cli.query("GETGROUP " + Marshal(group))
+	_, err := cli.Query("GETGROUP", group)
 	if err != nil {
 		return false, nil
 	}

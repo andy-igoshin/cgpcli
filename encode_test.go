@@ -1,6 +1,7 @@
 package cgpcli
 
 import (
+	"bufio"
 	"strings"
 	"testing"
 	"time"
@@ -225,4 +226,27 @@ func TestLiterals(t *testing.T) {
 			}
 		}
 	})
+}
+
+func TestMarshalNullAtom(t *testing.T) {
+	var b strings.Builder
+	w := bufio.NewWriter(&b)
+
+	data := map[string]any{
+		"AccessModes": nil,
+		"OtherKey":    "Value",
+	}
+
+	err := MarshalTo(w, data)
+	w.Flush()
+
+	if err != nil {
+		t.Fatalf("MarshalTo failed: %v", err)
+	}
+
+	result := b.String()
+	// Проверяем наличие атома #NULL# в строке
+	if !strings.Contains(result, "AccessModes = #NULL#;") {
+		t.Errorf("Expected #NULL# atom in marshaled output, got: %s", result)
+	}
 }

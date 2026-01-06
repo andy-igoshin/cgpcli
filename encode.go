@@ -1,6 +1,8 @@
 package cgpcli
 
 import (
+	"bufio"
+	"encoding/hex"
 	"fmt"
 	"sort"
 	"strconv"
@@ -9,6 +11,17 @@ import (
 )
 
 type DataBlock []byte
+
+var cgpSafeTable = [256]byte{
+	'0': 1, '1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1,
+	'A': 1, 'B': 1, 'C': 1, 'D': 1, 'E': 1, 'F': 1, 'G': 1, 'H': 1, 'I': 1, 'J': 1,
+	'K': 1, 'L': 1, 'M': 1, 'N': 1, 'O': 1, 'P': 1, 'Q': 1, 'R': 1, 'S': 1, 'T': 1,
+	'U': 1, 'V': 1, 'W': 1, 'X': 1, 'Y': 1, 'Z': 1,
+	'a': 1, 'b': 1, 'c': 1, 'd': 1, 'e': 1, 'f': 1, 'g': 1, 'h': 1, 'i': 1, 'j': 1,
+	'k': 1, 'l': 1, 'm': 1, 'n': 1, 'o': 1, 'p': 1, 'q': 1, 'r': 1, 's': 1, 't': 1,
+	'u': 1, 'v': 1, 'w': 1, 'x': 1, 'y': 1, 'z': 1,
+	'_': 1,
+}
 
 // Marshal преобразует типы Go в формат строк CommuniGate Pro CLI.
 // По умолчанию вызывается в контексте значения.
@@ -162,6 +175,22 @@ func isCGPSystemLiteral(s string) bool {
 	return isNumeric
 }
 
+// isCGPSafeString проверяет, можно ли передать строку без кавычек.
+// В CGP это буквенно-цифровые строки без спецсимволов.
+func isCGPSafeString(s string) bool {
+	if s == "" {
+		return false
+	}
+	// Идем по байтам. len(s) возвращает количество байт, а не рун.
+	for i := 0; i < len(s); i++ {
+		// s[i] возвращает байт (byte/uint8)
+		if cgpSafeTable[s[i]] == 0 {
+			return false
+		}
+	}
+	return true
+}
+
 // formatCGPSize преобразует байты в формат CGP (1K, 5M, 10G) или "unlimited".
 func formatCGPSize(v int64) string {
 	if v == -1 {
@@ -185,4 +214,124 @@ func formatCGPSize(v int64) string {
 		}
 	}
 	return strconv.FormatInt(v, 10)
+}
+
+func MarshalTo(w *bufio.Writer, v any) error {
+	return marshalTo(w, v, false)
+}
+
+func marshalTo(w *bufio.Writer, v any, asKey bool) error {
+	switch val := v.(type) {
+	case DataBlock:
+		w.WriteByte('[')
+		w.Write(val)
+		return w.WriteByte(']')
+
+	case []byte:
+		w.WriteString("#[")
+		enc := hex.NewEncoder(w)
+		enc.Write(val)
+		return w.WriteByte(']')
+
+	case string:
+		if isCGPSafeString(val) {
+			_, err := w.WriteString(val)
+			return err
+		}
+		b := strconv.AppendQuote(nil, val)
+		_, err := w.Write(b)
+		return err
+
+	case int, int32, int64:
+		var n int64
+		switch i := val.(type) {
+		case int:
+			n = int64(i)
+		case int32:
+			n = int64(i)
+		case int64:
+			n = i
+		}
+		_, err := w.WriteString(formatCGPSize(n))
+		return err
+
+	case bool:
+		if val {
+			_, err := w.WriteString("YES")
+			return err
+		}
+		_, err := w.WriteString("NO")
+		return err
+
+	case time.Time:
+		if val.IsZero() {
+			_, err := w.WriteString(`""`)
+			return err
+		}
+		w.WriteByte('"')
+		w.WriteString(val.Format("02-Jan-2006 15:04:05 -0700"))
+		return w.WriteByte('"')
+
+	case map[string]any:
+		w.WriteString("{ ")
+		keys := make([]string, 0, len(val))
+		for k := range val {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			marshalTo(w, k, true)
+			w.WriteString(" = ")
+			marshalTo(w, val[k], false)
+			w.WriteString("; ")
+		}
+		return w.WriteByte('}')
+
+	case []any:
+		w.WriteString("( ")
+		for i, item := range val {
+			marshalTo(w, item, false)
+			if i < len(val)-1 {
+				w.WriteString(", ")
+			}
+		}
+		return w.WriteByte(')')
+
+	case map[string]string:
+		w.WriteString("{ ")
+		keys := make([]string, 0, len(val))
+		for k := range val {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			marshalTo(w, k, true)
+			w.WriteString(" = ")
+			marshalTo(w, val[k], false)
+			w.WriteString("; ")
+		}
+		return w.WriteByte('}')
+
+	case []string:
+		w.WriteString("( ")
+		for i, s := range val {
+			marshalTo(w, s, false)
+			if i < len(val)-1 {
+				w.WriteString(", ")
+			}
+		}
+		return w.WriteByte(')')
+
+	default:
+		if val == nil {
+			// Если мы в контексте значения ключа словаря,
+			// возвращаем системный атом для сброса.
+			_, err := w.WriteString("#NULL#")
+			return err
+		}
+		// Fallback для типов, которые мы не обработали явно (например, float или кастомные структуры)
+		// Используем fmt.Sprint, чтобы получить строку, и пишем её через bufio
+		_, err := w.WriteString(fmt.Sprint(val))
+		return err
+	}
 }

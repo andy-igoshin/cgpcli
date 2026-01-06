@@ -24,15 +24,15 @@ func TestForwarders(t *testing.T) {
 
 	domain := "test.domain.name"
 	ts := time.Now().Unix()
-	
+
 	// Локальные имена для проверок
 	fwLocal := fmt.Sprintf("fw-%d", ts)
 	renameLocal := fmt.Sprintf("renamed-fw-%d", ts)
-	
+
 	// Полные имена для команд
 	fwFull := fwLocal + "@" + domain
 	renameFull := renameLocal + "@" + domain
-	
+
 	target := "backup@external.com"
 
 	t.Run("FullLifecycle", func(t *testing.T) {
@@ -52,7 +52,7 @@ func TestForwarders(t *testing.T) {
 		if err != nil {
 			t.Errorf("Find failed: %v", err)
 		}
-		
+
 		isThere := false
 		for _, f := range found {
 			// Проверяем и полное совпадение, и локальное
@@ -75,7 +75,7 @@ func TestForwarders(t *testing.T) {
 		if err != nil {
 			t.Errorf("List failed: %v", err)
 		}
-		
+
 		isRenamed := false
 		for _, f := range list {
 			if f == renameFull || f == renameLocal {

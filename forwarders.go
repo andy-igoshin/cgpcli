@@ -2,7 +2,6 @@ package cgpcli
 
 import (
 	"fmt"
-	"strings"
 )
 
 // CreateForwarder создает новый Forwarder.
@@ -10,8 +9,7 @@ func (cli *Cli) CreateForwarder(forwarder, target string) error {
 	if forwarder == "" || target == "" {
 		return fmt.Errorf("forwarder name and target address are required")
 	}
-	parts := []string{"CREATEFORWARDER", Marshal(forwarder), "TO", Marshal(target)}
-	_, err := cli.query(strings.Join(parts, " "))
+	_, err := cli.Query("CREATEFORWARDER", forwarder, "TO", target)
 	return err
 }
 
@@ -20,7 +18,7 @@ func (cli *Cli) DeleteForwarder(forwarder string) error {
 	if forwarder == "" {
 		return fmt.Errorf("forwarder name is required")
 	}
-	_, err := cli.query("DELETEFORWARDER " + Marshal(forwarder))
+	_, err := cli.Query("DELETEFORWARDER", forwarder)
 	return err
 }
 
@@ -29,22 +27,11 @@ func (cli *Cli) FindForwarders(domain, target string) ([]string, error) {
 	if domain == "" || target == "" {
 		return nil, fmt.Errorf("domain and target address are required")
 	}
-	parts := []string{"FINDFORWARDERS", Marshal(domain), "TO", Marshal(target)}
-	res, err := cli.query(strings.Join(parts, " "))
+	res, err := cli.Query("FINDFORWARDERS", domain, "TO", target)
 	if err != nil {
 		return nil, err
 	}
-
-	raw, ok := res.([]any)
-	if !ok {
-		return []string{}, nil
-	}
-
-	list := make([]string, len(raw))
-	for i, v := range raw {
-		list[i] = fmt.Sprint(v)
-	}
-	return list, nil
+	return cli.toStringSlice(res), nil
 }
 
 // GetForwarder возвращает адрес, на который перенаправляется почта.
@@ -52,42 +39,32 @@ func (cli *Cli) GetForwarder(forwarder string) (string, error) {
 	if forwarder == "" {
 		return "", fmt.Errorf("forwarder name is required")
 	}
-	res, err := cli.query("GETFORWARDER " + Marshal(forwarder))
+	res, err := cli.Query("GETFORWARDER", forwarder)
 	if err != nil {
 		return "", err
+	}
+
+	if s, ok := res.(string); ok {
+		return s, nil
 	}
 	return fmt.Sprint(res), nil
 }
 
 // ListForwarders возвращает список всех Forwarders в указанном домене.
 func (cli *Cli) ListForwarders(domain string) ([]string, error) {
-	parts := []string{"LISTFORWARDERS"}
+	// Используем make для сохранения линейной структуры кода
+	args := make([]any, 0, 2)
+	args = append(args, "LISTFORWARDERS")
 	if domain != "" {
-		parts = append(parts, Marshal(domain))
+		args = append(args, domain)
 	}
 
-	var res any
-	var err error
-	if len(parts) > 1 {
-		res, err = cli.query(strings.Join(parts, " "))
-	} else {
-		res, err = cli.query(parts[0])
-	}
-
+	res, err := cli.Query(args...)
 	if err != nil {
 		return nil, err
 	}
 
-	raw, ok := res.([]any)
-	if !ok {
-		return []string{}, nil
-	}
-
-	list := make([]string, len(raw))
-	for i, v := range raw {
-		list[i] = fmt.Sprint(v)
-	}
-	return list, nil
+	return cli.toStringSlice(res), nil
 }
 
 // RenameForwarder переименовывает Forwarder.
@@ -95,7 +72,24 @@ func (cli *Cli) RenameForwarder(oldName, newName string) error {
 	if oldName == "" || newName == "" {
 		return fmt.Errorf("both old and new forwarder names are required")
 	}
-	parts := []string{"RENAMEFORWARDER", Marshal(oldName), "INTO", Marshal(newName)}
-	_, err := cli.query(strings.Join(parts, " "))
+	_, err := cli.Query("RENAMEFORWARDER", oldName, "INTO", newName)
 	return err
+}
+
+// toStringSlice — вспомогательный метод для эффективного приведения типов
+func (cli *Cli) toStringSlice(v any) []string {
+	raw, ok := v.([]any)
+	if !ok {
+		return []string{}
+	}
+
+	list := make([]string, len(raw))
+	for i, item := range raw {
+		if s, ok := item.(string); ok {
+			list[i] = s
+		} else {
+			list[i] = fmt.Sprint(item)
+		}
+	}
+	return list
 }

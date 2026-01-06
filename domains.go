@@ -3,7 +3,6 @@ package cgpcli
 import (
 	"fmt"
 	"strconv"
-	"strings"
 )
 
 // -----------------------------------------------------------------------------
@@ -28,93 +27,48 @@ type DomainObject struct {
 
 type DomainObjectsResult struct {
 	Objects map[string]DomainObject
-	Total   int
 	Cookie  string
 }
 
-type DomainSetResult struct {
-	Items map[string]string
-	Total int
-}
-
 // -----------------------------------------------------------------------------
-// Methods (Alphabetical Order)
+// Methods
 // -----------------------------------------------------------------------------
 
 func (cli *Cli) CreateAccountStorage(domain, storage string) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
+	if domain == "" || storage == "" {
+		return fmt.Errorf("domain and storage path are required")
 	}
-	if storage == "" {
-		return fmt.Errorf("storage path is required")
-	}
-	parts := []string{"CREATEACCOUNTSTORAGE", Marshal(domain), "PATH", Marshal(storage)}
-	_, err := cli.query(strings.Join(parts, " "))
+	_, err := cli.Query("CREATEACCOUNTSTORAGE", domain, "PATH", storage)
 	return err
 }
 
 func (cli *Cli) DeleteDirectoryRecords(domain string) error {
-	parts := []string{"DELETEDIRECTORYRECORDS"}
+	args := make([]any, 0, 2)
+	args = append(args, "DELETEDIRECTORYRECORDS")
 	if domain != "" {
-		parts = append(parts, Marshal(domain))
+		args = append(args, domain)
 	}
-	_, err := cli.query(strings.Join(parts, " "))
+	_, err := cli.Query(args...)
 	return err
 }
 
 func (cli *Cli) GetAccountDefaults(domain string) (map[string]any, error) {
-	parts := []string{"GETACCOUNTDEFAULTS"}
-	if domain != "" {
-		parts = append(parts, Marshal(domain))
-	}
-	res, err := cli.query(strings.Join(parts, " "))
-	if err != nil {
-		return nil, err
-	}
-	defaults, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("GETACCOUNTDEFAULTS: expected map, got %T", res)
-	}
-	return defaults, nil
+	return cli.getSettingsMapAlt("GETACCOUNTDEFAULTS", domain)
 }
 
 func (cli *Cli) GetAccountDefaultPrefs(domain string) (map[string]any, error) {
-	parts := []string{"GETACCOUNTDEFAULTPREFS"}
-	if domain != "" {
-		parts = append(parts, Marshal(domain))
-	}
-	res, err := cli.query(strings.Join(parts, " "))
-	if err != nil {
-		return nil, err
-	}
-	prefs, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("GETACCOUNTDEFAULTPREFS: expected map, got %T", res)
-	}
-	return prefs, nil
+	return cli.getSettingsMapAlt("GETACCOUNTDEFAULTPREFS", domain)
 }
 
 func (cli *Cli) GetAccountTemplate(domain string) (map[string]any, error) {
-	parts := []string{"GETACCOUNTTEMPLATE"}
-	if domain != "" {
-		parts = append(parts, Marshal(domain))
-	}
-	res, err := cli.query(strings.Join(parts, " "))
-	if err != nil {
-		return nil, err
-	}
-	template, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("GETACCOUNTTEMPLATE: expected map, got %T", res)
-	}
-	return template, nil
+	return cli.getSettingsMapAlt("GETACCOUNTTEMPLATE", domain)
 }
 
 func (cli *Cli) GetDomainAliases(domain string) ([]string, error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain name is required")
 	}
-	res, err := cli.query("GETDOMAINALIASES " + Marshal(domain))
+	res, err := cli.Query("GETDOMAINALIASES", domain)
 	if err != nil {
 		return nil, err
 	}
@@ -122,11 +76,12 @@ func (cli *Cli) GetDomainAliases(domain string) ([]string, error) {
 	if !ok {
 		return []string{}, nil
 	}
+
 	aliases := make([]string, 0, len(raw))
 	for _, v := range raw {
-		s, ok := v.(string)
+		s, ok := cli.asString(v)
 		if !ok {
-			s = fmt.Sprint(v)
+			return nil, fmt.Errorf("GETDOMAINALIASES: unexpected element type %T", v)
 		}
 		aliases = append(aliases, s)
 	}
@@ -134,27 +89,11 @@ func (cli *Cli) GetDomainAliases(domain string) ([]string, error) {
 }
 
 func (cli *Cli) GetDomainEffectiveSettings(domain string) (map[string]any, error) {
-	parts := []string{"GETDOMAINEFFECTIVESETTINGS"}
-	if domain != "" {
-		parts = append(parts, Marshal(domain))
-	}
-	res, err := cli.query(strings.Join(parts, " "))
-	if err != nil {
-		return nil, err
-	}
-	settings, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("GETDOMAINEFFECTIVESETTINGS: expected map, got %T", res)
-	}
-	return settings, nil
+	return cli.getSettingsMapAlt("GETDOMAINEFFECTIVESETTINGS", domain)
 }
 
 func (cli *Cli) GetDomainLocation(domain string) (string, error) {
-	parts := []string{"GETDOMAINLOCATION"}
-	if domain != "" {
-		parts = append(parts, Marshal(domain))
-	}
-	res, err := cli.query(strings.Join(parts, " "))
+	res, err := cli.getDomainData("GETDOMAINLOCATION", domain)
 	if err != nil {
 		return "", err
 	}
@@ -166,74 +105,37 @@ func (cli *Cli) GetDomainLocation(domain string) (string, error) {
 }
 
 func (cli *Cli) GetDomainMailRules(domain string) ([]any, error) {
-	if domain == "" {
-		return nil, fmt.Errorf("domain name is required")
-	}
-	res, err := cli.query("GETDOMAINMAILRULES " + Marshal(domain))
-	if err != nil {
-		return nil, err
-	}
-	rules, ok := res.([]any)
-	if !ok {
-		return make([]any, 0), nil
-	}
-	return rules, nil
+	return cli.getRules("GETDOMAINMAILRULES", domain)
 }
 
 func (cli *Cli) GetDomainSettings(domain string) (map[string]any, error) {
-	parts := []string{"GETDOMAINSETTINGS"}
-	if domain != "" {
-		parts = append(parts, Marshal(domain))
-	}
-	res, err := cli.query(strings.Join(parts, " "))
-	if err != nil {
-		return nil, err
-	}
-	settings, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("GETDOMAINSETTINGS: expected map, got %T", res)
-	}
-	return settings, nil
+	return cli.getSettingsMapAlt("GETDOMAINSETTINGS", domain)
 }
 
 func (cli *Cli) GetDomainSignalRules(domain string) ([]any, error) {
-	if domain == "" {
-		return nil, fmt.Errorf("domain name is required")
-	}
-	res, err := cli.query("GETDOMAINSIGNALRULES " + Marshal(domain))
-	if err != nil {
-		return nil, err
-	}
-	rules, ok := res.([]any)
-	if !ok {
-		return make([]any, 0), nil
-	}
-	return rules, nil
+	return cli.getRules("GETDOMAINSIGNALRULES", domain)
 }
 
 func (cli *Cli) InsertDirectoryRecords(domain string) error {
-	parts := []string{"INSERTDIRECTORYRECORDS"}
+	args := make([]any, 0, 2)
+	args = append(args, "INSERTDIRECTORYRECORDS")
 	if domain != "" {
-		parts = append(parts, Marshal(domain))
+		args = append(args, domain)
 	}
-	_, err := cli.query(strings.Join(parts, " "))
+	_, err := cli.Query(args...)
 	return err
 }
 
 func (cli *Cli) ListAccounts(domain string) (map[string]string, error) {
-	parts := []string{"LISTACCOUNTS"}
-	if domain != "" {
-		parts = append(parts, Marshal(domain))
-	}
-	res, err := cli.query(strings.Join(parts, " "))
+	res, err := cli.getDomainData("LISTACCOUNTS", domain)
 	if err != nil {
 		return nil, err
 	}
+	if res == nil {
+		return make(map[string]string), nil
+	}
 	dict, ok := res.(map[string]any)
 	if !ok {
-		if res == nil {
-			return make(map[string]string), nil
-		}
 		return nil, fmt.Errorf("LISTACCOUNTS unexpected response type: %T", res)
 	}
 	accounts := make(map[string]string, len(dict))
@@ -251,20 +153,17 @@ func (cli *Cli) ListAccountStorage(domain string) ([]string, error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain name is required")
 	}
-
-	res, err := cli.query("LISTACCOUNTSTORAGE " + Marshal(domain))
+	res, err := cli.Query("LISTACCOUNTSTORAGE", domain)
 	if err != nil {
 		return nil, err
 	}
-
+	if res == nil {
+		return []string{}, nil
+	}
 	raw, ok := res.([]any)
 	if !ok {
-		if res == nil {
-			return []string{}, nil
-		}
 		return nil, fmt.Errorf("LISTACCOUNTSTORAGE unexpected response type: %T", res)
 	}
-
 	storages := make([]string, 0, len(raw))
 	for _, v := range raw {
 		s, ok := v.(string)
@@ -273,21 +172,14 @@ func (cli *Cli) ListAccountStorage(domain string) ([]string, error) {
 		}
 		storages = append(storages, s)
 	}
-
 	return storages, nil
 }
 
 func (cli *Cli) ListAdminDomains(domain string) ([]string, error) {
-	parts := []string{"LISTADMINDOMAINS"}
-	if domain != "" {
-		parts = append(parts, Marshal(domain))
-	}
-
-	res, err := cli.query(strings.Join(parts, " "))
+	res, err := cli.getDomainData("LISTADMINDOMAINS", domain)
 	if err != nil {
 		return nil, err
 	}
-
 	raw, ok := res.([]any)
 	if !ok {
 		return []string{}, nil
@@ -295,47 +187,55 @@ func (cli *Cli) ListAdminDomains(domain string) ([]string, error) {
 
 	domains := make([]string, 0, len(raw))
 	for _, v := range raw {
-		s, ok := v.(string)
+		s, ok := cli.asString(v)
 		if !ok {
-			s = fmt.Sprint(v)
+			return nil, fmt.Errorf("LISTADMINDOMAINS: unexpected element type %T", v)
 		}
 		domains = append(domains, s)
 	}
-
 	return domains, nil
 }
 
-func (cli *Cli) ListDomainObjects(domainName string, limit int, filter string, what ObjectType, cookie string) (*DomainObjectsResult, error) {
-	parts := []string{"LISTDOMAINOBJECTS", Marshal(domainName)}
+func (cli *Cli) ListDomainObjects(domain string, limit int, filter string, what ObjectType, cookie string) (*DomainObjectsResult, error) {
+	args := make([]any, 0, 8)
+	args = append(args, "LISTDOMAINOBJECTS", domain)
 	if filter != "" {
-		parts = append(parts, "FILTER", Marshal(filter))
+		args = append(args, "FILTER", filter)
 	}
-	parts = append(parts, strconv.Itoa(limit))
-	if what != 0 {
-		parts = append(parts, what.ToCGPString())
-	}
-	parts = append(parts, "COOKIE", Marshal(cookie))
+	args = append(args, limit)
 
-	res, err := cli.query(strings.Join(parts, " "))
+	if what&TypeAccount != 0 {
+		args = append(args, "ACCOUNTS")
+	}
+	if what&TypeAlias != 0 {
+		args = append(args, "ALIASES")
+	}
+	if what&TypeForwarder != 0 {
+		args = append(args, "FORWARDERS")
+	}
+
+	// Всегда передаем COOKIE для фиксации структуры ответа (5 элементов)
+	args = append(args, "COOKIE", cookie)
+
+	res, err := cli.Query(args...)
 	if err != nil {
 		return nil, err
 	}
 
 	raw, ok := res.([]any)
-	if !ok || len(raw) < 5 {
-		return nil, fmt.Errorf("LISTDOMAINOBJECTS: unexpected response format")
+	if !ok || len(raw) < 4 {
+		return nil, fmt.Errorf("LISTDOMAINOBJECTS: unexpected response format (len=%d)", len(raw))
 	}
 
 	result := &DomainObjectsResult{
 		Objects: make(map[string]DomainObject),
-		Cookie:  fmt.Sprint(raw[4]),
 	}
 
-	switch v := raw[0].(type) {
-	case int64:
-		result.Total = int(v)
-	case string:
-		result.Total, _ = strconv.Atoi(v)
+	// Извлекаем Cookie (5-й элемент), только если он физически присутствует
+	if len(raw) >= 5 {
+		if c, ok := raw[4].(string); ok {
+			result.Cookie = c
+		}
 	}
 
 	items, ok := raw[1].(map[string]any)
@@ -351,18 +251,16 @@ func (cli *Cli) ListDomainObjects(domainName string, limit int, filter string, w
 			obj.Subtype = v
 		case []any:
 			if len(v) > 0 {
+				// Forwarder: [[address]]
 				if first, isSlice := v[0].([]any); isSlice {
 					obj.Type = TypeForwarder
 					obj.Subtype = "forwarder"
-					for _, addr := range first {
-						obj.Targets = append(obj.Targets, fmt.Sprint(addr))
-					}
+					obj.Targets = cli.toStrictStringSlice(first)
 				} else {
+					// Alias: [owner]
 					obj.Type = TypeAlias
 					obj.Subtype = "alias"
-					for _, addr := range v {
-						obj.Targets = append(obj.Targets, fmt.Sprint(addr))
-					}
+					obj.Targets = cli.toStrictStringSlice(v)
 				}
 			}
 		}
@@ -371,170 +269,182 @@ func (cli *Cli) ListDomainObjects(domainName string, limit int, filter string, w
 	return result, nil
 }
 
-func (cli *Cli) ListDomainTelnums(domain, filter string, limit int) (*DomainSetResult, error) {
+func (cli *Cli) ListDomainTelnums(domain, filter string, limit int) (map[string]string, error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain name is required")
 	}
-	parts := []string{"LISTDOMAINTELNUMS", Marshal(domain)}
+	args := make([]any, 0, 5)
+	args = append(args, "LISTDOMAINTELNUMS", domain)
 	if filter != "" {
-		parts = append(parts, "FILTER", Marshal(filter))
+		args = append(args, "FILTER", filter)
 	}
-	parts = append(parts, strconv.Itoa(limit))
-	return cli.parseDomainSet(strings.Join(parts, " "))
+	args = append(args, limit)
+
+	res, err := cli.Query(args...)
+	if err != nil {
+		return nil, err
+	}
+
+	dict, ok := res.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("LISTDOMAINTELNUMS: expected map, got %T", res)
+	}
+
+	items := make(map[string]string, len(dict))
+	for k, v := range dict {
+		if k == "" {
+			continue // Пропускаем счетчик CGP
+		}
+		if s, ok := cli.asString(v); ok {
+			items[k] = s
+		}
+	}
+	return items, nil
 }
 
 func (cli *Cli) ResumeDomain(domain string) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
-	}
-	_, err := cli.query("RESUMEDOMAIN " + Marshal(domain))
+	_, err := cli.Query("RESUMEDOMAIN", domain)
 	return err
 }
 
-func (cli *Cli) SetAccountDefaults(domain string, settings map[string]any) error {
-	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
-	}
-	parts := []string{"SETACCOUNTDEFAULTS"}
-	if domain != "" {
-		parts = append(parts, Marshal(domain))
-	}
-	parts = append(parts, Marshal(settings))
-	_, err := cli.query(strings.Join(parts, " "))
-	return err
+func (cli *Cli) SetAccountDefaults(domain string, s map[string]any) error {
+	return cli.domSet("SETACCOUNTDEFAULTS", domain, s)
 }
 
-func (cli *Cli) SetAccountDefaultPrefs(domain string, settings map[string]any) error {
-	if settings == nil {
-		return fmt.Errorf("settings map is required")
-	}
-	parts := []string{"SETACCOUNTDEFAULTPREFS"}
-	if domain != "" {
-		parts = append(parts, Marshal(domain))
-	}
-	parts = append(parts, Marshal(settings))
-	_, err := cli.query(strings.Join(parts, " "))
-	return err
+func (cli *Cli) SetAccountDefaultPrefs(domain string, s map[string]any) error {
+	return cli.domSet("SETACCOUNTDEFAULTPREFS", domain, s)
 }
 
-func (cli *Cli) SetAccountTemplate(domain string, settings map[string]any) error {
-	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
-	}
-	parts := []string{"SETACCOUNTTEMPLATE"}
-	if domain != "" {
-		parts = append(parts, Marshal(domain))
-	}
-	parts = append(parts, Marshal(settings))
-	_, err := cli.query(strings.Join(parts, " "))
-	return err
+func (cli *Cli) SetAccountTemplate(domain string, s map[string]any) error {
+	return cli.domSet("SETACCOUNTTEMPLATE", domain, s)
 }
 
 func (cli *Cli) SetDomainAliases(domain string, aliases []string) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
-	}
-	parts := []string{"SETDOMAINALIASES", Marshal(domain), Marshal(aliases)}
-	_, err := cli.query(strings.Join(parts, " "))
+	_, err := cli.Query("SETDOMAINALIASES", domain, aliases)
 	return err
 }
 
 func (cli *Cli) SetDomainMailRules(domain string, rules []any) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
-	}
-	if rules == nil {
-		return fmt.Errorf("rules array is required")
-	}
-	parts := []string{"SETDOMAINMAILRULES", Marshal(domain), Marshal(rules)}
-	_, err := cli.query(strings.Join(parts, " "))
+	_, err := cli.Query("SETDOMAINMAILRULES", domain, rules)
 	return err
 }
 
 func (cli *Cli) SetDomainSettings(domain string, settings map[string]any) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
-	}
-	parts := []string{"SETDOMAINSETTINGS", Marshal(domain), Marshal(settings)}
-	_, err := cli.query(strings.Join(parts, " "))
+	_, err := cli.Query("SETDOMAINSETTINGS", domain, settings)
 	return err
 }
 
 func (cli *Cli) SetDomainSignalRules(domain string, rules []any) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
-	}
-	if rules == nil {
-		return fmt.Errorf("rules array is required")
-	}
-	parts := []string{"SETDOMAINSIGNALRULES", Marshal(domain), Marshal(rules)}
-	_, err := cli.query(strings.Join(parts, " "))
+	_, err := cli.Query("SETDOMAINSIGNALRULES", domain, rules)
 	return err
 }
 
 func (cli *Cli) SuspendDomain(domain string) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
-	}
-	_, err := cli.query("SUSPENDDOMAIN " + Marshal(domain))
+	_, err := cli.Query("SUSPENDDOMAIN", domain)
 	return err
 }
 
-func (cli *Cli) UpdateAccountDefaults(domain string, settings map[string]any) error {
-	if settings == nil {
-		return fmt.Errorf("settings map is required")
-	}
-	parts := []string{"UPDATEACCOUNTDEFAULTS"}
-	if domain != "" {
-		parts = append(parts, Marshal(domain))
-	}
-	parts = append(parts, Marshal(settings))
-	_, err := cli.query(strings.Join(parts, " "))
-	return err
+func (cli *Cli) UpdateAccountDefaults(domain string, s map[string]any) error {
+	return cli.domSet("UPDATEACCOUNTDEFAULTS", domain, s)
 }
 
-func (cli *Cli) UpdateAccountDefaultPrefs(domain string, settings map[string]any) error {
-	if settings == nil {
-		return fmt.Errorf("settings map is required")
-	}
-	parts := []string{"UPDATEACCOUNTDEFAULTPREFS"}
-	if domain != "" {
-		parts = append(parts, Marshal(domain))
-	}
-	parts = append(parts, Marshal(settings))
-	_, err := cli.query(strings.Join(parts, " "))
-	return err
+func (cli *Cli) UpdateAccountDefaultPrefs(domain string, s map[string]any) error {
+	return cli.domSet("UPDATEACCOUNTDEFAULTPREFS", domain, s)
 }
 
-func (cli *Cli) UpdateAccountTemplate(domain string, settings map[string]any) error {
-	if settings == nil {
-		return fmt.Errorf("settings map is required")
-	}
-	parts := []string{"UPDATEACCOUNTTEMPLATE"}
-	if domain != "" {
-		parts = append(parts, Marshal(domain))
-	}
-	parts = append(parts, Marshal(settings))
-	_, err := cli.query(strings.Join(parts, " "))
-	return err
+func (cli *Cli) UpdateAccountTemplate(domain string, s map[string]any) error {
+	return cli.domSet("UPDATEACCOUNTTEMPLATE", domain, s)
 }
 
 func (cli *Cli) UpdateDomainSettings(domain string, settings map[string]any) error {
 	if settings == nil {
 		return nil
 	}
-	parts := []string{"UPDATEDOMAINSETTINGS"}
+	args := make([]any, 0, 3)
+	args = append(args, "UPDATEDOMAINSETTINGS")
 	if domain != "" {
-		parts = append(parts, Marshal(domain))
+		args = append(args, domain)
 	}
-	parts = append(parts, Marshal(settings))
-	_, err := cli.query(strings.Join(parts, " "))
+	args = append(args, settings)
+	_, err := cli.Query(args...)
 	return err
 }
 
 // -----------------------------------------------------------------------------
-// Helpers / Extended API
+// Helpers / Internal
 // -----------------------------------------------------------------------------
+
+func (cli *Cli) asString(v any) (string, bool) {
+	switch val := v.(type) {
+	case string:
+		return val, true
+	case int64:
+		return strconv.FormatInt(val, 10), true
+	case int:
+		return strconv.Itoa(val), true
+	default:
+		return "", false
+	}
+}
+
+func (cli *Cli) toStrictStringSlice(raw []any) []string {
+	res := make([]string, 0, len(raw))
+	for _, v := range raw {
+		if s, ok := cli.asString(v); ok {
+			res = append(res, s)
+		}
+	}
+	return res
+}
+
+func (cli *Cli) getDomainData(cmd, domain string) (any, error) {
+	args := make([]any, 0, 2)
+	args = append(args, cmd)
+	if domain != "" {
+		args = append(args, domain)
+	}
+	return cli.Query(args...)
+}
+
+func (cli *Cli) getSettingsMapAlt(cmd, domain string) (map[string]any, error) {
+	res, err := cli.getDomainData(cmd, domain)
+	if err != nil {
+		return nil, err
+	}
+	dict, ok := res.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
+	}
+	return dict, nil
+}
+
+func (cli *Cli) domSet(cmd, domain string, settings map[string]any) error {
+	if settings == nil {
+		return fmt.Errorf("settings dictionary is required")
+	}
+	args := make([]any, 0, 3)
+	args = append(args, cmd)
+	if domain != "" {
+		args = append(args, domain)
+	}
+	args = append(args, settings)
+	_, err := cli.Query(args...)
+	return err
+}
+
+func (cli *Cli) getRules(cmd, domain string) ([]any, error) {
+	if domain == "" {
+		return nil, fmt.Errorf("domain name is required")
+	}
+	res, err := cli.Query(cmd, domain)
+	if err != nil {
+		return nil, err
+	}
+	if rules, ok := res.([]any); ok {
+		return rules, nil
+	}
+	return []any{}, nil
+}
 
 func (cli *Cli) IsDomainExists(domain string) (bool, error) {
 	location, err := cli.GetDomainLocation(domain)
@@ -544,36 +454,16 @@ func (cli *Cli) IsDomainExists(domain string) (bool, error) {
 	return location != "", nil
 }
 
-func (cli *Cli) parseDomainSet(cmd string) (*DomainSetResult, error) {
-	res, err := cli.query(cmd)
-	if err != nil {
-		return nil, err
+func (cli *Cli) toInt(v any) int {
+	switch val := v.(type) {
+	case int:
+		return val
+	case int64:
+		return int(val)
+	case string:
+		i, _ := strconv.Atoi(val)
+		return i
+	default:
+		return 0
 	}
-	dict, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("parseDomainSet: expected dictionary, got %T", res)
-	}
-	result := &DomainSetResult{Items: make(map[string]string)}
-	for k, v := range dict {
-		if k == "" {
-			result.Total, _ = strconv.Atoi(fmt.Sprint(v))
-			continue
-		}
-		result.Items[k] = fmt.Sprint(v)
-	}
-	return result, nil
-}
-
-func (t ObjectType) ToCGPString() string {
-	var parts []string
-	if t&TypeAccount != 0 {
-		parts = append(parts, "ACCOUNTS")
-	}
-	if t&TypeAlias != 0 {
-		parts = append(parts, "ALIASES")
-	}
-	if t&TypeForwarder != 0 {
-		parts = append(parts, "FORWARDERS")
-	}
-	return strings.Join(parts, " ")
 }

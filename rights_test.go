@@ -21,8 +21,8 @@ func TestAccountRights(t *testing.T) {
 	// Создаем временного "админа" для теста
 	domain := "test.domain.name"
 	testAcc := fmt.Sprintf("test-admin-%d@%s", time.Now().Unix(), domain)
-	
-	err = cli.CreateAccount(testAcc, nil)
+
+	err = cli.CreateAccount(testAcc, nil, MultiMailbox, "", false)
 	if err != nil {
 		t.Fatalf("Failed to create test account: %v", err)
 	}

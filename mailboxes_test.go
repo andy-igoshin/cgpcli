@@ -14,7 +14,7 @@ func TestMailboxes(t *testing.T) {
 	if host == "" {
 		t.Skip("Sandbox environment (CGPHOST) not configured")
 	}
-	
+
 	cli, err := New(host, user, pass, APOP, false)
 	if err != nil {
 		t.Fatalf("Connect failed: %v", err)
@@ -51,7 +51,7 @@ func TestMailboxes(t *testing.T) {
 		if err := cli.SetMailboxACL(testAcc, mbox, "", map[string]string{"anyone": "+r"}); err != nil {
 			t.Errorf("Incremental ACL update failed: %v", err)
 		}
-		
+
 		rights, err := cli.GetMailboxRights(testAcc, mbox, "anyone")
 		if err != nil {
 			t.Errorf("GetRights failed: %v", err)
@@ -120,13 +120,13 @@ func TestMailboxesRO(t *testing.T) {
 	if host == "" {
 		t.Skip("RO environment (CGPHOST_RO) not set")
 	}
-	
+
 	cli, err := New(host, os.Getenv("CGPUSER_RO"), os.Getenv("CGPPASS_RO"), APOP, false)
 	if err != nil {
 		t.Fatalf("RO Connect failed: %v", err)
 	}
 	defer cli.Logout()
-	
+
 	target := os.Getenv("USER_RO")
 
 	t.Run("ListAndInfo", func(t *testing.T) {

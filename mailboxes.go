@@ -2,7 +2,6 @@ package cgpcli
 
 import (
 	"fmt"
-	"strings"
 )
 
 // CreateMailbox создает новый почтовый ящик.
@@ -10,14 +9,17 @@ func (cli *Cli) CreateMailbox(account, mailbox, class, authAccount string) error
 	if account == "" || mailbox == "" {
 		return fmt.Errorf("account and mailbox names are required")
 	}
-	parts := []string{"CREATEMAILBOX", Marshal(account), "MAILBOX", Marshal(mailbox)}
+
+	args := make([]any, 0, 8)
+	args = append(args, "CREATEMAILBOX", account, "MAILBOX", mailbox)
 	if class != "" {
-		parts = append(parts, "CLASS", Marshal(class))
+		args = append(args, "CLASS", class)
 	}
 	if authAccount != "" {
-		parts = append(parts, "AUTH", Marshal(authAccount))
+		args = append(args, "AUTH", authAccount)
 	}
-	_, err := cli.query(strings.Join(parts, " "))
+
+	_, err := cli.Query(args...)
 	return err
 }
 
@@ -26,15 +28,19 @@ func (cli *Cli) DeleteMailbox(account, mailbox string, recursive bool, authAccou
 	if account == "" || mailbox == "" {
 		return fmt.Errorf("account and mailbox names are required")
 	}
+
 	keyword := "MAILBOX"
 	if recursive {
 		keyword = "MAILBOXES"
 	}
-	parts := []string{"DELETEMAILBOX", Marshal(account), keyword, Marshal(mailbox)}
+
+	args := make([]any, 0, 6)
+	args = append(args, "DELETEMAILBOX", account, keyword, mailbox)
 	if authAccount != "" {
-		parts = append(parts, "AUTH", Marshal(authAccount))
+		args = append(args, "AUTH", authAccount)
 	}
-	_, err := cli.query(strings.Join(parts, " "))
+
+	_, err := cli.Query(args...)
 	return err
 }
 
@@ -43,21 +49,30 @@ func (cli *Cli) GetMailboxACL(account, mailbox, authAccount string) (map[string]
 	if account == "" || mailbox == "" {
 		return nil, fmt.Errorf("account and mailbox names are required")
 	}
-	parts := []string{"GETMAILBOXACL", Marshal(account), "MAILBOX", Marshal(mailbox)}
+
+	args := make([]any, 0, 6)
+	args = append(args, "GETMAILBOXACL", account, "MAILBOX", mailbox)
 	if authAccount != "" {
-		parts = append(parts, "AUTH", Marshal(authAccount))
+		args = append(args, "AUTH", authAccount)
 	}
-	res, err := cli.query(strings.Join(parts, " "))
+
+	res, err := cli.Query(args...)
 	if err != nil {
 		return nil, err
 	}
+
 	dict, ok := res.(map[string]any)
 	if !ok {
 		return map[string]string{}, nil
 	}
+
 	acl := make(map[string]string, len(dict))
 	for k, v := range dict {
-		acl[k] = fmt.Sprint(v)
+		if s, ok := v.(string); ok {
+			acl[k] = s
+		} else {
+			acl[k] = fmt.Sprint(v)
+		}
 	}
 	return acl, nil
 }
@@ -67,17 +82,24 @@ func (cli *Cli) GetMailboxAliases(account string) (map[string]string, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
-	res, err := cli.query("GETMAILBOXALIASES " + Marshal(account))
+
+	res, err := cli.Query("GETMAILBOXALIASES", account)
 	if err != nil {
 		return nil, err
 	}
+
 	dict, ok := res.(map[string]any)
 	if !ok {
 		return map[string]string{}, nil
 	}
+
 	aliases := make(map[string]string, len(dict))
 	for k, v := range dict {
-		aliases[k] = fmt.Sprint(v)
+		if s, ok := v.(string); ok {
+			aliases[k] = s
+		} else {
+			aliases[k] = fmt.Sprint(v)
+		}
 	}
 	return aliases, nil
 }
@@ -87,14 +109,18 @@ func (cli *Cli) GetMailboxInfo(account, mailbox, authAccount string) (map[string
 	if account == "" || mailbox == "" {
 		return nil, fmt.Errorf("account and mailbox names are required")
 	}
-	parts := []string{"GETMAILBOXINFO", Marshal(account), "MAILBOX", Marshal(mailbox)}
+
+	args := make([]any, 0, 6)
+	args = append(args, "GETMAILBOXINFO", account, "MAILBOX", mailbox)
 	if authAccount != "" {
-		parts = append(parts, "AUTH", Marshal(authAccount))
+		args = append(args, "AUTH", authAccount)
 	}
-	res, err := cli.query(strings.Join(parts, " "))
+
+	res, err := cli.Query(args...)
 	if err != nil {
 		return nil, err
 	}
+
 	dict, ok := res.(map[string]any)
 	if !ok {
 		return map[string]any{}, nil
@@ -107,10 +133,14 @@ func (cli *Cli) GetMailboxRights(account, mailbox, authAccount string) (string, 
 	if account == "" || mailbox == "" || authAccount == "" {
 		return "", fmt.Errorf("account, mailbox and authAccount names are required")
 	}
-	parts := []string{"GETMAILBOXRIGHTS", Marshal(account), "MAILBOX", Marshal(mailbox), "AUTH", Marshal(authAccount)}
-	res, err := cli.query(strings.Join(parts, " "))
+
+	res, err := cli.Query("GETMAILBOXRIGHTS", account, "MAILBOX", mailbox, "AUTH", authAccount)
 	if err != nil {
 		return "", err
+	}
+
+	if s, ok := res.(string); ok {
+		return s, nil
 	}
 	return fmt.Sprint(res), nil
 }
@@ -120,19 +150,13 @@ func (cli *Cli) GetMailboxSubscription(account string) ([]string, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
-	res, err := cli.query("GETMAILBOXSUBSCRIPTION " + Marshal(account))
+
+	res, err := cli.Query("GETMAILBOXSUBSCRIPTION", account)
 	if err != nil {
 		return nil, err
 	}
-	raw, ok := res.([]any)
-	if !ok {
-		return []string{}, nil
-	}
-	list := make([]string, len(raw))
-	for i, v := range raw {
-		list[i] = fmt.Sprint(v)
-	}
-	return list, nil
+
+	return cli.toStringSlice(res), nil
 }
 
 // ListMailboxes возвращает дерево ящиков аккаунта с метаданными.
@@ -140,17 +164,21 @@ func (cli *Cli) ListMailboxes(account, filter, authAccount string) (map[string]a
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
-	parts := []string{"LISTMAILBOXES", Marshal(account)}
+
+	args := make([]any, 0, 6)
+	args = append(args, "LISTMAILBOXES", account)
 	if filter != "" {
-		parts = append(parts, "FILTER", Marshal(filter))
+		args = append(args, "FILTER", filter)
 	}
 	if authAccount != "" {
-		parts = append(parts, "AUTH", Marshal(authAccount))
+		args = append(args, "AUTH", authAccount)
 	}
-	res, err := cli.query(strings.Join(parts, " "))
+
+	res, err := cli.Query(args...)
 	if err != nil {
 		return nil, err
 	}
+
 	dict, ok := res.(map[string]any)
 	if !ok {
 		return map[string]any{}, nil
@@ -163,15 +191,19 @@ func (cli *Cli) RenameMailbox(account, oldName, newName string, recursive bool, 
 	if account == "" || oldName == "" || newName == "" {
 		return fmt.Errorf("account, old and new names are required")
 	}
+
 	keyword := "MAILBOX"
 	if recursive {
 		keyword = "MAILBOXES"
 	}
-	parts := []string{"RENAMEMAILBOX", Marshal(account), keyword, Marshal(oldName), "INTO", Marshal(newName)}
+
+	args := make([]any, 0, 8)
+	args = append(args, "RENAMEMAILBOX", account, keyword, oldName, "INTO", newName)
 	if authAccount != "" {
-		parts = append(parts, "AUTH", Marshal(authAccount))
+		args = append(args, "AUTH", authAccount)
 	}
-	_, err := cli.query(strings.Join(parts, " "))
+
+	_, err := cli.Query(args...)
 	return err
 }
 
@@ -180,12 +212,15 @@ func (cli *Cli) SetMailboxACL(account, mailbox, authAccount string, newACL map[s
 	if account == "" || mailbox == "" || len(newACL) == 0 {
 		return fmt.Errorf("account, mailbox and non-empty newACL are required")
 	}
-	parts := []string{"SETMAILBOXACL", Marshal(account), "MAILBOX", Marshal(mailbox)}
+
+	args := make([]any, 0, 8)
+	args = append(args, "SETMAILBOXACL", account, "MAILBOX", mailbox)
 	if authAccount != "" {
-		parts = append(parts, "AUTH", Marshal(authAccount))
+		args = append(args, "AUTH", authAccount)
 	}
-	parts = append(parts, Marshal(newACL))
-	_, err := cli.query(strings.Join(parts, " "))
+	args = append(args, newACL)
+
+	_, err := cli.Query(args...)
 	return err
 }
 
@@ -194,8 +229,8 @@ func (cli *Cli) SetMailboxAliases(account string, newAliases map[string]string) 
 	if account == "" {
 		return fmt.Errorf("account name is required")
 	}
-	parts := []string{"SETMAILBOXALIASES", Marshal(account), Marshal(newAliases)}
-	_, err := cli.query(strings.Join(parts, " "))
+
+	_, err := cli.Query("SETMAILBOXALIASES", account, newAliases)
 	return err
 }
 
@@ -204,12 +239,15 @@ func (cli *Cli) SetMailboxClass(account, mailbox, newClass, authAccount string) 
 	if account == "" || mailbox == "" || newClass == "" {
 		return fmt.Errorf("account, mailbox and newClass are required")
 	}
-	parts := []string{"SETMAILBOXCLASS", Marshal(account), "MAILBOX", Marshal(mailbox)}
+
+	args := make([]any, 0, 8)
+	args = append(args, "SETMAILBOXCLASS", account, "MAILBOX", mailbox)
 	if authAccount != "" {
-		parts = append(parts, "AUTH", Marshal(authAccount))
+		args = append(args, "AUTH", authAccount)
 	}
-	parts = append(parts, "CLASS", Marshal(newClass))
-	_, err := cli.query(strings.Join(parts, " "))
+	args = append(args, "CLASS", newClass)
+
+	_, err := cli.Query(args...)
 	return err
 }
 
@@ -218,7 +256,7 @@ func (cli *Cli) SetMailboxSubscription(account string, newSub []string) error {
 	if account == "" {
 		return fmt.Errorf("account name is required")
 	}
-	parts := []string{"SETMAILBOXSUBSCRIPTION", Marshal(account), Marshal(newSub)}
-	_, err := cli.query(strings.Join(parts, " "))
+
+	_, err := cli.Query("SETMAILBOXSUBSCRIPTION", account, newSub)
 	return err
 }
