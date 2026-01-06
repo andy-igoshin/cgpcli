@@ -33,7 +33,8 @@ type SignalRule struct {
 	Comment    string `json:"comment,omitempty"`
 }
 
-type Rulable interface {
+type ruleConstraint interface {
+	MailRule | SignalRule
 	ToSlice() []any
 	GetName() string
 }
@@ -58,19 +59,11 @@ func (r SignalRule) ToSlice() []any {
 	return slice
 }
 
-// Вспомогательная функция для приведения слайса (Go требует явного каста для слайсов интерфейсов)
-func castToRulable[T Rulable](rules []T) []Rulable {
-	res := make([]Rulable, len(rules))
-	for i := range rules {
-		res[i] = rules[i]
-	}
-	return res
-}
-
 // Вспомогательный метод для извлечения комментария, если он есть
 func (cli *Cli) getComment(r []any) string {
 	if len(r) > 4 {
-		return fmt.Sprint(r[4])
+		comment, _ := r[4].(string)
+		return comment
 	}
 	return ""
 }
@@ -83,13 +76,15 @@ func (cli *Cli) getMailRules(cmd, subject string) ([]MailRule, error) {
 
 	rules := make([]MailRule, 0, len(raw))
 	for _, r := range raw {
-		rules = append(rules, MailRule{
+		name, _ := r[1].(string)
+		rule := MailRule{
 			Priority:   cli.toInt(r[0]),
-			Name:       fmt.Sprint(r[1]),
+			Name:       name,
 			Conditions: cli.toAnySlice(r[2]),
 			Actions:    cli.toAnySlice(r[3]),
 			Comment:    cli.getComment(r),
-		})
+		}
+		rules = append(rules, rule)
 	}
 	return rules, nil
 }
@@ -103,15 +98,17 @@ func (cli *Cli) getSignalRules(cmd, subject string) ([]SignalRule, error) {
 	rules := make([]SignalRule, 0, len(raw))
 	for _, r := range raw {
 		prio, delay, event := unpackSignalPriority(cli.toInt(r[0]))
-		rules = append(rules, SignalRule{
+		name, _ := r[1].(string)
+		rule := SignalRule{
 			Priority:   prio,
 			Delay:      delay,
 			EventCode:  event,
-			Name:       fmt.Sprint(r[1]),
+			Name:       name,
 			Conditions: cli.toAnySlice(r[2]),
 			Actions:    cli.toAnySlice(r[3]),
 			Comment:    cli.getComment(r),
-		})
+		}
+		rules = append(rules, rule)
 	}
 	return rules, nil
 }
@@ -143,11 +140,10 @@ func (cli *Cli) getRawRules(cmd, subject string) ([][]any, error) {
 	return result, nil
 }
 
-// setRulesGeneric — унифицированный метод для записи списка правил (Mail или Signal).
-func (cli *Cli) setRulesGeneric(cmd, subject string, rules []Rulable) error {
+func setRulesGeneric[T ruleConstraint](cli *Cli, cmd, subject string, rules []T) error {
 	rawRules := make([]any, len(rules))
-	for i, r := range rules {
-		rawRules[i] = r.ToSlice()
+	for i := range rules {
+		rawRules[i] = rules[i].ToSlice()
 	}
 
 	args := make([]any, 0, 3)
@@ -161,8 +157,7 @@ func (cli *Cli) setRulesGeneric(cmd, subject string, rules []Rulable) error {
 	return err
 }
 
-// updateRuleGeneric — унифицированный метод для обновления одного правила.
-func (cli *Cli) updateRuleGeneric(cmd, subject string, rule Rulable) error {
+func updateRuleGeneric[T ruleConstraint](cli *Cli, cmd, subject string, rule T) error {
 	if rule.GetName() == "" {
 		return fmt.Errorf("rule name is required")
 	}
