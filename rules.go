@@ -15,6 +15,10 @@ const (
 	EventNoAnswer = 5 // 500
 )
 
+// -----------------------------------------------------------------------------
+// Types & Interfaces
+// -----------------------------------------------------------------------------
+
 type MailRule struct {
 	Priority   int    `json:"priority"`
 	Name       string `json:"name"`
@@ -59,6 +63,10 @@ func (r SignalRule) ToSlice() []any {
 	return slice
 }
 
+// -----------------------------------------------------------------------------
+// Internal Helpers (Private)
+// -----------------------------------------------------------------------------
+
 func (cli *Cli) getComment(r []any) string {
 	if len(r) > 4 {
 		comment, _ := r[4].(string)
@@ -76,55 +84,27 @@ func (cli *Cli) getMailRules(cmd, subject string) ([]MailRule, error) {
 	rules := make([]MailRule, 0, len(raw))
 	for _, r := range raw {
 		name, _ := r[1].(string)
-		rule := MailRule{
+		rules = append(rules, MailRule{
 			Priority:   cli.toInt(r[0]),
 			Name:       name,
 			Conditions: cli.toAnySlice(r[2]),
 			Actions:    cli.toAnySlice(r[3]),
 			Comment:    cli.getComment(r),
-		}
-		rules = append(rules, rule)
+		})
 	}
 	return rules, nil
 }
 
-func (cli *Cli) getSignalRules(cmd, subject string) ([]SignalRule, error) {
-	raw, err := cli.getRawRules(cmd, subject)
-	if err != nil {
-		return nil, err
-	}
-
-	rules := make([]SignalRule, 0, len(raw))
-	for _, r := range raw {
-		prio, delay, event := unpackSignalPriority(cli.toInt(r[0]))
-		name, _ := r[1].(string)
-		rule := SignalRule{
-			Priority:   prio,
-			Delay:      delay,
-			EventCode:  event,
-			Name:       name,
-			Conditions: cli.toAnySlice(r[2]),
-			Actions:    cli.toAnySlice(r[3]),
-			Comment:    cli.getComment(r),
-		}
-		rules = append(rules, rule)
-	}
-	return rules, nil
-}
-
-// getRawRules — базовый метод для получения сырого списка правил от сервера.
 func (cli *Cli) getRawRules(cmd, subject string) ([][]any, error) {
-	if subject == "" {
-		return nil, fmt.Errorf("parameter is required")
-	}
+	var res any
+	var err error
 
-	args := make([]any, 0, 2)
-	args = append(args, cmd)
 	if subject != "" {
-		args = append(args, Atom(subject))
+		res, err = cli.Query(cmd, Atom(subject))
+	} else {
+		res, err = cli.Query(cmd)
 	}
 
-	res, err := cli.Query(args...)
 	if err != nil {
 		return nil, err
 	}
@@ -143,9 +123,36 @@ func (cli *Cli) getRawRules(cmd, subject string) ([][]any, error) {
 	return result, nil
 }
 
+func (cli *Cli) getSignalRules(cmd, subject string) ([]SignalRule, error) {
+	raw, err := cli.getRawRules(cmd, subject)
+	if err != nil {
+		return nil, err
+	}
+
+	rules := make([]SignalRule, 0, len(raw))
+	for _, r := range raw {
+		prio, delay, event := unpackSignalPriority(cli.toInt(r[0]))
+		name, _ := r[1].(string)
+		rules = append(rules, SignalRule{
+			Priority:   prio,
+			Delay:      delay,
+			EventCode:  event,
+			Name:       name,
+			Conditions: cli.toAnySlice(r[2]),
+			Actions:    cli.toAnySlice(r[3]),
+			Comment:    cli.getComment(r),
+		})
+	}
+	return rules, nil
+}
+
+// -----------------------------------------------------------------------------
+// Generics Logic
+// -----------------------------------------------------------------------------
+
 func setRulesGeneric[T ruleConstraint](cli *Cli, cmd, subject string, rules []T) error {
-	if subject == "" || rules == nil {
-		return fmt.Errorf("parameters are required")
+	if rules == nil {
+		return fmt.Errorf("%s: rules list is required", cmd)
 	}
 
 	rawRules := make([]any, len(rules))
@@ -153,57 +160,47 @@ func setRulesGeneric[T ruleConstraint](cli *Cli, cmd, subject string, rules []T)
 		rawRules[i] = rules[i].ToSlice()
 	}
 
-	args := make([]any, 0, 3)
-	args = append(args, cmd)
+	var err error
 	if subject != "" {
-		args = append(args, Atom(subject))
+		_, err = cli.Query(cmd, Atom(subject), rawRules)
+	} else {
+		_, err = cli.Query(cmd, rawRules)
 	}
-	args = append(args, rawRules)
-
-	_, err := cli.Query(args...)
 	return err
 }
 
 func updateRuleGeneric[T ruleConstraint](cli *Cli, cmd, subject string, rule T) error {
-	if subject == "" {
-		return fmt.Errorf("parameter is required")
-	}
 	if rule.GetName() == "" {
-		return fmt.Errorf("rule name is required")
+		return fmt.Errorf("%s: rule name is required", cmd)
 	}
 
-	args := make([]any, 0, 3)
-	args = append(args, cmd)
+	var err error
 	if subject != "" {
-		args = append(args, Atom(subject))
+		_, err = cli.Query(cmd, Atom(subject), rule.ToSlice())
+	} else {
+		_, err = cli.Query(cmd, rule.ToSlice())
 	}
-	args = append(args, rule.ToSlice())
-
-	_, err := cli.Query(args...)
 	return err
 }
 
-// packSignalPriority упаковывает данные с учетом типа правила (служебное/пользовательское).
+// -----------------------------------------------------------------------------
+// Signal Priority Packing Logic
+// -----------------------------------------------------------------------------
+
 func packSignalPriority(name string, priority int, delay int, eventCode int) int {
 	safePriority := priority % priorityScale
 
-	// 1. Обработка служебных правил
 	if strings.HasPrefix(name, "#") {
-		// Разрешенные для Delay правила
 		if name == "#ForkOnTimer" || name == "#MailOnTimer" {
 			return (delayBase-delay)*priorityScale + safePriority
 		}
-		// Для остальных служебных правил используем delayBase (задержка 0)
 		return delayBase*priorityScale + safePriority
 	}
 
-	// 2. Обработка пользовательских правил
-	// Если указан eventCode (Ошибка/Занято/...), он имеет приоритет над Delay
 	if eventCode == EventError || eventCode == EventBusy || eventCode == EventNoAnswer {
 		return eventCode*priorityScale + safePriority
 	}
 
-	// Если события нет, пакуем обычную задержку
 	if delay > 0 {
 		return (delayBase-delay)*priorityScale + safePriority
 	}
@@ -211,18 +208,15 @@ func packSignalPriority(name string, priority int, delay int, eventCode int) int
 	return safePriority
 }
 
-// unpackSignalPriority извлекает приоритет, задержку или код события.
 func unpackSignalPriority(packed int) (priority int, delay int, eventCode int) {
 	priority = packed % priorityScale
 	rawPrefix := packed / priorityScale
 
-	// Если префикс 1, 3 или 5 — это коды событий (Error, Busy, NoAnswer)
 	switch rawPrefix {
 	case EventError, EventBusy, EventNoAnswer:
 		eventCode = rawPrefix
 		delay = 0
 	default:
-		// В остальных случаях это задержка (включая служебные правила)
 		if rawPrefix > 0 {
 			delay = delayBase - rawPrefix
 		}
