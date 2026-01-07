@@ -175,7 +175,7 @@ func (cli *Cli) GetAccountLocation(account string) (string, error) {
 	if account == "" {
 		return "", fmt.Errorf("account name is required")
 	}
-	res, err := cli.Query("GETACCOUNTLOCATION", account)
+	res, err := cli.Query("GETACCOUNTLOCATION", Atom(account))
 	if err != nil {
 		return "", err
 	}
