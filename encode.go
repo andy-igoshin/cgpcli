@@ -24,116 +24,6 @@ var cgpSafeTable = [256]byte{
 	'_': 1,
 }
 
-// Marshal преобразует типы Go в формат строк CommuniGate Pro CLI.
-// По умолчанию вызывается в контексте значения.
-func Marshal(v any) string {
-	return marshal(v, false)
-}
-
-// marshal — внутренняя функция, учитывающая контекст (ключ словаря или значение).
-func marshal(v any, asKey bool) string {
-	switch val := v.(type) {
-	case DataBlock:
-		// Формат Datablock: [BASE64]
-		return "[" + string(val) + "]"
-
-	case []byte:
-		// Бинарные данные передаются как #[HEX]
-		return fmt.Sprintf("#[%X]", val)
-
-	case string:
-		// 1. Если это КЛЮЧ: разрешаем без кавычек только простые идентификаторы (буквы, цифры, _)
-		if asKey && isCGPIdentifier(val) {
-			return val
-		}
-		// 2. Если это ЗНАЧЕНИЕ: без кавычек только системные литералы (unlimited, YES) и квоты (10M)
-		if !asKey && isCGPSystemLiteral(val) {
-			return val
-		}
-		// Во всех остальных случаях (и для строк-значений) — используем кавычки
-		return fmt.Sprintf("%q", val)
-
-	case int, int32, int64:
-		var n int64
-		switch i := val.(type) {
-		case int:
-			n = int64(i)
-		case int32:
-			n = int64(i)
-		case int64:
-			n = i
-		}
-		return formatCGPSize(n)
-
-	case bool:
-		if val {
-			return "YES"
-		}
-		return "NO"
-
-	case time.Time:
-		if val.IsZero() {
-			return `""`
-		}
-		// Формат времени для CLI команд
-		return fmt.Sprintf("%q", val.Format("02-Jan-2006 15:04:05 -0700"))
-
-	case map[string]any:
-		var b strings.Builder
-		b.WriteString("{ ")
-
-		// Сортируем ключи для детерминированного вывода (важно для тестов и логов)
-		keys := make([]string, 0, len(val))
-		for k := range val {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-
-		for _, k := range keys {
-			b.WriteString(marshal(k, true)) // Ключ
-			b.WriteString(" = ")
-			b.WriteString(marshal(val[k], false)) // Значение
-			b.WriteString("; ")
-		}
-		b.WriteString("}")
-		return b.String()
-
-	case []any:
-		var b strings.Builder
-		b.WriteString("( ")
-		for i, v := range val {
-			b.WriteString(marshal(v, false)) // Элементы массива — это значения
-			if i < len(val)-1 {
-				b.WriteString(", ")
-			}
-		}
-		b.WriteString(" )")
-		return b.String()
-
-	case map[string]string:
-		// Приводим к map[string]any для переиспользования логики
-		m := make(map[string]any, len(val))
-		for k, v := range val {
-			m[k] = v
-		}
-		return marshal(m, false)
-
-	case []string:
-		// Приводим к []any
-		s := make([]any, len(val))
-		for i, v := range val {
-			s[i] = v
-		}
-		return marshal(s, false)
-
-	default:
-		if val == nil {
-			return `""`
-		}
-		return fmt.Sprintf("%v", val)
-	}
-}
-
 // isCGPIdentifier проверяет, может ли строка быть КЛЮЧОМ без кавычек.
 // Разрешены только буквы, цифры и подчеркивание. Точки и тире требуют кавычек.
 func isCGPIdentifier(s string) bool {
@@ -224,8 +114,8 @@ func MarshalTo(w *bufio.Writer, v any) error {
 func marshalTo(w *bufio.Writer, v any, asKey bool) error {
 	switch val := v.(type) {
 	case Atom:
-        _, err := w.WriteString(string(val))
-        return err
+		_, err := w.WriteString(string(val))
+		return err
 
 	case DataBlock:
 		w.WriteByte('[')
@@ -243,8 +133,7 @@ func marshalTo(w *bufio.Writer, v any, asKey bool) error {
 			_, err := w.WriteString(val)
 			return err
 		}
-		b := strconv.AppendQuote(nil, val)
-		_, err := w.Write(b)
+		_, err := w.WriteString(strconv.Quote(val))
 		return err
 
 	case int, int32, int64:
@@ -261,11 +150,12 @@ func marshalTo(w *bufio.Writer, v any, asKey bool) error {
 		return err
 
 	case bool:
+		var err error
 		if val {
-			_, err := w.WriteString("YES")
-			return err
+			_, err = w.WriteString("YES")
+		} else {
+			_, err = w.WriteString("NO")
 		}
-		_, err := w.WriteString("NO")
 		return err
 
 	case time.Time:
@@ -278,7 +168,7 @@ func marshalTo(w *bufio.Writer, v any, asKey bool) error {
 		return w.WriteByte('"')
 
 	case map[string]any:
-		w.WriteString("{ ")
+		w.WriteByte('{')
 		keys := make([]string, 0, len(val))
 		for k := range val {
 			keys = append(keys, k)
@@ -286,24 +176,25 @@ func marshalTo(w *bufio.Writer, v any, asKey bool) error {
 		sort.Strings(keys)
 		for _, k := range keys {
 			marshalTo(w, k, true)
-			w.WriteString(" = ")
+			w.WriteString("=")
 			marshalTo(w, val[k], false)
-			w.WriteString("; ")
+			w.WriteByte(';')
 		}
 		return w.WriteByte('}')
 
 	case []any:
-		w.WriteString("( ")
+		w.WriteByte('(')
 		for i, item := range val {
 			marshalTo(w, item, false)
 			if i < len(val)-1 {
-				w.WriteString(", ")
+				w.WriteByte(',')
 			}
 		}
 		return w.WriteByte(')')
 
+	// Аналогично для map[string]string и []string...
 	case map[string]string:
-		w.WriteString("{ ")
+		w.WriteByte('{')
 		keys := make([]string, 0, len(val))
 		for k := range val {
 			keys = append(keys, k)
@@ -311,31 +202,27 @@ func marshalTo(w *bufio.Writer, v any, asKey bool) error {
 		sort.Strings(keys)
 		for _, k := range keys {
 			marshalTo(w, k, true)
-			w.WriteString(" = ")
+			w.WriteString("=")
 			marshalTo(w, val[k], false)
-			w.WriteString("; ")
+			w.WriteByte(';')
 		}
 		return w.WriteByte('}')
 
 	case []string:
-		w.WriteString("( ")
+		w.WriteByte('(')
 		for i, s := range val {
 			marshalTo(w, s, false)
 			if i < len(val)-1 {
-				w.WriteString(", ")
+				w.WriteByte(',')
 			}
 		}
 		return w.WriteByte(')')
 
 	default:
 		if val == nil {
-			// Если мы в контексте значения ключа словаря,
-			// возвращаем системный атом для сброса.
 			_, err := w.WriteString("#NULL#")
 			return err
 		}
-		// Fallback для типов, которые мы не обработали явно (например, float или кастомные структуры)
-		// Используем fmt.Sprint, чтобы получить строку, и пишем её через bufio
 		_, err := w.WriteString(fmt.Sprint(val))
 		return err
 	}

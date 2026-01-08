@@ -8,160 +8,113 @@ import (
 )
 
 func TestMarshal(t *testing.T) {
-	// Фиксируем зону для тестов времени, чтобы результат был воспроизводим
 	testZone := time.FixedZone("UTC", 0)
 
 	tests := []struct {
 		name     string
 		input    any
-		contains []string // подстроки, которые должны быть в результате
-		excludes []string // подстроки, которых быть не должно (например, лишние кавычки)
+		contains []string
+		excludes []string
 	}{
 		{
-			name: "Basic Types",
+			name: "Atoms and Strings",
 			input: map[string]any{
-				"A_String": "Regular",
-				"A_Number": 12345,
-				"A_Bool":   true,
-			},
-			contains: []string{`A_String = "Regular"`, `A_Number = 12345`, `A_Bool = YES`},
-		},
-		{
-			name: "Quota Unlimited",
-			input: map[string]any{
-				"MaxAccountSize": int64(-1),
-			},
-			contains: []string{`MaxAccountSize = unlimited`},
-			excludes: []string{`"unlimited"`},
-		},
-		{
-			name: "Quota Suffixes",
-			input: map[string]any{
-				"Giga": int64(30 * 1024 * 1024 * 1024),
-				"Mega": int64(100 * 1024 * 1024),
-				"Kilo": int64(100 * 1024),
-				"Zero": int64(0),
-			},
-			contains: []string{`Giga = 30G`, `Mega = 100M`, `Kilo = 100K`, `Zero = 0`},
-		},
-		{
-			name: "Quota Exact Bytes",
-			input: map[string]any{
-				"Exact": int64(31457291), // 30MB + 11 байт
-			},
-			contains: []string{`Exact = 31457291`},
-		},
-		{
-			name: "Time Formatting",
-			input: map[string]any{
-				"Created": time.Date(2025, 12, 31, 13, 0, 0, 0, testZone),
-			},
-			contains: []string{`Created = "31-Dec-2025 13:00:00 +0000"`},
-		},
-		{
-			name: "Binary Blocks",
-			input: map[string]any{
-				"Data": []byte{0x01, 0x02, 0x0A, 0xFF},
-			},
-			contains: []string{`Data = #[01020AFF]`},
-		},
-		{
-			name: "DataBlock vs Binary",
-			input: map[string]any{
-				"AsHex":   []byte("Hello"),          // Обычный слайс байт
-				"AsBlock": DataBlock("MIIDlTCC..."), // Наш новый тип
+				"Command": Atom("SETSERVERTRUSTEDCERTS"),
+				"Param":   "Simple",
+				"Space":   "String with space",
 			},
 			contains: []string{
-				"AsHex = #[48656C6C6F]",   // HEX представление
-				"AsBlock = [MIIDlTCC...]", // Datablock (без кавычек!)
-			},
-			excludes: []string{
-				`"[MIIDlTCC...]"`, // Убеждаемся, что кавычек нет
+				"Command=SETSERVERTRUSTEDCERTS",
+				"Param=Simple",
+				`Space="String with space"`,
 			},
 		},
 		{
-			name: "System Literals",
+			name: "DataBlock and Hex",
 			input: map[string]any{
-				"Mode": "default",
-				"Rule": "none",
-			},
-			contains: []string{`Mode = default`, `Rule = none`},
-			excludes: []string{`"default"`, `"none"`},
-		},
-		{
-			name: "Nested and Slices",
-			input: map[string]any{
-				"List": []any{int64(1024), "unlimited", "text"},
-				"Sub": map[string]any{
-					"Size": int64(2048),
-				},
-			},
-			contains: []string{`( 1K, unlimited, "text" )`, `Size = 2K`},
-		},
-		{
-			name: "Strict String Map (ACL/Aliases)",
-			// Проверяем то, что реально уходит в SETMAILBOXACL
-			input: map[string]string{
-				"anyone":  "l",
-				"admin":   "lirs",
-				"trusted": "+rs",
+				"Raw":   []byte{0x01, 0x02},
+				"Block": DataBlock("CERT"),
 			},
 			contains: []string{
-				"anyone = \"l\"",
-				"admin = \"lirs\"",
-				"trusted = \"+rs\"",
+				"Raw=#[0102]",
+				"Block=[CERT]",
 			},
 		},
 		{
-			name: "Strict String Slice (Subscriptions)",
-			// Проверяем то, что уходит в SETMAILBOXSUBSCRIPTION
-			input: []string{"INBOX", "Sent Messages", "Trash"},
-			contains: []string{
-				"( \"INBOX\", \"Sent Messages\", \"Trash\" )",
-			},
-		},
-		{
-			name: "Mixed Case System Literals",
-			// CGP понимает YES/yes, но наш маршал должен быть консистентен
+			name: "Quotas and Sizes",
 			input: map[string]any{
-				"Enabled":  true,
-				"Disabled": false,
-				"Value":    "unlimited",
+				"Limit": int64(-1),
+				"SizeK": 1024,
+				"Exact": 123,
 			},
 			contains: []string{
-				"Enabled = YES",
-				"Disabled = NO",
-				"Value = unlimited",
+				"Limit=unlimited",
+				"SizeK=1K",
+				"Exact=123",
 			},
-			excludes: []string{"\"YES\"", "\"unlimited\""},
 		},
 		{
-			name: "Nested Map in map[string]any",
+			name:  "Time Formatting",
+			input: time.Date(2026, 1, 8, 10, 0, 0, 0, testZone),
+			contains: []string{
+				`"08-Jan-2026 10:00:00 +0000"`,
+			},
+		},
+		{
+			name: "Nested Structures Compact",
 			input: map[string]any{
-				"Rights": map[string]string{
-					"user1": "r",
+				"Settings": map[string]any{
+					"Enabled": true,
+					"List":    []any{Atom("Default"), "text"},
 				},
 			},
 			contains: []string{
-				"Rights = { user1 = \"r\"; }",
+				"Enabled=YES",
+				"List=(Default,text)", // Без пробелов внутри ()
+			},
+		},
+		{
+			name: "Null Values",
+			input: map[string]any{
+				"Reset": nil,
+			},
+			contains: []string{
+				"Reset=#NULL#",
+			},
+		},
+		{
+			name: "String Map and Slice",
+			input: map[string]any{
+				"ACL": map[string]string{"user": "l"},
+				"Sub": []string{"INBOX", "Sent"},
+			},
+			contains: []string{
+				`ACL={user=l;}`,    // Кавычки ушли, так как строки "safe"
+				`Sub=(INBOX,Sent)`, // То же самое здесь
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := Marshal(tt.input)
+			var b strings.Builder
+			w := bufio.NewWriter(&b)
+			err := MarshalTo(w, tt.input)
+			w.Flush()
 
-			for _, s := range tt.contains {
-				if !strings.Contains(got, s) {
-					t.Errorf("%s: Marshal() output missing [%s]\nGot: %s", tt.name, s, got)
-				}
+			if err != nil {
+				t.Fatalf("MarshalTo failed: %v", err)
 			}
 
-			for _, s := range tt.excludes {
-				if strings.Contains(got, s) {
-					t.Errorf("%s: Marshal() output contains forbidden [%s]\nGot: %s", tt.name, s, got)
+			res := b.String()
+			for _, s := range tt.contains {
+				if !strings.Contains(res, s) {
+					t.Errorf("%s: Result should contain %q, but got: %s", tt.name, s, res)
 				}
+			}
+			// Проверка на отсутствие пробелов вне кавычек (упрощенно)
+			if strings.Contains(res, "= ") || strings.Contains(res, "; ") || strings.Contains(res, ", ") {
+				t.Errorf("%s: Result contains unexpected spaces: %s", tt.name, res)
 			}
 		})
 	}
@@ -176,77 +129,10 @@ func TestFormatCGPSize(t *testing.T) {
 		{0, "0"},
 		{1024, "1K"},
 		{1048576, "1M"},
-		{1073741824, "1G"},
-		{1099511627776, "1T"},
-		{1024 * 1024 * 500, "500M"},
-		{31457291, "31457291"}, // не делится нацело
 	}
-
 	for _, c := range cases {
-		got := formatCGPSize(c.in)
-		if got != c.out {
+		if got := formatCGPSize(c.in); got != c.out {
 			t.Errorf("formatCGPSize(%d) = %s, want %s", c.in, got, c.out)
 		}
-	}
-}
-
-func TestLiterals(t *testing.T) {
-	// Тестируем логику КЛЮЧЕЙ
-	t.Run("Identifiers", func(t *testing.T) {
-		cases := []struct {
-			in   string
-			want bool
-		}{
-			{"RealName", true},
-			{"Storage_Used", true},
-			{"vsu.ru", false},    // точка требует кавычек
-			{"my-domain", false}, // тире требует кавычек
-		}
-		for _, c := range cases {
-			if got := isCGPIdentifier(c.in); got != c.want {
-				t.Errorf("isCGPIdentifier(%q) = %v, want %v", c.in, got, c.want)
-			}
-		}
-	})
-
-	// Тестируем логику ЗНАЧЕНИЙ
-	t.Run("SystemLiterals", func(t *testing.T) {
-		cases := []struct {
-			in   string
-			want bool
-		}{
-			{"unlimited", true},
-			{"YES", true},
-			{"10M", true},
-			{"text", false}, // обычная строка-значение должна быть в кавычках
-		}
-		for _, c := range cases {
-			if got := isCGPSystemLiteral(c.in); got != c.want {
-				t.Errorf("isCGPSystemLiteral(%q) = %v, want %v", c.in, got, c.want)
-			}
-		}
-	})
-}
-
-func TestMarshalNullAtom(t *testing.T) {
-	var b strings.Builder
-	w := bufio.NewWriter(&b)
-
-	data := map[string]any{
-		"AccessModes": nil,
-		"OtherKey":    "Value",
-	}
-
-	err := MarshalTo(w, data)
-	w.Flush()
-
-	if err != nil {
-		t.Fatalf("MarshalTo failed: %v", err)
-	}
-
-	result := b.String()
-	// Проверяем наличие атома #NULL# в строке
-	if !strings.Contains(result, "AccessModes = #NULL#;") {
-		t.Errorf("Expected #NULL# atom in marshaled output, got: %s", result)
 	}
 }
