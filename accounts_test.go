@@ -123,7 +123,7 @@ func TestAccountPasswords(t *testing.T) {
 
 	t.Run("CheckPlain", func(t *testing.T) {
 		// Работает только если в домене разрешено хранение паролей в Plain/Reversible
-		match := cli.CheckAccountPassword(testAcc, testPass)
+		match, _ := cli.CheckAccountPassword(testAcc, testPass)
 		t.Logf("CheckAccountPassword result: %v", match)
 	})
 }
