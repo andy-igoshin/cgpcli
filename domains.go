@@ -4,10 +4,6 @@ import (
 	"fmt"
 )
 
-// -----------------------------------------------------------------------------
-// Types
-// -----------------------------------------------------------------------------
-
 type ObjectType int
 
 const (
@@ -29,10 +25,6 @@ type DomainObjectsResult struct {
 	Cookie  string
 }
 
-// -----------------------------------------------------------------------------
-// Methods
-// -----------------------------------------------------------------------------
-
 func (cli *Cli) CreateAccountStorage(domain, storage string) error {
 	if domain == "" || storage == "" {
 		return fmt.Errorf("domain and storage path are required")
@@ -51,22 +43,37 @@ func (cli *Cli) DeleteDirectoryRecords(domain string) error {
 }
 
 func (cli *Cli) GetAccountDefaultPrefs(domain string) (map[string]any, error) {
+	if domain == "" {
+		return nil, fmt.Errorf("domain name is required")
+	}
 	return cli.getMapAny("GETACCOUNTDEFAULTPREFS", domain)
 }
 
 func (cli *Cli) GetAccountDefaults(domain string) (map[string]any, error) {
+	if domain == "" {
+		return nil, fmt.Errorf("domain name is required")
+	}
 	return cli.getMapAny("GETACCOUNTDEFAULTS", domain)
 }
 
 func (cli *Cli) GetAccountTemplate(domain string) (map[string]any, error) {
+	if domain == "" {
+		return nil, fmt.Errorf("domain name is required")
+	}
 	return cli.getMapAny("GETACCOUNTTEMPLATE", domain)
 }
 
 func (cli *Cli) GetDomainAliases(domain string) ([]string, error) {
+	if domain == "" {
+		return nil, fmt.Errorf("domain name is required")
+	}
 	return cli.getSliceString("GETDOMAINALIASES", domain)
 }
 
 func (cli *Cli) GetDomainEffectiveSettings(domain string) (map[string]any, error) {
+	if domain == "" {
+		return nil, fmt.Errorf("domain name is required")
+	}
 	return cli.getMapAny("GETDOMAINEFFECTIVESETTINGS", domain)
 }
 
@@ -74,7 +81,7 @@ func (cli *Cli) GetDomainLocation(domain string) (string, error) {
 	if domain == "" {
 		return "", fmt.Errorf("domain name is required")
 	}
-	res, err := cli.Query("GETDOMAINLOCATION", Atom(domain))
+	res, err := cli.Query("GETDOMAINLOCATION", domain)
 	if err != nil {
 		return "", err
 	}
@@ -86,14 +93,23 @@ func (cli *Cli) GetDomainLocation(domain string) (string, error) {
 }
 
 func (cli *Cli) GetDomainMailRules(domain string) ([]MailRule, error) {
+	if domain == "" {
+		return nil, fmt.Errorf("domain name is required")
+	}
 	return cli.getMailRules("GETDOMAINMAILRULES", domain)
 }
 
 func (cli *Cli) GetDomainSettings(domain string) (map[string]any, error) {
+	if domain == "" {
+		return nil, fmt.Errorf("domain name is required")
+	}
 	return cli.getMapAny("GETDOMAINSETTINGS", domain)
 }
 
 func (cli *Cli) GetDomainSignalRules(domain string) ([]SignalRule, error) {
+	if domain == "" {
+		return nil, fmt.Errorf("domain name is required")
+	}
 	return cli.getSignalRules("GETDOMAINSIGNALRULES", domain)
 }
 
@@ -107,18 +123,24 @@ func (cli *Cli) InsertDirectoryRecords(domain string) error {
 }
 
 func (cli *Cli) IsDomainExists(domain string) (bool, error) {
-	loc, err := cli.GetDomainLocation(domain)
+	location, err := cli.GetDomainLocation(domain)
 	if err != nil {
 		return false, err
 	}
-	return loc != "", nil
+	return location != "", nil
 }
 
 func (cli *Cli) ListAccountStorage(domain string) ([]string, error) {
+	if domain == "" {
+		return nil, fmt.Errorf("domain name is required")
+	}
 	return cli.getSliceString("LISTACCOUNTSTORAGE", domain)
 }
 
 func (cli *Cli) ListAccounts(domain string) (map[string]string, error) {
+	if domain == "" {
+		return nil, fmt.Errorf("domain name is required")
+	}
 	raw, err := cli.getMapAny("LISTACCOUNTS", domain)
 	if err != nil {
 		return nil, err
@@ -131,13 +153,15 @@ func (cli *Cli) ListAdminDomains(domain string) ([]string, error) {
 }
 
 func (cli *Cli) ListDomainObjects(domain string, limit int, filter string, what ObjectType, cookie string) (*DomainObjectsResult, error) {
-	args := make([]any, 0, 8)
+	if domain == "" {
+		return nil, fmt.Errorf("domain name is required")
+	}
+	args := make([]any, 0, 10)
 	args = append(args, "LISTDOMAINOBJECTS", domain)
 	if filter != "" {
 		args = append(args, "FILTER", filter)
 	}
 	args = append(args, limit)
-
 	if what&TypeAccount != 0 {
 		args = append(args, "ACCOUNTS")
 	}
@@ -147,7 +171,6 @@ func (cli *Cli) ListDomainObjects(domain string, limit int, filter string, what 
 	if what&TypeForwarder != 0 {
 		args = append(args, "FORWARDERS")
 	}
-
 	args = append(args, "COOKIE", cookie)
 
 	res, err := cli.Query(args...)
@@ -156,18 +179,13 @@ func (cli *Cli) ListDomainObjects(domain string, limit int, filter string, what 
 	}
 
 	raw, ok := res.([]any)
-	if !ok || len(raw) < 4 {
-		return nil, fmt.Errorf("LISTDOMAINOBJECTS: unexpected response format (len=%d)", len(raw))
+	if !ok || len(raw) < 5 {
+		return nil, fmt.Errorf("LISTDOMAINOBJECTS: unexpected response format")
 	}
 
-	result := &DomainObjectsResult{
-		Objects: make(map[string]DomainObject),
-	}
-
-	if len(raw) >= 5 {
-		if c, ok := raw[4].(string); ok {
-			result.Cookie = c
-		}
+	result := &DomainObjectsResult{Objects: make(map[string]DomainObject)}
+	if c, ok := raw[4].(string); ok {
+		result.Cookie = c
 	}
 
 	items, ok := raw[1].(map[string]any)
@@ -183,14 +201,19 @@ func (cli *Cli) ListDomainObjects(domain string, limit int, filter string, what 
 			obj.Subtype = v
 		case []any:
 			if len(v) > 0 {
+				var targetErr error
+				// Используем toStringSlice2 для корректной обработки заголовков CGP
 				if first, isSlice := v[0].([]any); isSlice {
 					obj.Type = TypeForwarder
 					obj.Subtype = "forwarder"
-					obj.Targets = cli.toStringSlice(first)
+					obj.Targets, targetErr = cli.toStringSlice2(first)
 				} else {
 					obj.Type = TypeAlias
 					obj.Subtype = "alias"
-					obj.Targets = cli.toStringSlice(v)
+					obj.Targets, targetErr = cli.toStringSlice2(v)
+				}
+				if targetErr != nil {
+					return nil, fmt.Errorf("LISTDOMAINOBJECTS: invalid target format for %s: %w", name, targetErr)
 				}
 			}
 		}
@@ -200,6 +223,9 @@ func (cli *Cli) ListDomainObjects(domain string, limit int, filter string, what 
 }
 
 func (cli *Cli) ListDomainTelnums(domain, filter string, limit int) (map[string]string, error) {
+	if domain == "" {
+		return nil, fmt.Errorf("domain name is required")
+	}
 	args := make([]any, 0, 5)
 	args = append(args, "LISTDOMAINTELNUMS", domain)
 	if filter != "" {
@@ -211,15 +237,11 @@ func (cli *Cli) ListDomainTelnums(domain, filter string, limit int) (map[string]
 	if err != nil {
 		return nil, err
 	}
-
 	dict, ok := res.(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("LISTDOMAINTELNUMS: expected map, got %T", res)
 	}
-
-	// Удаляем системный ключ счетчика, если он есть
 	delete(dict, "")
-
 	return cli.toStringMap("LISTDOMAINTELNUMS", dict)
 }
 
@@ -232,14 +254,23 @@ func (cli *Cli) ResumeDomain(domain string) error {
 }
 
 func (cli *Cli) SetAccountDefaultPrefs(domain string, s map[string]any) error {
+	if domain == "" {
+		return fmt.Errorf("domain name is required")
+	}
 	return cli.setMapAny("SETACCOUNTDEFAULTPREFS", domain, s)
 }
 
 func (cli *Cli) SetAccountDefaults(domain string, s map[string]any) error {
+	if domain == "" {
+		return fmt.Errorf("domain name is required")
+	}
 	return cli.setMapAny("SETACCOUNTDEFAULTS", domain, s)
 }
 
 func (cli *Cli) SetAccountTemplate(domain string, s map[string]any) error {
+	if domain == "" {
+		return fmt.Errorf("domain name is required")
+	}
 	return cli.setMapAny("SETACCOUNTTEMPLATE", domain, s)
 }
 
@@ -252,14 +283,23 @@ func (cli *Cli) SetDomainAliases(domain string, aliases []string) error {
 }
 
 func (cli *Cli) SetDomainMailRules(domain string, rules []MailRule) error {
+	if domain == "" {
+		return fmt.Errorf("domain name is required")
+	}
 	return setRulesGeneric(cli, "SETDOMAINMAILRULES", domain, rules)
 }
 
 func (cli *Cli) SetDomainSettings(domain string, settings map[string]any) error {
+	if domain == "" {
+		return fmt.Errorf("domain name is required")
+	}
 	return cli.setMapAny("SETDOMAINSETTINGS", domain, settings)
 }
 
 func (cli *Cli) SetDomainSignalRules(domain string, rules []SignalRule) error {
+	if domain == "" {
+		return fmt.Errorf("domain name is required")
+	}
 	return setRulesGeneric(cli, "SETDOMAINSIGNALRULES", domain, rules)
 }
 
@@ -272,17 +312,29 @@ func (cli *Cli) SuspendDomain(domain string) error {
 }
 
 func (cli *Cli) UpdateAccountDefaultPrefs(domain string, s map[string]any) error {
+	if domain == "" {
+		return fmt.Errorf("domain name is required")
+	}
 	return cli.setMapAny("UPDATEACCOUNTDEFAULTPREFS", domain, s)
 }
 
 func (cli *Cli) UpdateAccountDefaults(domain string, s map[string]any) error {
+	if domain == "" {
+		return fmt.Errorf("domain name is required")
+	}
 	return cli.setMapAny("UPDATEACCOUNTDEFAULTS", domain, s)
 }
 
 func (cli *Cli) UpdateAccountTemplate(domain string, s map[string]any) error {
+	if domain == "" {
+		return fmt.Errorf("domain name is required")
+	}
 	return cli.setMapAny("UPDATEACCOUNTTEMPLATE", domain, s)
 }
 
 func (cli *Cli) UpdateDomainSettings(domain string, settings map[string]any) error {
+	if domain == "" {
+		return fmt.Errorf("domain name is required")
+	}
 	return cli.setMapAny("UPDATEDOMAINSETTINGS", domain, settings)
 }
