@@ -10,22 +10,16 @@ type GroupResult struct {
 	Members  []string
 }
 
-// -----------------------------------------------------------------------------
-// CLI Methods
-// -----------------------------------------------------------------------------
-
 // CreateGroup создает новую группу.
 func (cli *Cli) CreateGroup(group string, settings map[string]any) error {
 	if group == "" {
 		return fmt.Errorf("group name is required")
 	}
-
 	args := make([]any, 0, 3)
 	args = append(args, "CREATEGROUP", group)
 	if settings != nil {
 		args = append(args, settings)
 	}
-
 	_, err := cli.Query(args...)
 	return err
 }
@@ -61,14 +55,27 @@ func (cli *Cli) GetGroup(group string) (*GroupResult, error) {
 
 	for k, v := range dict {
 		if k == "Members" {
-			if mRaw, ok := v.([]any); ok {
-				result.Members = cli.toStringSlice(mRaw)
+			m, err := cli.toStringSlice2(v)
+			if err == nil {
+				result.Members = m
 			}
 			continue
 		}
 		result.Settings[k] = v
 	}
 	return result, nil
+}
+
+// IsGroupExists проверяет, существует ли группа.
+func (cli *Cli) IsGroupExists(group string) (bool, error) {
+	if group == "" {
+		return false, nil
+	}
+	_, err := cli.Query("GETGROUP", group)
+	if err != nil {
+		return false, nil
+	}
+	return true, nil
 }
 
 // ListGroups возвращает список имен всех групп в указанном домене.
@@ -78,13 +85,11 @@ func (cli *Cli) ListGroups(domain string) ([]string, error) {
 	if domain != "" {
 		args = append(args, domain)
 	}
-
 	res, err := cli.Query(args...)
 	if err != nil {
 		return nil, err
 	}
-
-	return cli.toStringSlice(res), nil
+	return cli.toStringSlice2(res)
 }
 
 // RenameGroup переименовывает группу или переносит её в другой домен.
@@ -102,7 +107,6 @@ func (cli *Cli) SetGroup(group string, settings map[string]any, members []string
 		return fmt.Errorf("group name is required")
 	}
 
-	// Подготавливаем полный словарь настроек
 	fullData := make(map[string]any)
 	if settings != nil {
 		for k, v := range settings {
@@ -110,7 +114,6 @@ func (cli *Cli) SetGroup(group string, settings map[string]any, members []string
 		}
 	}
 
-	// Добавляем список участников, если он передан
 	if members != nil {
 		anyMembers := make([]any, len(members))
 		for i, m := range members {
@@ -121,20 +124,4 @@ func (cli *Cli) SetGroup(group string, settings map[string]any, members []string
 
 	_, err := cli.Query("SETGROUP", group, fullData)
 	return err
-}
-
-// -----------------------------------------------------------------------------
-// Extended API / Helpers
-// -----------------------------------------------------------------------------
-
-// IsGroupExists проверяет, существует ли группа.
-func (cli *Cli) IsGroupExists(group string) (bool, error) {
-	if group == "" {
-		return false, nil
-	}
-	_, err := cli.Query("GETGROUP", group)
-	if err != nil {
-		return false, nil
-	}
-	return true, nil
 }
