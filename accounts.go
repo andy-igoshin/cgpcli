@@ -92,10 +92,20 @@ func (cli *Cli) GetAccountACL(account, authAccount string) (map[string]any, erro
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
+	args := make([]any, 0, 4)
+	args = append(args, "GETACCOUNTACL", Atom(account))
 	if authAccount != "" {
-		return cli.getMapAny("GETACCOUNTACL", fmt.Sprintf("%s AUTH %s", account, authAccount))
+		args = append(args, "AUTH", authAccount)
 	}
-	return cli.getMapAny("GETACCOUNTACL", account)
+	res, err := cli.Query(args...)
+	if err != nil {
+		return nil, err
+	}
+	m, ok := res.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("GETACCOUNTACL: expected map, got %T", res)
+	}
+	return m, nil
 }
 
 func (cli *Cli) GetAccountACLRights(account, authAccount string) (string, error) {
