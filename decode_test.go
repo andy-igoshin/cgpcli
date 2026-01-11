@@ -1,6 +1,7 @@
 package cgpcli
 
 import (
+	"bytes"
 	"reflect"
 	"testing"
 	"time"
@@ -103,6 +104,37 @@ func TestUnmarshal(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("%s: Unmarshal() got = %v (%T), want %v (%T)", tt.name, got, got, tt.want, tt.want)
+			}
+		})
+	}
+}
+
+func TestDecodeDataBlock(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected []byte
+	}{
+		{"SimpleBlock", "[data]", []byte("data")},
+		{"TaggedBlock", "#[more data]", []byte("more data")},
+		{"TaggedIBlock", "#I[binary]", []byte("binary")},
+		{"Concatenated", "[part1][part2]", []byte("part1part2")},
+		{"WithSpaces", "[part1]  [part2]", []byte("part1part2")},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var res any
+			err := Unmarshal([]byte(tt.input), &res)
+			if err != nil {
+				t.Fatalf("Unmarshal failed: %v", err)
+			}
+			b, ok := res.([]byte)
+			if !ok {
+				t.Fatalf("expected []byte, got %T", res)
+			}
+			if !bytes.Equal(b, tt.expected) {
+				t.Errorf("expected %q, got %q", tt.expected, b)
 			}
 		})
 	}

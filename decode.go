@@ -27,7 +27,7 @@ type decodeState struct {
 	data    []byte
 	len     int
 	span    int
-	scratch bytes.Buffer // Буфер прямо в структуре для минимизации аллокаций
+	scratch bytes.Buffer
 }
 
 func (d *decodeState) init(data []byte) *decodeState {
@@ -159,14 +159,37 @@ func (d *decodeState) wordInterface(asString bool) any {
 		return ""
 	}
 
+	curr := d.data[d.span]
+
+	// 1. Проверка на блок данных: [..], #[..], #I[..]
+	// Если это блок, мы СРАЗУ уходим в readCgpBlock и возвращаем []byte
+	if curr == '[' {
+		d.span++
+		return d.readCgpBlock('[', ']')
+	}
+
+	if curr == '#' && d.span+1 < d.len {
+		next := d.data[d.span+1]
+		// Это блок данных с префиксом #[ или #I[
+		if next == '[' {
+			d.span += 2
+			return d.readCgpBlock('[', ']')
+		}
+		if next == 'I' && d.span+2 < d.len && d.data[d.span+2] == '[' {
+			d.span += 3
+			return d.readCgpBlock('[', ']')
+		}
+		// Если это не блок, значит это #число, #Tдата или #(структура)
+		// Оставляем это для обработки ниже (isTagged = true)
+	}
+
 	d.scratch.Reset()
-	startSpan := d.span
-	isTagged := d.data[d.span] == '#'
-	isQuoted := d.data[d.span] == '"'
+	isTagged := curr == '#'
+	isQuoted := curr == '"'
 	isUnkData := false
 
 	if isQuoted {
-		// Цикл конкатенации: "Part1" "Part2" -> Part1Part2
+		// ... (Логика кавычек без изменений) ...
 		for d.span < d.len && d.data[d.span] == '"' {
 			d.span++
 			for d.span < d.len {
@@ -184,7 +207,6 @@ func (d *decodeState) wordInterface(asString bool) any {
 				}
 				if ch == '"' {
 					d.span++
-					// Экранированная кавычка ""
 					if d.span < d.len && d.data[d.span] == '"' {
 						d.scratch.WriteByte('"')
 						d.span++
@@ -198,21 +220,18 @@ func (d *decodeState) wordInterface(asString bool) any {
 			}
 		}
 	} else {
+		// 2. Логика для обычных слов, чисел и тегов #(...)
 		if isTagged {
 			if bytes.HasPrefix(d.data[d.span:], []byte("#(")) {
 				isUnkData = true
 				d.scratch.WriteString("#(")
 				d.span += 2
-			} else if bytes.HasPrefix(d.data[d.span:], []byte("#I[")) || (d.span+1 < d.len && d.data[d.span+1] == '[') {
-				prefix := "#["
-				if d.span+1 < d.len && d.data[d.span+1] == 'I' {
-					prefix = "#I["
-					d.span++
-				}
-				d.scratch.WriteString(prefix)
-				d.span += 2
-				return d.readCgpBlock(&d.scratch, '[', ']', startSpan)
 			} else {
+				// НЕ пропускаем '#', он нам нужен в scratch для парсинга даты/числа
+				// Но так как старый код делал d.span++, нам нужно решить:
+				// либо писать '#' в scratch, либо обрезать его потом.
+				// Чтобы не ломать вашу логику ниже (raw[1:]), записываем '#'
+				d.scratch.WriteByte('#')
 				d.span++
 			}
 		}
@@ -241,15 +260,17 @@ func (d *decodeState) wordInterface(asString bool) any {
 	}
 
 	if isTagged && !isUnkData {
-		if strings.HasPrefix(raw, "T") {
-			if t, err := time.Parse(cgpInternalTimeLayout, raw[1:]); err == nil {
+		// raw сейчас выглядит как "#T02-..." или "#123"
+		if strings.HasPrefix(raw, "#T") {
+			if t, err := time.Parse(cgpInternalTimeLayout, raw[2:]); err == nil {
 				return t
 			}
 		}
-		if val, err := strconv.ParseInt(raw, 10, 64); err == nil {
+		// Пробуем парсить как число, отрезав '#'
+		if val, err := strconv.ParseInt(raw[1:], 10, 64); err == nil {
 			return val
 		}
-		return "#" + raw
+		return raw
 	}
 
 	if val, err := strconv.ParseInt(raw, 10, 64); err == nil {
@@ -258,22 +279,25 @@ func (d *decodeState) wordInterface(asString bool) any {
 	return raw
 }
 
-func (d *decodeState) readCgpBlock(buf *bytes.Buffer, open, close byte, start int) string {
+func (d *decodeState) readCgpBlock(open, close byte) []byte {
+	d.scratch.Reset()
 	for d.span < d.len {
 		if d.data[d.span] == close {
 			d.span++
 			d.skipSpaces()
+			// Обработка продолжения блока: [data1][data2]
 			if d.span < d.len && d.data[d.span] == open {
 				d.span++
 				continue
 			}
-			buf.WriteByte(close)
 			break
 		}
-		buf.WriteByte(d.data[d.span])
+		d.scratch.WriteByte(d.data[d.span])
 		d.span++
 	}
-	return buf.String()
+	res := make([]byte, d.scratch.Len())
+	copy(res, d.scratch.Bytes())
+	return res
 }
 
 func (d *decodeState) xmlInterface() any {
