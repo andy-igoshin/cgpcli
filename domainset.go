@@ -5,14 +5,13 @@ import (
 	"strings"
 )
 
-// CreateDirectoryDomain создает новый домен на базе справочника (Directory-based).
-func (cli *Cli) CreateDirectoryDomain(domainName string, settings map[string]any) error {
-	if domainName == "" {
-		return fmt.Errorf("domainName is required")
+// CreateDirectoryDomain создает новый домен на базе справочника.
+func (cli *Cli) CreateDirectoryDomain(domain string, settings map[string]any) error {
+	if domain == "" {
+		return fmt.Errorf("domain is required")
 	}
-
 	args := make([]any, 0, 3)
-	args = append(args, "CREATEDIRECTORYDOMAIN", domainName)
+	args = append(args, "CREATEDIRECTORYDOMAIN", domain)
 	if settings != nil {
 		args = append(args, settings)
 	}
@@ -23,9 +22,8 @@ func (cli *Cli) CreateDirectoryDomain(domainName string, settings map[string]any
 // CreateDomain создает новый домен.
 func (cli *Cli) CreateDomain(domain string, shared bool, storage string, settings map[string]any) error {
 	if domain == "" {
-		return fmt.Errorf("domain name is required")
+		return fmt.Errorf("domain is required")
 	}
-
 	args := make([]any, 0, 7)
 	args = append(args, "CREATEDOMAIN", domain)
 	if shared {
@@ -37,24 +35,21 @@ func (cli *Cli) CreateDomain(domain string, shared bool, storage string, setting
 	if settings != nil {
 		args = append(args, settings)
 	}
-
 	_, err := cli.Query(args...)
 	return err
 }
 
-// CreateDomainStorage создает точку монтирования хранилища для новых доменов.
+// CreateDomainStorage создает точку монтирования хранилища.
 func (cli *Cli) CreateDomainStorage(storage string, shared bool) error {
 	if storage == "" {
 		return fmt.Errorf("storage path is required")
 	}
-
 	args := make([]any, 0, 4)
 	args = append(args, "CREATEDOMAINSTORAGE")
 	if shared {
 		args = append(args, "SHARED")
 	}
 	args = append(args, "PATH", storage)
-
 	_, err := cli.Query(args...)
 	return err
 }
@@ -62,157 +57,92 @@ func (cli *Cli) CreateDomainStorage(storage string, shared bool) error {
 // DeleteDomain удаляет домен.
 func (cli *Cli) DeleteDomain(domain string, force bool) error {
 	if domain == "" {
-		return fmt.Errorf("domain name is required")
+		return fmt.Errorf("domain is required")
 	}
-
 	args := make([]any, 0, 3)
 	args = append(args, "DELETEDOMAIN", domain)
 	if force {
 		args = append(args, "FORCE")
 	}
-
 	_, err := cli.Query(args...)
 	return err
 }
 
-// Вспомогательная функция для получения map[string]any из Query
-func (cli *Cli) getSettingsMap(command string) (map[string]any, error) {
-	res, err := cli.Query(command)
-	if err != nil {
-		return nil, err
-	}
-	dict, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: unexpected response type: %T", command, res)
-	}
-	return dict, nil
+// GetClusterAccountDefaults возвращает настройки аккаунтов кластера по умолчанию.
+func (cli *Cli) GetClusterAccountDefaults() (map[string]any, error) {
+	return cli.getMapAny("GETCLUSTERACCOUNTDEFAULTS", "")
 }
 
-func (cli *Cli) GetClusterAccountDefaults() (map[string]any, error) {
-	return cli.getSettingsMap("GETCLUSTERACCOUNTDEFAULTS")
-}
+// GetClusterAccountPrefs возвращает предпочтения аккаунтов кластера по умолчанию.
 func (cli *Cli) GetClusterAccountPrefs() (map[string]any, error) {
-	return cli.getSettingsMap("GETCLUSTERACCOUNTPREFS")
+	return cli.getMapAny("GETCLUSTERACCOUNTPREFS", "")
 }
+
+// GetClusterDirectoryIntegration возвращает настройки интеграции справочника кластера.
 func (cli *Cli) GetClusterDirectoryIntegration() (map[string]any, error) {
-	return cli.getSettingsMap("GETCLUSTERDIRECTORYINTEGRATION")
+	return cli.getMapAny("GETCLUSTERDIRECTORYINTEGRATION", "")
 }
+
+// GetClusterDomainDefaults возвращает настройки доменов кластера по умолчанию.
 func (cli *Cli) GetClusterDomainDefaults() (map[string]any, error) {
-	return cli.getSettingsMap("GETCLUSTERDOMAINDEFAULTS")
-}
-func (cli *Cli) GetDirectoryIntegration() (map[string]any, error) {
-	return cli.getSettingsMap("GETDIRECTORYINTEGRATION")
-}
-func (cli *Cli) GetDomainDefaults() (map[string]any, error) {
-	return cli.getSettingsMap("GETDOMAINDEFAULTS")
-}
-func (cli *Cli) GetServerAccountDefaults() (map[string]any, error) {
-	return cli.getSettingsMap("GETSERVERACCOUNTDEFAULTS")
-}
-func (cli *Cli) GetServerAccountPrefs() (map[string]any, error) {
-	return cli.getSettingsMap("GETSERVERACCOUNTPREFS")
+	return cli.getMapAny("GETCLUSTERDOMAINDEFAULTS", "")
 }
 
 // GetClusterTrustedCerts возвращает список доверенных сертификатов кластера.
 func (cli *Cli) GetClusterTrustedCerts() ([]string, error) {
-	res, err := cli.Query("GETCLUSTERTRUSTEDCERTS")
-	if err != nil {
-		return nil, err
-	}
-	return cli.parseTrustedCerts(res)
+	return cli.getTrustedCerts("GETCLUSTERTRUSTEDCERTS")
+}
+
+// GetDirectoryIntegration возвращает настройки интеграции справочника сервера.
+func (cli *Cli) GetDirectoryIntegration() (map[string]any, error) {
+	return cli.getMapAny("GETDIRECTORYINTEGRATION", "")
+}
+
+// GetDomainDefaults возвращает настройки доменов сервера по умолчанию.
+func (cli *Cli) GetDomainDefaults() (map[string]any, error) {
+	return cli.getMapAny("GETDOMAINDEFAULTS", "")
+}
+
+// GetServerAccountDefaults возвращает настройки аккаунтов сервера по умолчанию.
+func (cli *Cli) GetServerAccountDefaults() (map[string]any, error) {
+	return cli.getMapAny("GETSERVERACCOUNTDEFAULTS", "")
+}
+
+// GetServerAccountPrefs возвращает предпочтения аккаунтов сервера по умолчанию.
+func (cli *Cli) GetServerAccountPrefs() (map[string]any, error) {
+	return cli.getMapAny("GETSERVERACCOUNTPREFS", "")
 }
 
 // GetServerTrustedCerts возвращает список доверенных сертификатов сервера.
 func (cli *Cli) GetServerTrustedCerts() ([]string, error) {
-	res, err := cli.Query("GETSERVERTRUSTEDCERTS")
-	if err != nil {
-		return nil, err
-	}
-	return cli.parseTrustedCerts(res)
+	return cli.getTrustedCerts("GETSERVERTRUSTEDCERTS")
 }
 
-func (cli *Cli) parseTrustedCerts(res any) ([]string, error) {
-	dict, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("expected dictionary, got %T", res)
-	}
-
-	rawList, ok := dict["TrustedCertificates"].([]any)
-	if !ok {
-		return []string{}, nil
-	}
-
-	certs := make([]string, 0, len(rawList))
-	for _, v := range rawList {
-		s := fmt.Sprint(v)
-		// Очищаем скобки, если парсер оставил их в сыром виде
-		certs = append(certs, strings.Trim(s, "[]"))
-	}
-	return certs, nil
+// ListClusterTelnums возвращает телефонные номера кластера.
+func (cli *Cli) ListClusterTelnums(f string, l int) (map[string]string, error) {
+	return cli.listTelnums("LISTCLUSTERTELNUMS", f, l)
 }
 
-// ListDomains возвращает список имен всех доменов на сервере.
-func (cli *Cli) ListDomains() ([]string, error) {
-	res, err := cli.Query("LISTDOMAINS")
-	if err != nil {
-		return nil, err
-	}
-	return cli.toStringSlice(res), nil
-}
-
-// ListDomainStorage возвращает список точек монтирования хранилища.
+// ListDomainStorage возвращает список путей хранилища.
 func (cli *Cli) ListDomainStorage(shared bool) ([]string, error) {
 	args := make([]any, 0, 2)
 	args = append(args, "LISTDOMAINSTORAGE")
 	if shared {
 		args = append(args, "SHARED")
 	}
-
 	res, err := cli.Query(args...)
 	if err != nil {
 		return nil, err
 	}
-	return cli.toStringSlice(res), nil
+	return cli.toStringSlice2(res)
 }
 
-// Вспомогательный метод для LIST...TELNUMS
-func (cli *Cli) listTelNums(cmd, filter string, limit int) (map[string]string, error) {
-	args := make([]any, 0, 4)
-	args = append(args, cmd)
-	if filter != "" {
-		args = append(args, "FILTER", filter)
-	}
-	args = append(args, limit)
+// ListDomains возвращает список всех доменов.
+func (cli *Cli) ListDomains() ([]string, error) { return cli.getSliceString("LISTDOMAINS", "") }
 
-	res, err := cli.Query(args...)
-	if err != nil {
-		return nil, err
-	}
-
-	rawDict, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: unexpected response type: %T", cmd, res)
-	}
-
-	result := make(map[string]string, len(rawDict))
-	for k, v := range rawDict {
-		if k == "" {
-			continue
-		}
-		if s, ok := v.(string); ok {
-			result[k] = s
-		} else {
-			result[k] = fmt.Sprint(v)
-		}
-	}
-	return result, nil
-}
-
+// ListServerTelnums возвращает телефонные номера сервера.
 func (cli *Cli) ListServerTelnums(f string, l int) (map[string]string, error) {
-	return cli.listTelNums("LISTSERVERTELNUMS", f, l)
-}
-func (cli *Cli) ListClusterTelNums(f string, l int) (map[string]string, error) {
-	return cli.listTelNums("LISTCLUSTERTELNUMS", f, l)
+	return cli.listTelnums("LISTSERVERTELNUMS", f, l)
 }
 
 // MainDomainName возвращает имя основного домена.
@@ -221,12 +151,14 @@ func (cli *Cli) MainDomainName() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if s, ok := res.(string); ok {
-		return s, nil
+	s, ok := res.(string)
+	if !ok {
+		return "", fmt.Errorf("MAINDOMAINNAME: expected string, got %T", res)
 	}
-	return fmt.Sprint(res), nil
+	return s, nil
 }
 
+// ReloadDirectoryDomains перезагружает домены из справочника.
 func (cli *Cli) ReloadDirectoryDomains() error {
 	_, err := cli.Query("RELOADDIRECTORYDOMAINS")
 	return err
@@ -235,101 +167,160 @@ func (cli *Cli) ReloadDirectoryDomains() error {
 // RenameDomain переименовывает домен.
 func (cli *Cli) RenameDomain(oldName, newName string, storage string) error {
 	if oldName == "" || newName == "" {
-		return fmt.Errorf("both old and new domain names are required")
+		return fmt.Errorf("old and new names are required")
 	}
-
 	args := make([]any, 0, 6)
 	args = append(args, "RENAMEDOMAIN", oldName, "INTO", newName)
 	if storage != "" {
 		args = append(args, "PATH", storage)
 	}
-
 	_, err := cli.Query(args...)
 	return err
 }
 
-// Сеттеры и Обновления (Set/Update)
+// SetClusterAccountDefaults устанавливает настройки аккаунтов кластера.
 func (cli *Cli) SetClusterAccountDefaults(s map[string]any) error {
-	return cli.sendSettings("SETCLUSTERACCOUNTDEFAULTS", s)
+	return cli.setMapAny("SETCLUSTERACCOUNTDEFAULTS", "", s)
 }
+
+// SetClusterAccountPrefs устанавливает предпочтения аккаунтов кластера.
 func (cli *Cli) SetClusterAccountPrefs(s map[string]any) error {
-	return cli.sendSettings("SETCLUSTERACCOUNTPREFS", s)
+	return cli.setMapAny("SETCLUSTERACCOUNTPREFS", "", s)
 }
+
+// SetClusterDirectoryIntegration устанавливает настройки интеграции справочника кластера.
 func (cli *Cli) SetClusterDirectoryIntegration(s map[string]any) error {
-	return cli.sendSettings("SETCLUSTERDIRECTORYINTEGRATION", s)
+	return cli.setMapAny("SETCLUSTERDIRECTORYINTEGRATION", "", s)
 }
+
+// SetClusterDomainDefaults устанавливает настройки доменов кластера.
 func (cli *Cli) SetClusterDomainDefaults(s map[string]any) error {
-	return cli.sendSettings("SETCLUSTERDOMAINDEFAULTS", s)
-}
-func (cli *Cli) SetDirectoryIntegration(s map[string]any) error {
-	return cli.sendSettings("SETDIRECTORYINTEGRATION", s)
-}
-func (cli *Cli) SetDomainDefaults(s map[string]any) error {
-	return cli.sendSettings("SETDOMAINDEFAULTS", s)
-}
-func (cli *Cli) SetServerAccountDefaults(s map[string]any) error {
-	return cli.sendSettings("SETSERVERACCOUNTDEFAULTS", s)
-}
-func (cli *Cli) SetServerAccountPrefs(s map[string]any) error {
-	return cli.sendSettings("SETSERVERACCOUNTPREFS", s)
+	return cli.setMapAny("SETCLUSTERDOMAINDEFAULTS", "", s)
 }
 
-func (cli *Cli) UpdateClusterAccountDefaults(s map[string]any) error {
-	return cli.sendSettings("UPDATECLUSTERACCOUNTDEFAULTS", s)
-}
-func (cli *Cli) UpdateClusterAccountPrefs(s map[string]any) error {
-	return cli.sendSettings("UPDATECLUSTERACCOUNTPREFS", s)
-}
-func (cli *Cli) UpdateClusterDomainDefaults(s map[string]any) error {
-	return cli.sendSettings("UPDATECLUSTERDOMAINDEFAULTS", s)
-}
-func (cli *Cli) UpdateDomainDefaults(s map[string]any) error {
-	return cli.sendSettings("UPDATEDOMAINDEFAULTS", s)
-}
-func (cli *Cli) UpdateServerAccountDefaults(s map[string]any) error {
-	return cli.sendSettings("UPDATESERVERACCOUNTDEFAULTS", s)
-}
-func (cli *Cli) UpdateServerAccountPrefs(s map[string]any) error {
-	return cli.sendSettings("UPDATESERVERACCOUNTPREFS", s)
-}
-
-func (cli *Cli) sendSettings(cmd string, s map[string]any) error {
-	if s == nil {
-		return fmt.Errorf("settings dictionary is required")
-	}
-	_, err := cli.Query(cmd, s)
-	return err
-}
-
-// Работа с сертификатами
+// SetClusterTrustedCerts устанавливает доверенные сертификаты кластера.
 func (cli *Cli) SetClusterTrustedCerts(certs []string) error {
 	return cli.setTrustedCerts("SETCLUSTERTRUSTEDCERTS", certs)
 }
+
+// SetDirectoryIntegration устанавливает настройки интеграции справочника сервера.
+func (cli *Cli) SetDirectoryIntegration(s map[string]any) error {
+	return cli.setMapAny("SETDIRECTORYINTEGRATION", "", s)
+}
+
+// SetDomainDefaults устанавливает настройки доменов сервера.
+func (cli *Cli) SetDomainDefaults(s map[string]any) error {
+	return cli.setMapAny("SETDOMAINDEFAULTS", "", s)
+}
+
+// SetServerAccountDefaults устанавливает настройки аккаунтов сервера.
+func (cli *Cli) SetServerAccountDefaults(s map[string]any) error {
+	return cli.setMapAny("SETSERVERACCOUNTDEFAULTS", "", s)
+}
+
+// SetServerAccountPrefs устанавливает предпочтения аккаунтов сервера.
+func (cli *Cli) SetServerAccountPrefs(s map[string]any) error {
+	return cli.setMapAny("SETSERVERACCOUNTPREFS", "", s)
+}
+
+// SetServerTrustedCerts устанавливает доверенные сертификаты сервера.
 func (cli *Cli) SetServerTrustedCerts(certs []string) error {
 	return cli.setTrustedCerts("SETSERVERTRUSTEDCERTS", certs)
 }
 
+// UpdateClusterAccountDefaults обновляет настройки аккаунтов кластера.
+func (cli *Cli) UpdateClusterAccountDefaults(s map[string]any) error {
+	return cli.setMapAny("UPDATECLUSTERACCOUNTDEFAULTS", "", s)
+}
+
+// UpdateClusterAccountPrefs обновляет предпочтения аккаунтов кластера.
+func (cli *Cli) UpdateClusterAccountPrefs(s map[string]any) error {
+	return cli.setMapAny("UPDATECLUSTERACCOUNTPREFS", "", s)
+}
+
+// UpdateClusterDomainDefaults обновляет настройки доменов кластера.
+func (cli *Cli) UpdateClusterDomainDefaults(s map[string]any) error {
+	return cli.setMapAny("UPDATECLUSTERDOMAINDEFAULTS", "", s)
+}
+
+// UpdateDomainDefaults обновляет настройки доменов сервера.
+func (cli *Cli) UpdateDomainDefaults(s map[string]any) error {
+	return cli.setMapAny("UPDATEDOMAINDEFAULTS", "", s)
+}
+
+// UpdateServerAccountDefaults обновляет настройки аккаунтов сервера.
+func (cli *Cli) UpdateServerAccountDefaults(s map[string]any) error {
+	return cli.setMapAny("UPDATESERVERACCOUNTDEFAULTS", "", s)
+}
+
+// UpdateServerAccountPrefs обновляет предпочтения аккаунтов сервера.
+func (cli *Cli) UpdateServerAccountPrefs(s map[string]any) error {
+	return cli.setMapAny("UPDATESERVERACCOUNTPREFS", "", s)
+}
+
+// --- Private Methods ---
+
+func (cli *Cli) getTrustedCerts(cmd string) ([]string, error) {
+	res, err := cli.getMapAny(cmd, "")
+	if err != nil {
+		return nil, err
+	}
+	val, ok := res["TrustedCertificates"]
+	if !ok || val == nil {
+		return []string{}, nil
+	}
+	raw, ok := val.([]any)
+	if !ok {
+		return nil, fmt.Errorf("%s: expected []any for TrustedCertificates, got %T", cmd, val)
+	}
+	certs := make([]string, 0, len(raw))
+	for i, item := range raw {
+		b, ok := item.([]byte)
+		if !ok {
+			return nil, fmt.Errorf("%s: expected []byte at index %d, got %T", cmd, i, item)
+		}
+		certs = append(certs, string(b))
+	}
+	return certs, nil
+}
+
+func (cli *Cli) listTelnums(cmd, filter string, limit int) (map[string]string, error) {
+	args := make([]any, 0, 4)
+	args = append(args, cmd)
+	if filter != "" {
+		args = append(args, "FILTER", filter)
+	}
+	if limit > 0 {
+		args = append(args, limit)
+	}
+	res, err := cli.Query(args...)
+	if err != nil {
+		return nil, err
+	}
+	dict, ok := res.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
+	}
+	delete(dict, "")
+	return cli.toStringMap(cmd, dict)
+}
+
 func (cli *Cli) setTrustedCerts(cmd string, certs []string) error {
 	if certs == nil {
-		return fmt.Errorf("certs array is required")
+		return fmt.Errorf("%s: certs slice is nil", cmd)
 	}
-
-	prepared := make([]any, 0, len(certs))
 	replacer := strings.NewReplacer(
 		"-----BEGIN CERTIFICATE-----", "",
 		"-----END CERTIFICATE-----", "",
 		"\n", "", "\r", "", " ", "",
 	)
-
+	prepared := make([]any, 0, len(certs))
 	for _, c := range certs {
 		clean := replacer.Replace(c)
-		if clean == "" {
-			continue
+		if clean != "" {
+			prepared = append(prepared, DataBlock(clean))
 		}
-		// Используем наш тип DataBlock, чтобы маршалер выдал [base64]
-		prepared = append(prepared, DataBlock(clean))
 	}
-
 	_, err := cli.Query(cmd, map[string]any{"TrustedCertificates": prepared})
 	return err
 }

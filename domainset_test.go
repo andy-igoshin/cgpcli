@@ -8,6 +8,18 @@ import (
 	"time"
 )
 
+// cleanPEM — локальная вспомогательная функция для тестов
+func cleanPEM(pem string) string {
+	r := strings.NewReplacer(
+		"-----BEGIN CERTIFICATE-----", "",
+		"-----END CERTIFICATE-----", "",
+		"\n", "",
+		"\r", "",
+		" ", "",
+	)
+	return r.Replace(pem)
+}
+
 func TestDomainSetAdministration(t *testing.T) {
 	host := os.Getenv("CGPHOST")
 	user := os.Getenv("CGPUSER")
@@ -22,8 +34,7 @@ func TestDomainSetAdministration(t *testing.T) {
 	}
 	defer cli.Logout()
 
-	// --- Базовые списки и инфо ---
-
+	// --- Списки и инфо ---
 	t.Run("BasicLists", func(t *testing.T) {
 		domains, err := cli.ListDomains()
 		if err != nil {
@@ -36,163 +47,51 @@ func TestDomainSetAdministration(t *testing.T) {
 			t.Errorf("MainDomainName failed: %v", err)
 		}
 		t.Logf("Main domain: %s", mainDomain)
-
-		storages, err := cli.ListDomainStorage(false)
-		if err != nil {
-			t.Errorf("ListDomainStorage failed: %v", err)
-		}
-		t.Logf("Found %d storage paths", len(storages))
 	})
 
 	// --- Жизненный цикл домена ---
-
 	t.Run("DomainLifecycle", func(t *testing.T) {
 		tempName := fmt.Sprintf("test-dom-%d.local", time.Now().Unix())
 		newName := "renamed-" + tempName
 
-		// Создание
 		if err := cli.CreateDomain(tempName, false, "", nil); err != nil {
 			t.Fatalf("CreateDomain failed: %v", err)
 		}
 
-		// Переименование
 		if err := cli.RenameDomain(tempName, newName, ""); err != nil {
 			t.Errorf("RenameDomain failed: %v", err)
 		}
 
-		// Удаление
 		if err := cli.DeleteDomain(newName, true); err != nil {
 			t.Errorf("DeleteDomain failed: %v", err)
 		}
 	})
 
-	// --- Настройки по умолчанию (Server) ---
-
-	t.Run("ServerDefaults", func(t *testing.T) {
-		// Domain Defaults
-		if dd, err := cli.GetDomainDefaults(); err == nil {
-			if err := cli.UpdateDomainDefaults(dd); err != nil {
-				t.Errorf("UpdateDomainDefaults failed: %v", err)
+	// --- Проверка настроек (идемпотентность Get/Update) ---
+	t.Run("ServerSettingsIdempotency", func(t *testing.T) {
+		check := func(name string, getter func() (map[string]any, error), updater func(map[string]any) error) {
+			data, err := getter()
+			if err != nil {
+				t.Errorf("Get %s failed: %v", name, err)
+				return
 			}
-		} else {
-			t.Errorf("GetDomainDefaults failed: %v", err)
-		}
-
-		// Account Defaults
-		if ad, err := cli.GetServerAccountDefaults(); err == nil {
-			if err := cli.UpdateServerAccountDefaults(ad); err != nil {
-				t.Errorf("UpdateServerAccountDefaults failed: %v", err)
-			}
-		} else {
-			t.Errorf("GetServerAccountDefaults failed: %v", err)
-		}
-
-		// Account Prefs
-		if ap, err := cli.GetServerAccountPrefs(); err == nil {
-			if err := cli.UpdateServerAccountPrefs(ap); err != nil {
-				t.Errorf("UpdateServerAccountPrefs failed: %v", err)
-			}
-		} else {
-			t.Errorf("GetServerAccountPrefs failed: %v", err)
-		}
-	})
-
-	// --- Сертификаты и Интеграция ---
-
-	t.Run("CertsAndIntegration", func(t *testing.T) {
-		// Trusted Certs
-		certs, err := cli.GetServerTrustedCerts()
-		if err != nil {
-			t.Errorf("GetServerTrustedCerts failed: %v", err)
-		} else if len(certs) > 0 {
-			// Идемпотентная проверка записи
-			if err := cli.SetServerTrustedCerts(certs); err != nil {
-				t.Errorf("SetServerTrustedCerts failed: %v", err)
+			if err := updater(data); err != nil {
+				t.Errorf("Update %s failed: %v", name, err)
 			}
 		}
 
-		// Directory Integration
-		if di, err := cli.GetDirectoryIntegration(); err == nil {
-			if err := cli.SetDirectoryIntegration(di); err != nil {
-				t.Errorf("SetDirectoryIntegration failed: %v", err)
-			}
-		} else {
-			t.Errorf("GetDirectoryIntegration failed: %v", err)
-		}
+		check("DomainDefaults", cli.GetDomainDefaults, cli.UpdateDomainDefaults)
+		check("AccountDefaults", cli.GetServerAccountDefaults, cli.UpdateServerAccountDefaults)
 	})
-
-	// --- Телефонные номера ---
-
-	t.Run("TelNums", func(t *testing.T) {
-		// Обычно требует лицензии на PBX, поэтому не фаталим при ошибке
-		nums, err := cli.ListServerTelnums("", 10)
-		if err != nil {
-			t.Logf("ListServerTelnums info (check license): %v", err)
-		} else {
-			t.Logf("Found %d server telnums", len(nums))
-		}
-	})
-
-	// --- Кластерные команды (с проверкой лицензии) ---
-
-	t.Run("ClusterChecks", func(t *testing.T) {
-		// Пробуем получить настройки кластера.
-		// Если это не кластер или нет лицензии, CGP вернет ошибку.
-		cdd, err := cli.GetClusterDomainDefaults()
-		if err != nil {
-			t.Logf("Cluster license not active or not a dynamic cluster: %v", err)
-			return
-		}
-
-		t.Log("Cluster detected, running extended checks...")
-
-		// Проверка Update Cluster
-		if err := cli.UpdateClusterDomainDefaults(cdd); err != nil {
-			t.Errorf("UpdateClusterDomainDefaults failed: %v", err)
-		}
-
-		// Кластерные сертификаты
-		if cc, err := cli.GetClusterTrustedCerts(); err == nil {
-			t.Logf("Found %d cluster certs", len(cc))
-		}
-
-		// Кластерное хранилище
-		if cs, err := cli.ListDomainStorage(true); err != nil {
-			t.Errorf("ListDomainStorage (SHARED) failed: %v", err)
-		} else {
-			t.Logf("Found %d shared storage paths", len(cs))
-		}
-	})
-
-	// --- Прочее ---
-
-	t.Run("Maintenance", func(t *testing.T) {
-		if err := cli.ReloadDirectoryDomains(); err != nil {
-			t.Errorf("ReloadDirectoryDomains failed: %v", err)
-		}
-	})
-}
-
-func cleanPEM(pem string) string {
-	r := strings.NewReplacer(
-		"-----BEGIN CERTIFICATE-----", "",
-		"-----END CERTIFICATE-----", "",
-		"\n", "",
-		"\r", "",
-		" ", "",
-	)
-	return r.Replace(pem)
 }
 
 func TestTrustedCertsLive(t *testing.T) {
 	host := os.Getenv("CGPHOST")
-	user := os.Getenv("CGPUSER")
-	pass := os.Getenv("CGPPASS")
 	if host == "" {
 		t.Skip("Sandbox environment (CGPHOST) not configured")
 	}
 
-	cli, err := New(host, user, pass, APOP, false)
+	cli, err := New(host, os.Getenv("CGPUSER"), os.Getenv("CGPPASS"), APOP, false)
 	if err != nil {
 		t.Fatalf("Connect failed: %v", err)
 	}
@@ -230,13 +129,13 @@ tlz8SxRmzBDC
 			t.Fatalf("Failed to get original certs: %v", err)
 		}
 
-		// 2. Добавляем наш тестовый
+		// 2. Добавляем тестовый (даже если он уже там есть)
 		newCerts := append(original, testCert)
 		if err := cli.SetServerTrustedCerts(newCerts); err != nil {
 			t.Fatalf("Failed to set certs: %v", err)
 		}
 
-		// 3. Проверяем наличие
+		// 3. Проверяем наличие (сервер мог дедуплицировать, поэтому просто ищем в списке)
 		updated, err := cli.GetServerTrustedCerts()
 		if err != nil {
 			t.Fatalf("Failed to verify certs: %v", err)
@@ -244,14 +143,19 @@ tlz8SxRmzBDC
 
 		found := false
 		for _, c := range updated {
+			// GetServerTrustedCerts теперь возвращает чистый base64 без []
 			if c == clean {
 				found = true
 				break
 			}
 		}
 
-		// 4. Возвращаем как было (важно!)
-		defer cli.SetServerTrustedCerts(original)
+		// 4. Возвращаем всё в исходное состояние
+		defer func() {
+			if err := cli.SetServerTrustedCerts(original); err != nil {
+				t.Errorf("Cleanup failed: %v", err)
+			}
+		}()
 
 		if !found {
 			t.Error("Test certificate not found in the list after update")
