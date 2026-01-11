@@ -84,6 +84,28 @@ func (cli *Cli) getSliceString(cmd string, subject string) ([]string, error) {
 	return result, nil
 }
 
+// toAnySlice — безопасное приведение к слайсу для вложенных данных (Rules).
+func (cli *Cli) toAnySlice(v any) []any {
+	if s, ok := v.([]any); ok {
+		return s
+	}
+	return []any{}
+}
+
+// toInt — безопасное приведение к int для числовых параметров.
+func (cli *Cli) toInt(v any) int {
+	switch val := v.(type) {
+	case int:
+		return val
+	case int64:
+		return int(val)
+	case float64:
+		return int(val)
+	default:
+		return 0
+	}
+}
+
 // toStringMap — конвертирует map[string]any в map[string]string (для ListAccounts и др.).
 func (cli *Cli) toStringMap(cmd string, data map[string]any) (map[string]string, error) {
 	result := make(map[string]string, len(data))
@@ -93,6 +115,46 @@ func (cli *Cli) toStringMap(cmd string, data map[string]any) (map[string]string,
 			return nil, err
 		}
 		result[k] = s
+	}
+	return result, nil
+}
+
+// toStringSlice — вспомогательный метод для эффективного приведения типов
+func (cli *Cli) toStringSlice(v any) []string {
+	raw, ok := v.([]any)
+	if !ok {
+		return []string{}
+	}
+
+	list := make([]string, len(raw))
+	for i, item := range raw {
+		if s, ok := item.(string); ok {
+			list[i] = s
+		} else {
+			list[i] = fmt.Sprint(item)
+		}
+	}
+	return list
+}
+
+
+// toStringSlice2 — временный строгий конвертер для точечного рефакторинга.
+func (cli *Cli) toStringSlice2(v any) ([]string, error) {
+	raw, ok := v.([]any)
+	if !ok {
+		if v == nil {
+			return []string{}, nil
+		}
+		return nil, fmt.Errorf("expected []any, got %T", v)
+	}
+
+	result := make([]string, len(raw))
+	for i, item := range raw {
+		s, err := cli.valToString("", item)
+		if err != nil {
+			return nil, err
+		}
+		result[i] = s
 	}
 	return result, nil
 }
@@ -111,26 +173,4 @@ func (cli *Cli) valToString(cmd string, v any) (string, error) {
 	default:
 		return "", fmt.Errorf("%s: unexpected value type %T (value: %v)", cmd, v, v)
 	}
-}
-
-// toInt — безопасное приведение к int для числовых параметров.
-func (cli *Cli) toInt(v any) int {
-	switch val := v.(type) {
-	case int:
-		return val
-	case int64:
-		return int(val)
-	case float64:
-		return int(val)
-	default:
-		return 0
-	}
-}
-
-// toAnySlice — безопасное приведение к слайсу для вложенных данных (Rules).
-func (cli *Cli) toAnySlice(v any) []any {
-	if s, ok := v.([]any); ok {
-		return s
-	}
-	return []any{}
 }
