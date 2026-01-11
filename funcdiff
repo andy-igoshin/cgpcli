@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+die "Usage: $0 file1.go file2.go\n" unless @ARGV == 2;
+
+my ($f1, $f2) = @ARGV;
+
+sub get_functions {
+    my $file = shift;
+    my %funcs;
+    open my $fh, '<', $file or die "Can't open $file: $!";
+    while (<$fh>) {
+        # Ищем паттерн func (recv) Name(...) или func Name(...)
+        if (/func\s+(?:\([^)]+\)\s+)?([A-Z]\w*)\s*\(/) {
+            $funcs{$1} = 1;
+        }
+    }
+    return \%funcs;
+}
+
+my $funcs1 = get_functions($f1);
+my $funcs2 = get_functions($f2);
+
+print "--- Functions in $f1 but NOT in $f2 ---\n";
+foreach (sort keys %$funcs1) {
+    print "$_\n" unless exists $funcs2->{$_};
+}
+
+print "\n--- Functions in $f2 but NOT in $f1 ---\n";
+foreach (sort keys %$funcs2) {
+    print "$_\n" unless exists $funcs1->{$_};
+}
