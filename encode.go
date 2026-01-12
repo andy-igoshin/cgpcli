@@ -2,8 +2,10 @@ package cgpcli
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"sort"
 	"strconv"
 	"strings"
@@ -12,6 +14,12 @@ import (
 
 type Atom string
 type DataBlock []byte
+
+type encodeWriter interface {
+	io.Writer
+	WriteByte(byte) error
+	WriteString(string) (int, error)
+}
 
 var cgpSafeTable = [256]byte{
 	'0': 1, '1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1,
@@ -108,10 +116,16 @@ func formatCGPSize(v int64) string {
 }
 
 func MarshalTo(w *bufio.Writer, v any) error {
-	return marshalTo(w, v, false)
+	return marshal(w, v, false)
 }
 
-func marshalTo(w *bufio.Writer, v any, asKey bool) error {
+func MarshalToString(v any) (string, error) {
+	var b bytes.Buffer
+	err := marshal(&b, v, false)
+	return b.String(), err
+}
+
+func marshal(w encodeWriter, v any, asKey bool) error {
 	switch val := v.(type) {
 	case Atom:
 		_, err := w.WriteString(string(val))
@@ -175,9 +189,9 @@ func marshalTo(w *bufio.Writer, v any, asKey bool) error {
 		}
 		sort.Strings(keys)
 		for _, k := range keys {
-			marshalTo(w, k, true)
+			marshal(w, k, true)
 			w.WriteString("=")
-			marshalTo(w, val[k], false)
+			marshal(w, val[k], false)
 			w.WriteByte(';')
 		}
 		return w.WriteByte('}')
@@ -185,14 +199,13 @@ func marshalTo(w *bufio.Writer, v any, asKey bool) error {
 	case []any:
 		w.WriteByte('(')
 		for i, item := range val {
-			marshalTo(w, item, false)
+			marshal(w, item, false)
 			if i < len(val)-1 {
 				w.WriteByte(',')
 			}
 		}
 		return w.WriteByte(')')
 
-	// Аналогично для map[string]string и []string...
 	case map[string]string:
 		w.WriteByte('{')
 		keys := make([]string, 0, len(val))
@@ -201,9 +214,9 @@ func marshalTo(w *bufio.Writer, v any, asKey bool) error {
 		}
 		sort.Strings(keys)
 		for _, k := range keys {
-			marshalTo(w, k, true)
+			marshal(w, k, true)
 			w.WriteString("=")
-			marshalTo(w, val[k], false)
+			marshal(w, val[k], false)
 			w.WriteByte(';')
 		}
 		return w.WriteByte('}')
@@ -211,7 +224,7 @@ func marshalTo(w *bufio.Writer, v any, asKey bool) error {
 	case []string:
 		w.WriteByte('(')
 		for i, s := range val {
-			marshalTo(w, s, false)
+			marshal(w, s, false)
 			if i < len(val)-1 {
 				w.WriteByte(',')
 			}
