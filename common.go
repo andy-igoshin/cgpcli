@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"os"
 	"strconv"
 	"time"
 )
@@ -321,6 +322,12 @@ func (cli *Cli) Query(args ...any) (any, error) {
 	}
 	if !cli.IsSuccess() {
 		return nil, fmt.Errorf("CGP Error %d: %s", cli.respCode, string(cli.respData))
+	}
+
+	if cli.debug {
+		os.Stderr.Write([]byte(">>> RECV: "))
+		os.Stderr.Write(cli.respData)
+		os.Stderr.Write([]byte("\n"))
 	}
 
 	var res any
