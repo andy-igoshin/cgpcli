@@ -68,11 +68,11 @@ func (cli *Cli) GetMailboxACL(account, mailbox, authAccount string) (map[string]
 
 	acl := make(map[string]string, len(dict))
 	for k, v := range dict {
-		if s, ok := v.(string); ok {
-			acl[k] = s
-		} else {
-			acl[k] = fmt.Sprint(v)
+		s, err := cli.valToString("GETMAILBOXACL", v)
+		if err != nil {
+			return nil, err
 		}
+		acl[k] = s
 	}
 	return acl, nil
 }
@@ -95,11 +95,11 @@ func (cli *Cli) GetMailboxAliases(account string) (map[string]string, error) {
 
 	aliases := make(map[string]string, len(dict))
 	for k, v := range dict {
-		if s, ok := v.(string); ok {
-			aliases[k] = s
-		} else {
-			aliases[k] = fmt.Sprint(v)
+		s, err := cli.valToString("GETMAILBOXALIASES", v)
+		if err != nil {
+			return nil, err
 		}
+		aliases[k] = s
 	}
 	return aliases, nil
 }
@@ -139,10 +139,7 @@ func (cli *Cli) GetMailboxRights(account, mailbox, authAccount string) (string, 
 		return "", err
 	}
 
-	if s, ok := res.(string); ok {
-		return s, nil
-	}
-	return fmt.Sprint(res), nil
+	return cli.valToString("GETMAILBOXRIGHTS", res)
 }
 
 // GetMailboxSubscription возвращает список ящиков, на которые подписан пользователь.
@@ -156,7 +153,7 @@ func (cli *Cli) GetMailboxSubscription(account string) ([]string, error) {
 		return nil, err
 	}
 
-	return cli.toStringSlice(res), nil
+	return cli.toStringSlice2(res)
 }
 
 // ListMailboxes возвращает дерево ящиков аккаунта с метаданными.
