@@ -67,4 +67,3 @@ func TestStatistics(t *testing.T) {
 		}
 	})
 }
-

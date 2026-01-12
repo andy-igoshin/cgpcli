@@ -56,28 +56,28 @@ func TestMonitoring(t *testing.T) {
 }
 
 func TestIdentifyEOF(t *testing.T) {
-    cli := getTestCli(t)
-    defer cli.Logout()
+	cli := getTestCli(t)
+	defer cli.Logout()
 
-    // 1. Сначала найдем последний элемент
-    current := ""
-    var lastValid string
-    for {
-        next, err := cli.GetNextStatName(current)
-        if err != nil {
-            t.Logf("Protocol error at the end: %v", err)
-            break
-        }
-        lastValid = next
-        current = next
-    }
+	// 1. Сначала найдем последний элемент
+	current := ""
+	var lastValid string
+	for {
+		next, err := cli.GetNextStatName(current)
+		if err != nil {
+			t.Logf("Protocol error at the end: %v", err)
+			break
+		}
+		lastValid = next
+		current = next
+	}
 
-    // 2. Теперь вызываем GETNEXTSTATNAME от последнего валидного элемента
-    // чтобы увидеть точный текст ошибки от сервера
-    res, err := cli.Query("GETNEXTSTATNAME", lastValid)
-    if err != nil {
-        t.Logf("EOF Error Details: '%v'", err)
-    } else {
-        t.Errorf("Expected error at EOF, but got: %v", res)
-    }
+	// 2. Теперь вызываем GETNEXTSTATNAME от последнего валидного элемента
+	// чтобы увидеть точный текст ошибки от сервера
+	res, err := cli.Query("GETNEXTSTATNAME", lastValid)
+	if err != nil {
+		t.Logf("EOF Error Details: '%v'", err)
+	} else {
+		t.Errorf("Expected error at EOF, but got: %v", res)
+	}
 }

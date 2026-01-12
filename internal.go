@@ -137,7 +137,6 @@ func (cli *Cli) toStringSlice(v any) []string {
 	return list
 }
 
-
 // toStringSlice2 — временный строгий конвертер для точечного рефакторинга.
 func (cli *Cli) toStringSlice2(v any) ([]string, error) {
 	raw, ok := v.([]any)

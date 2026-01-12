@@ -7,7 +7,6 @@ import (
 )
 
 // PrettyPrint выводит структуру данных в удобном для чтения виде.
-// Полезно для отладки сложных ответов от CommuniGate Pro.
 func PrettyPrint(v any) {
 	prettyPrintRecursive(v, 0)
 }

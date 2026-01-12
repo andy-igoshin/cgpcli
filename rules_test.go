@@ -7,12 +7,12 @@ import (
 
 func TestSignalPriorityArithmetic(t *testing.T) {
 	tests := []struct {
-		name      string
-		prio      int
-		delay     int
-		event     int
-		ruleName  string
-		want      int
+		name     string
+		prio     int
+		delay    int
+		event    int
+		ruleName string
+		want     int
 	}{
 		{"Delay 0 (Base case)", 5, 0, 0, "#Block", 100005},
 		{"Delay 10 minutes", 1, 10, 0, "#ForkOnTimer", 99001},
@@ -49,10 +49,10 @@ func TestSignalPriorityArithmetic(t *testing.T) {
 func TestRulesToSlice(t *testing.T) {
 	t.Run("MailRule with Comment", func(t *testing.T) {
 		r := MailRule{
-			Priority: 5, Name: "M1", 
-			Conditions: []any{"Subject", "is", "test"}, 
-			Actions: []any{"Discard"}, 
-			Comment: "Hide it",
+			Priority: 5, Name: "M1",
+			Conditions: []any{"Subject", "is", "test"},
+			Actions:    []any{"Discard"},
+			Comment:    "Hide it",
 		}
 		got := r.ToSlice()
 		want := []any{5, "M1", r.Conditions, r.Actions, "Hide it"}
@@ -65,7 +65,7 @@ func TestRulesToSlice(t *testing.T) {
 		r := SignalRule{
 			Priority: 5, Delay: 0, Name: "#Block",
 			Conditions: []any{"From", "is", "spam"},
-			Actions: []any{"Reject"},
+			Actions:    []any{"Reject"},
 		}
 		got := r.ToSlice()
 		// 1000*100 + 5 = 100005
