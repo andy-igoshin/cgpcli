@@ -176,7 +176,13 @@ func (cli *Cli) GetAccountInfo(account string, keys []string) (map[string]any, e
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
-	res, err := cli.Query("GETACCOUNTINFO", Atom(account), keys)
+	var res any
+	var err error
+	if len(keys) == 0 {
+		res, err = cli.Query("GETACCOUNTINFO", Atom(account))
+	} else {
+		res, err = cli.Query("GETACCOUNTINFO", Atom(account), keys)
+	}
 	if err != nil {
 		return nil, err
 	}
