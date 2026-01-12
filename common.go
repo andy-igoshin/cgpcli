@@ -58,6 +58,7 @@ type Cli struct {
 	conn        net.Conn
 	reader      *bufio.Reader
 	writer      *bufio.Writer
+	buf         bytes.Buffer
 	isConnected bool
 	lastAccess  time.Time
 	respCode    CliCode
@@ -129,11 +130,10 @@ func (cli *Cli) connect() (err error) {
 		return
 	}
 
-	// Инициализируем буферизированный ридер один раз при подключении
 	cli.reader = bufio.NewReaderSize(cli.conn, cgpLineSize)
-	cli.writer = bufio.NewWriterSize(cli.conn, cgpLineSize)
+	cli.writer = bufio.NewWriter(cli.conn)
+	cli.buf.Grow(cgpLineSize)
 
-	// Читаем приветствие сервера (Banner)
 	err = cli.parseResponse()
 	if err != nil {
 		err = fmt.Errorf("can't read CGPro Server prompt: %w", err)
@@ -325,7 +325,7 @@ func (cli *Cli) Query(args ...any) (any, error) {
 	}
 
 	if cli.debug {
-		os.Stderr.Write([]byte(">>> RECV: "))
+		os.Stderr.Write([]byte("<<< RECV: "))
 		os.Stderr.Write(cli.respData)
 		os.Stderr.Write([]byte("\n"))
 	}
@@ -346,15 +346,27 @@ func (cli *Cli) Send(args ...any) (err error) {
 	cli.lastAccess = time.Now()
 	cli.conn.SetWriteDeadline(time.Now().Add(cmdTimeout))
 
+	cli.buf.Reset()
+
 	for i, arg := range args {
 		if i > 0 {
-			cli.writer.WriteByte(' ')
+			cli.buf.WriteByte(' ')
 		}
-		if err := marshalTo(cli.writer, arg, false); err != nil {
+		if err := marshal(&cli.buf, arg, false); err != nil {
 			return err
 		}
 	}
+	cli.buf.WriteByte('\n')
 
-	cli.writer.WriteByte('\n')
+	if cli.debug {
+		os.Stderr.Write([]byte(">>> SEND: "))
+		os.Stderr.Write(cli.buf.Bytes())
+	}
+
+	_, err = cli.writer.Write(cli.buf.Bytes())
+	if err != nil {
+		return err
+	}
+
 	return cli.writer.Flush()
 }
