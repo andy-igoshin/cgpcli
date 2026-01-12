@@ -21,28 +21,26 @@ close $fh_go;
 
 # 2. Парсим CLI.txt по разделам
 my %sections;
-my $current_section = "Unknown";
+my $current_section = "General Administration";
 
 open my $fh_cli, '<', $cli_txt or die "Can't open $cli_txt: $!";
 while (<$fh_cli>) {
     chomp;
     next if /^\s*$/;
-    next if /^\s*[_]{10,}/; # Пропускаем линии подчеркивания
+    next if /^\s*[_]{10,}/; 
 
-    # Определение начала раздела (строка без начальных пробелов)
+    # Определение начала раздела
     if (/^([A-Z][A-Za-z ]+ Administration)$|^([A-Z][A-Za-z ]+ Settings)$/) {
         $current_section = $+;
         next;
     }
 
-    # Определение команды (отступ 3-10 пробелов и ВЕРХНИЙ РЕГИСТР)
-    if (/^\s{3,10}([A-Z][A-Z0-0]{3,}(?:\s+[A-Z][A-Z0-9]*)*)/) {
+    # Определение команды
+    if (/^\s{3,10}([A-Z][A-Z0-9]{3,}(?:\s+[A-Z][A-Z0-9]*)*)/) {
         my $full_cmd = $1;
-        # Извлекаем только саму команду (первое слово)
         my ($cmd) = split(/\s+/, $full_cmd);
 
-        # Фильтруем ложные срабатывания (типа SHARED, FORCE, PATH)
-        next if $cmd =~ /^(DELETE\s+|PARAM|OFFSET|LEGACY|NAME|SHARED|FORCE|PATH|INTO|FILTER|COOKIE|ACCOUNTS|ALIASES|FORWARDERS)$/;
+        next if $cmd =~ /^(DELETE|PARAM|OFFSET|LEGACY|NAME|SHARED|FORCE|PATH|INTO|FILTER|COOKIE|ACCOUNTS|ALIASES|FORWARDERS)$/;
 
         $sections{$current_section}{$cmd} = 1;
     }
@@ -50,17 +48,15 @@ while (<$fh_cli>) {
 close $fh_cli;
 
 # 3. Вывод отчета
-print "CGP CLI IMPLEMENTATION REPORT\n";
-print "=" x 40 . "\n";
+print "CGP CLI IMPLEMENTATION REPORT (Active Sections Only)\n";
+print "=" x 52 . "\n";
 
 foreach my $sec (sort keys %sections) {
-    print "\nSECTION: $sec\n";
-    print "-" x (length($sec) + 9) . "\n";
-    
     my @cmds = sort keys %{$sections{$sec}};
-    my $found = 0;
     my @missing;
+    my $found = 0;
 
+    # Сначала считаем попадания
     foreach my $cmd (@cmds) {
         if (exists $go_funcs{lc $cmd}) {
             $found++;
@@ -69,9 +65,17 @@ foreach my $sec (sort keys %sections) {
         }
     }
 
-    printf "Status: %d/%d implemented\n", $found, scalar @cmds;
-    if (@missing) {
-        print "Missing:\n";
-        print "  - $_\n" for @missing;
+    # Выводим раздел только если есть хотя бы одна реализованная функция
+    if ($found > 0) {
+        print "\nSECTION: $sec\n";
+        print "-" x (length($sec) + 9) . "\n";
+        printf "Status: %d/%d implemented\n", $found, scalar @cmds;
+        
+        if (@missing) {
+            print "Missing in Go SDK:\n";
+            print "  - $_\n" for @missing;
+        } else {
+            print "  [+] All commands from this section are implemented!\n";
+        }
     }
 }
