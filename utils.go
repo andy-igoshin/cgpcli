@@ -3,6 +3,7 @@ package cgpcli
 import (
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 )
 
@@ -15,7 +16,6 @@ func prettyPrintRecursive(v any, indent int) {
 	prefix := strings.Repeat("  ", indent)
 	val := reflect.ValueOf(v)
 
-	// Защита от невалидных данных
 	if !val.IsValid() {
 		fmt.Print("<invalid>\n")
 		return
@@ -36,9 +36,9 @@ func prettyPrintRecursive(v any, indent int) {
 		return
 	}
 
-	// Обработка слайса байт как строки
+	// Обработка слайса байт как строки (наш DataBlock из парсера)
 	if val.Kind() == reflect.Slice && val.Type().Elem().Kind() == reflect.Uint8 {
-		fmt.Printf("%q\n", val.Bytes())
+		fmt.Printf("[]byte: %q\n", val.Bytes())
 		return
 	}
 
@@ -60,7 +60,14 @@ func prettyPrintRecursive(v any, indent int) {
 			return
 		}
 		fmt.Printf("(map len=%d):\n", val.Len())
-		for _, key := range val.MapKeys() {
+
+		// Сбор и сортировка ключей
+		keys := val.MapKeys()
+		sort.Slice(keys, func(i, j int) bool {
+			return fmt.Sprint(keys[i].Interface()) < fmt.Sprint(keys[j].Interface())
+		})
+
+		for _, key := range keys {
 			fmt.Printf("%s  %v: ", prefix, key)
 			prettyPrintRecursive(val.MapIndex(key).Interface(), indent+2)
 		}
