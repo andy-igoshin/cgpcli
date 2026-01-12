@@ -468,3 +468,57 @@ func TestAccountSignalRulesLogic(t *testing.T) {
 		}
 	})
 }
+
+// 8. Тестирование парсинга сложных системных данных (имитация ответа сервера)
+func TestAccountInfoComplexParsing(t *testing.T) {
+	// Мы не делаем запрос к серверу, а тестируем Unmarshal напрямую на реальном дампе
+	// Это гарантирует, что проблема в парсере будет поймана
+	complexData := `{
+		Created = "31-12-2025_07:14:13";
+		LastLogin = #T11-01-2026_07:00:48;
+		MailboxSeq = #1767981;
+		Subscription = (INBOX, Sent);
+		MailboxDeleted = {
+			1767894 = GoSDKTestRenamed;
+			1767897 = GoSDKTestRenamed;
+		};
+		StorageUsed = 0;
+	}`
+
+	var res any
+	err := Unmarshal([]byte(complexData), &res)
+	if err != nil {
+		t.Fatalf("Unmarshal failed: %v", err)
+	}
+
+	info, ok := res.(map[string]any)
+	if !ok {
+		t.Fatalf("Expected map[string]any, got %T", res)
+	}
+
+	// Если парсер сломался на #T или на (, словарь будет неполным или пустым
+	t.Run("CheckFieldsExistence", func(t *testing.T) {
+		expectedFields := []string{"Created", "LastLogin", "MailboxSeq", "Subscription", "MailboxDeleted"}
+		for _, f := range expectedFields {
+			if _, exists := info[f]; !exists {
+				t.Errorf("Field %s is missing in parsed map (parser probably stopped early)", f)
+			}
+		}
+	})
+
+	t.Run("CheckTypes", func(t *testing.T) {
+		// Проверяем, что Subscription распарсился как слайс, а не как строка "("
+		if sub, ok := info["Subscription"].([]any); !ok {
+			t.Errorf("Subscription should be []any, got %T", info["Subscription"])
+		} else if len(sub) != 2 {
+			t.Errorf("Subscription length mismatch: want 2, got %d", len(sub))
+		}
+
+		// Проверяем вложенный словарь
+		if del, ok := info["MailboxDeleted"].(map[string]any); !ok {
+			t.Errorf("MailboxDeleted should be map, got %T", info["MailboxDeleted"])
+		} else if len(del) != 2 {
+			t.Errorf("MailboxDeleted length mismatch: want 2, got %d", len(del))
+		}
+	})
+}
