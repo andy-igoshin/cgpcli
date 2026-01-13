@@ -130,24 +130,6 @@ func (cli *Cli) toStringMap(cmd string, data map[string]any) (map[string]string,
 	return result, nil
 }
 
-// toStringSlice — вспомогательный метод для эффективного приведения типов
-func (cli *Cli) toStringSlice(v any) []string {
-	raw, ok := v.([]any)
-	if !ok {
-		return []string{}
-	}
-
-	list := make([]string, len(raw))
-	for i, item := range raw {
-		if s, ok := item.(string); ok {
-			list[i] = s
-		} else {
-			list[i] = fmt.Sprint(item)
-		}
-	}
-	return list
-}
-
 // toStringSlice2 — временный строгий конвертер для точечного рефакторинга.
 func (cli *Cli) toStringSlice2(v any) ([]string, error) {
 	raw, ok := v.([]any)
