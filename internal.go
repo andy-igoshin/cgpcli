@@ -84,6 +84,17 @@ func (cli *Cli) getSliceString(cmd string, subject string) ([]string, error) {
 	return result, nil
 }
 
+func parseCode(b []byte) CliCode {
+	code := 0
+	for _, c := range b {
+		if c < '0' || c > '9' {
+			break
+		}
+		code = code*10 + int(c-'0')
+	}
+	return CliCode(code)
+}
+
 // toAnySlice — безопасное приведение к слайсу для вложенных данных (Rules).
 func (cli *Cli) toAnySlice(v any) []any {
 	if s, ok := v.([]any); ok {
