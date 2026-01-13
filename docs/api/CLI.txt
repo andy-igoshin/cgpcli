@@ -4129,7 +4129,7 @@ Monitoring
           This command produces an output - a number, string, or other
           object with the Server statistics element value.
 
-        SETSTATELEMENT ObjectID [ INC | SET ] setValue
+   SETSTATELEMENT ObjectID [ INC | SET ] setValue
                 Use this command to update the current value of a Server
                 statistics (SNMP) element. Only the "Custom" elements can
                 be updated.
@@ -4143,7 +4143,7 @@ Monitoring
                       the Element value, if the SET keyword is used, this
                       value is assigned to the Element.
 
-        GETNEXTSTATNAME ObjectID
+   GETNEXTSTATNAME ObjectID
                 Use this command to enumerate available Server statistics
                 (SNMP) elements.
 
@@ -4161,7 +4161,7 @@ Monitoring
                 found, or if the found element is the last available one,
                 the command returns an error.
 
-        GETDIALOGINFO DialogID
+   GETDIALOGINFO DialogID
                 Use this command to retrieve the information about a
                 Signal Dialog object.
 
@@ -4171,7 +4171,7 @@ Monitoring
                 This command produces an output - a dictionary with the
                 Dialog status data.
 
-        SHUTDOWN
+   SHUTDOWN
                 Use this command to stop the CommuniGate Pro Server.
             ___________________________________________________________
 
@@ -4183,7 +4183,7 @@ Statistics
           realm of the CommuniGate Pro WebAdmin Interface, and find the
           Local Account Manager panel on the Other page.
 
-        GETACCOUNTSTAT accountName [ KEY keyName ]
+   GETACCOUNTSTAT accountName [ KEY keyName ]
                 Use this command to retrieve statistics data about the
                 specified Account.
 
@@ -4207,7 +4207,7 @@ Statistics
                 users can retrieve the Account statistics data for their
                 own accounts.
 
-        RESETACCOUNTSTAT accountName [ KEY keyName ]
+   RESETACCOUNTSTAT accountName [ KEY keyName ]
                 Use this command to reset statistics data about the
                 specified Account.
 
@@ -4229,8 +4229,7 @@ Statistics
           The following Account statistics data keys are implemented:
 
    Key Name    Value
-   StatReset   The date & time when the last parameterless
-   RESETACCOUNTSTAT command was sent to this Account
+   StatReset   The date & time when the last parameterless RESETACCOUNTSTAT command was sent to this Account
    MessagesReceived   The total number of messages delivered to the
    Account
    BytesReceived   The total size of all messages delivered to the Account
@@ -4240,7 +4239,7 @@ Statistics
    CallsSent   The total number of calls placed on the Account behalf
    Logins   The total number of successful Account authentications
 
-        GETDOMAINSTAT domainName [ KEY keyName ]
+   GETDOMAINSTAT domainName [ KEY keyName ]
                 Use this command to retrieve statistics data about the
                 specified Domain.
 
@@ -4261,7 +4260,7 @@ Statistics
                 To use this command, the user should have the Domain
                 Administration right for the target Domain.
 
-        RESETDOMAINSTAT domainName [ KEY keyName ]
+   RESETDOMAINSTAT domainName [ KEY keyName ]
                 Use this command to reset statistics data about the
                 specified Domain.
 
@@ -4284,8 +4283,7 @@ Statistics
           The following Domain statistics data keys are implemented:
 
    Key Name    Value
-   StatReset   The date & time when the last parameterless RESETDOMAINSTAT
-   command was sent to this Domains
+   StatReset   The date & time when the last parameterless RESETDOMAINSTAT command was sent to this Domains
    MessagesReceived   The total number of messages delivered to the Domain
    Accounts
    BytesReceived   The total size of all messages delivered to the Domain
@@ -4305,7 +4303,7 @@ Directory Administration
           A user should have the Directory Server access right to use the
           Directory Administration CLI commands.
 
-        LISTDIRECTORYUNITS [ SHARED ]
+   LISTDIRECTORYUNITS [ SHARED ]
                 Use this command to retrieve the list of all Directory
                 units created. If the SHARED keyword is used, the
                 cluster-wide Units are listed.
@@ -4314,7 +4312,7 @@ Directory Administration
                 keys are Directory Unit mount points, and the values are
                 Directory Unit names.
 
-        CREATEDIRECTORYUNIT unitName [ SHARED ] [ REMOTE ] mountPoint
+   CREATEDIRECTORYUNIT unitName [ SHARED ] [ REMOTE ] mountPoint
                 Use this command to create a new Directory Unit.
 
               unitName : string
@@ -4330,7 +4328,7 @@ Directory Administration
                 Directory Unit is created, otherwise a Local (File-based)
                 Directory Unit is created.
 
-        RELOCATEDIRECTORYUNIT unitName [ SHARED ] newMountPoint
+   RELOCATEDIRECTORYUNIT unitName [ SHARED ] newMountPoint
                 Use this command to re-mount an existing Directory Unit on
                 a different mount point.
 
@@ -4343,7 +4341,7 @@ Directory Administration
                       This parameter specifies the new mount point (mount
                       DN).
 
-        DELETEDIRECTORYUNIT unitName [ SHARED ]
+   DELETEDIRECTORYUNIT unitName [ SHARED ]
                 Use this command to remove an existing Directory Unit.
 
               unitName : string
@@ -4351,7 +4349,7 @@ Directory Administration
                       the SHARED keyword is used, this is a cluster-wide
                       Directory Unit name.
 
-        GETDIRECTORYUNIT unitName [ SHARED ]
+   GETDIRECTORYUNIT unitName [ SHARED ]
                 Use this command to retrieve the Directory Unit settings.
 
               unitName : string
@@ -4362,7 +4360,7 @@ Directory Administration
                 This command produces an output - a dictionary with the
                 Directory Unit settings.
 
-        SETDIRECTORYUNIT unitName [ SHARED ] newSettings
+   SETDIRECTORYUNIT unitName [ SHARED ] newSettings
                 Use this command to change the Directory Unit settings.
 
               unitName : string
@@ -4374,7 +4372,7 @@ Directory Administration
                       This parameter specifies the new Directory Unit
                       settings.
 
-        GETDIRECTORYACCESSRIGHTS [ SHARED ]
+   GETDIRECTORYACCESSRIGHTS [ SHARED ]
                 Use this command to retrieve the Directory Access Rights.
                 If the SHARED keyword is used, the cluster-wide Access
                 Rights are retrieved.
@@ -4382,7 +4380,7 @@ Directory Administration
                 This command produces an output - an array of Access
                 Rights elements.
 
-        SETDIRECTORYACCESSRIGHTS [ SHARED ] newAccessRights
+   SETDIRECTORYACCESSRIGHTS [ SHARED ] newAccessRights
                 Use this command to set the Directory Access Rights. If
                 the SHARED keyword is used, the cluster-wide Access Rights
                 are set.
@@ -4394,31 +4392,31 @@ Directory Administration
 
 Miscellaneous Commands
 
-        LISTCLICOMMANDS
+   LISTCLICOMMANDS
                 Use this command to retrieve the list of all CLI commands
                 supported by this version of CommuniGate Pro Server.
                 This command produces an output - an array of strings,
                 where each string is a supported command name.
 
-        NOOP
+   NOOP
                 This command always completes successfully.
 
-        ECHO object
+   ECHO object
                 This command produces an output - an object, which is the
                 command parameter copy.
 
-        GETVERSION
+   GETVERSION
                 This command produces an output - a string with this
                 CommuniGate Pro Server version.
 
-        GETSYSTEMINFO what
+   GETSYSTEMINFO what
                 This command produces an output - an object returned by
                 the CG/PL SystemInfo function called with the what
                 parameter.
                 If that function returns a null-object, this command
                 returns an error.
 
-        GETCURRENTTIME
+   GETCURRENTTIME
                 This command produces an output - a timestamp with this
                 CommuniGate Pro Server internal timer value.
 
@@ -4429,7 +4427,7 @@ Miscellaneous Commands
                 To use this command, the user should have the "Can
                 Monitor" Server Administration right.
 
-        DUMPALLOBJECTS [ FILE ]
+   DUMPALLOBJECTS [ FILE ]
                 Use this command to write the list of all application data
                 objects.
                 If the FILE keyword is used, then objects_dump.txt file is
@@ -4445,7 +4443,7 @@ Miscellaneous Commands
                 To use this command, the user should have the Master
                 Server Administration right.
 
-        TESTLOOP seconds
+   TESTLOOP seconds
                 Use this command to test the server CPU load. The command
                 executes some calculation loop for the specified number of
                 seconds. This command produces an output - a number that
@@ -4455,7 +4453,7 @@ Miscellaneous Commands
                 To use this command, the user should have the "Can
                 Monitor" Server Administration right.
 
-        SETTRACE facility [ ON | OFF ]
+   SETTRACE facility [ ON | OFF ]
                 Use this command to switch on and off internal logging
                 facitilies that write to OS syslog. The facility parameter
                 should be a string with one of the folloing supported
@@ -4470,7 +4468,7 @@ Miscellaneous Commands
                 To use this command, the user should have the "Can
                 Monitor" Server Administration right.
 
-        WRITELOG logLevel logRecord
+   WRITELOG logLevel logRecord
                 Use this command to store a record into the Server Log.
 
               logLevel : number
@@ -4485,7 +4483,7 @@ Miscellaneous Commands
                 To use this command, the user should have the "Can
                 Monitor" Server Administration right.
 
-        RELEASESMTPQUEUE queueName
+   RELEASESMTPQUEUE queueName
                 Use this command to release an SMTP queue.
 
               queueName : string
@@ -4497,7 +4495,7 @@ Miscellaneous Commands
                 To use this command, the user should have the "Can
                 Monitor" Server Administration right.
 
-        REJECTQUEUEMESSAGE messageID [ REPORT errorText ]
+   REJECTQUEUEMESSAGE messageID [ REPORT errorText ]
                 Use this command to reject a message from the Server
                 Queue.
 
@@ -4513,7 +4511,7 @@ Miscellaneous Commands
                 To use this command, the user should have the "Can Reject
                 Queues" Server Administration right.
 
-        REJECTQUEUEMESSAGES SENDER authedSender [ REPORT errorText ]
+   REJECTQUEUEMESSAGES SENDER authedSender [ REPORT errorText ]
                 Use this command to reject all messages sent by the
                 specified sender from the Server Queue.
 
@@ -4532,7 +4530,7 @@ Miscellaneous Commands
                 To use this command, the user should have the "Can Reject
                 Queues" Server Administration right.
 
-        GETMESSAGEQUEUEINFO moduleName QUEUE queueName
+   GETMESSAGEQUEUEINFO moduleName QUEUE queueName
                 Use this command to read information about a module
                 message Queue.
 
@@ -4562,7 +4560,7 @@ Miscellaneous Commands
               lastError
                       (optional) a string with the last problem report
 
-        GETCURRENTCONTROLLER
+   GETCURRENTCONTROLLER
                 Use this command to get the IP address of the current
                 Dynamic Cluster Controller.
                 This command produces an output - a string with the
@@ -4570,13 +4568,13 @@ Miscellaneous Commands
                 To use this command, the user should have the "Can
                 Monitor" Server Administration right.
 
-        RECONNECTCLUSTERADMIN
+   RECONNECTCLUSTERADMIN
                 Use this command to force a Dynamic Cluster member to
                 re-open all its inter-cluster Administrative connections,
                 and (for a non-controller member) to re-open its
                 Administrative connection to the Controller.
 
-        GETTEMPCLIENTIPS
+   GETTEMPCLIENTIPS
                 Use this command to retrieve the set of temporary Client
                 IP Addresses. The command produces an output - a string
                 with Temporary Client IP addresses separated with the
@@ -4584,7 +4582,7 @@ Miscellaneous Commands
                 To use this command, the user should have the "Can
                 Monitor" Server Administration right.
 
-        REPORTFAILEDLOGINADDRESS address
+   REPORTFAILEDLOGINADDRESS address
                 Use this command to increment the counter of failed Login
                 attempts from the specified IP address used in the
                 Temporarily Blocked Addresses functionality.
@@ -4595,7 +4593,7 @@ Miscellaneous Commands
                 To use this command, the user should have the "Server
                 Settings" Server Administration right.
 
-        TEMPBLACKLISTIP address [ TIMEOUT seconds | DELETE ]
+   TEMPBLACKLISTIP address [ TIMEOUT seconds | DELETE ]
                 Use this command to add an address to the Temporarily
                 Blocked Addresses set.
 
@@ -4609,7 +4607,7 @@ Miscellaneous Commands
                 remove the address from the Temporarily Blocked Addresses
                 set.
 
-        GETTEMPBLACKLISTEDIPS
+   GETTEMPBLACKLISTEDIPS
                 Use this command to retrieve the set of Temporarily
                 Blocked Addresses. The command produces an output - a
                 string with Temporary Blocked IP addresses separated with
@@ -4621,7 +4619,7 @@ Miscellaneous Commands
                 To use this command, the user should have the "Can
                 Monitor" Server Administration right.
 
-        SETTEMPBLACKLISTEDIPS addresses
+   SETTEMPBLACKLISTEDIPS addresses
                 Use this command to add addresses to the Temporary Blocked
                 IP Addresses list.
 
@@ -4632,7 +4630,7 @@ Miscellaneous Commands
                 To use this command, the user should have the "Server
                 Settings" Server Administration right.
 
-        TEMPUNBLOCKIP address [ TIMEOUT seconds | DELETE ]
+   TEMPUNBLOCKIP address [ TIMEOUT seconds | DELETE ]
                 Use this command to add an address to the Temporary
                 UnBlockable IP Addresses set.
 
@@ -4646,7 +4644,7 @@ Miscellaneous Commands
                 remove the address from the Temporary UnBlockable IP
                 Addresses set.
 
-        GETTEMPUNBLOCKABLEIPS
+   GETTEMPUNBLOCKABLEIPS
                 Use this command to retrieve the set of Temporary
                 UnBlockable IP Addresses. The command produces an output -
                 a string with Temporary UnBlockable IP addresses separated
@@ -4658,7 +4656,7 @@ Miscellaneous Commands
                 To use this command, the user should have the "Can
                 Monitor" Server Administration right.
 
-        SETTEMPUNBLOCKABLEIPS addresses
+   SETTEMPUNBLOCKABLEIPS addresses
                 Use this command to add addresses to the Temporary
                 UnBlockable IP Addresses set.
 
