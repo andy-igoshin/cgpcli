@@ -10,7 +10,6 @@ import (
 	"io"
 	"net"
 	"os"
-	"strconv"
 	"time"
 )
 
@@ -293,14 +292,13 @@ func (cli *Cli) parseResponse() (err error) {
 
 	idx := bytes.IndexByte(line, ' ')
 	if idx == -1 {
-		code, _ := strconv.Atoi(string(line))
-		cli.respCode = CliCode(code)
+		cli.respCode = parseCode(line)
 		cli.respData = nil
 		return nil
 	}
 
-	code, err := strconv.Atoi(string(line[:idx]))
-	if err != nil {
+	code := parseCode(line)
+	if code < CodeOk || code > CodeGenErr1 {
 		cli.respCode = CodeStrange
 		cli.respData = line
 		return nil
