@@ -279,6 +279,17 @@ func (cli *Cli) connect() (err error) {
 	return
 }
 
+func parseCode(b []byte) CliCode {
+	code := 0
+	for _, c := range b {
+		if c < '0' || c > '9' {
+			break
+		}
+		code = code*10 + int(c-'0')
+	}
+	return CliCode(code)
+}
+
 func (cli *Cli) parseResponse() (err error) {
 	cli.conn.SetReadDeadline(time.Now().Add(cmdTimeout))
 
