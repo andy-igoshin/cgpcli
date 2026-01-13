@@ -1,3 +1,4 @@
+// # Section: Access Rights Administration
 package cgpcli
 
 import (
