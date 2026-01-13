@@ -1,3 +1,4 @@
+// # Section: Statistics
 package cgpcli
 
 import (
