@@ -31,3 +31,5 @@ print "\n--- Functions in $f2 but NOT in $f1 ---\n";
 foreach (sort keys %$funcs2) {
     print "$_\n" unless exists $funcs1->{$_};
 }
+
+exit;
