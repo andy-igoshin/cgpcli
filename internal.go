@@ -120,7 +120,7 @@ func (cli *Cli) toStringMap(cmd string, data map[string]any) (map[string]string,
 }
 
 // toStringSlice2 — временный строгий конвертер для точечного рефакторинга.
-func (cli *Cli) toStringSlice2(v any) ([]string, error) {
+func (cli *Cli) toStringSlice(v any) ([]string, error) {
 	raw, ok := v.([]any)
 	if !ok {
 		if v == nil {

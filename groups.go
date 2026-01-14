@@ -56,7 +56,7 @@ func (cli *Cli) GetGroup(group string) (*GroupResult, error) {
 
 	for k, v := range dict {
 		if k == "Members" {
-			m, err := cli.toStringSlice2(v)
+			m, err := cli.toStringSlice(v)
 			if err == nil {
 				result.Members = m
 			}
@@ -90,7 +90,7 @@ func (cli *Cli) ListGroups(domain string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return cli.toStringSlice2(res)
+	return cli.toStringSlice(res)
 }
 
 // RenameGroup переименовывает группу или переносит её в другой домен.

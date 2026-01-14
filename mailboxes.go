@@ -154,7 +154,7 @@ func (cli *Cli) GetMailboxSubscription(account string) ([]string, error) {
 		return nil, err
 	}
 
-	return cli.toStringSlice2(res)
+	return cli.toStringSlice(res)
 }
 
 // ListMailboxes возвращает дерево ящиков аккаунта с метаданными.
