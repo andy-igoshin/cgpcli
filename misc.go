@@ -2,7 +2,6 @@
 package cgpcli
 
 import (
-	"bytes"
 	"fmt"
 	"net"
 	"strings"
@@ -32,12 +31,6 @@ const (
 	TraceFileOp TraceFacility = "FileOp"
 )
 
-type TempIP struct {
-	IP        net.IP
-	TimeLeft  time.Duration // Интервал до разблокировки
-	Permanent bool          // Признак вечной блокировки (*)
-}
-
 // DumpAllObjects пишет список всех объектов данных.
 func (cli *Cli) DumpAllObjects(file bool) error {
 	if file {
@@ -55,13 +48,9 @@ func (cli *Cli) Echo(obj any) (any, error) {
 
 // GetCurrentController возвращает IP-адрес текущего контроллера динамического кластера.
 func (cli *Cli) GetCurrentController() (net.IP, error) {
-	res, err := cli.Query("GETCURRENTCONTROLLER")
+	s, err := cli.getString("GETCURRENTCONTROLLER")
 	if err != nil {
 		return nil, err
-	}
-	s, ok := res.(string)
-	if !ok {
-		return nil, fmt.Errorf("GETCURRENTCONTROLLER: expected string, got %T", res)
 	}
 	if s == "" {
 		return nil, nil
@@ -106,56 +95,36 @@ func (cli *Cli) GetSystemInfo(what SystemInfoKey) (any, error) {
 	return cli.Query("GETSYSTEMINFO", string(what))
 }
 
-// GetTempBlacklistedIPs возвращает список временно заблокированных IP с временем их жизни.
-func (cli *Cli) GetTempBlacklistedIPs() ([]TempIP, error) {
-	res, err := cli.Query("GETTEMPBLACKLISTEDIPS")
+// GetTempBlacklistedIPs возвращает список временно заблокированных IP.
+func (cli *Cli) GetTempBlacklistedIPs() (*TempIPList, error) {
+	raw, err := cli.getString("GETTEMPBLACKLISTEDIPS")
 	if err != nil {
 		return nil, err
 	}
-	s, ok := res.(string)
-	if !ok {
-		return nil, fmt.Errorf("GETTEMPBLACKLISTEDIPS: expected string, got %T", res)
-	}
-	return cli.parseTempIPs(s), nil
+	return &TempIPList{items: parseTempIPsToMap(raw)}, nil
 }
 
 // GetTempClientIPs возвращает список временных клиентских IP.
-func (cli *Cli) GetTempClientIPs() ([]TempIP, error) {
-	res, err := cli.Query("GETTEMPCLIENTIPS")
+func (cli *Cli) GetTempClientIPs() (*TempIPList, error) {
+	raw, err := cli.getString("GETTEMPCLIENTIPS")
 	if err != nil {
 		return nil, err
 	}
-	s, ok := res.(string)
-	if !ok {
-		return nil, fmt.Errorf("GETTEMPCLIENTIPS: expected string, got %T", res)
-	}
-	return cli.parseTempIPs(s), nil
+	return &TempIPList{items: parseTempIPsToMap(raw)}, nil
 }
 
 // GetTempUnblockableIPs возвращает список адресов, защищенных от блокировки.
-func (cli *Cli) GetTempUnblockableIPs() ([]TempIP, error) {
-	res, err := cli.Query("GETTEMPUNBLOCKABLEIPS")
+func (cli *Cli) GetTempUnblockableIPs() (*TempIPList, error) {
+	raw, err := cli.getString("GETTEMPUNBLOCKABLEIPS")
 	if err != nil {
 		return nil, err
 	}
-	s, ok := res.(string)
-	if !ok {
-		return nil, fmt.Errorf("GETTEMPUNBLOCKABLEIPS: expected string, got %T", res)
-	}
-	return cli.parseTempIPs(s), nil
+	return &TempIPList{items: parseTempIPsToMap(raw)}, nil
 }
 
 // GetVersion возвращает версию сервера.
 func (cli *Cli) GetVersion() (string, error) {
-	res, err := cli.Query("GETVERSION")
-	if err != nil {
-		return "", err
-	}
-	s, ok := res.(string)
-	if !ok {
-		return "", fmt.Errorf("GETVERSION: expected string, got %T", res)
-	}
-	return s, nil
+	return cli.getString("GETVERSION")
 }
 
 // ListCLICommands возвращает список всех поддерживаемых команд.
@@ -177,12 +146,11 @@ func (cli *Cli) ReconnectClusterAdmin() error {
 
 // RejectQueueMessage отклоняет сообщение из очереди.
 func (cli *Cli) RejectQueueMessage(id int64, report string) error {
-	args := make([]any, 0, 4)
-	args = append(args, "REJECTQUEUEMESSAGE", id)
 	if report != "" {
-		args = append(args, "REPORT", report)
+		_, err := cli.Query("REJECTQUEUEMESSAGE", id, "REPORT", report)
+		return err
 	}
-	_, err := cli.Query(args...)
+	_, err := cli.Query("REJECTQUEUEMESSAGE", id)
 	return err
 }
 
@@ -191,12 +159,11 @@ func (cli *Cli) RejectQueueMessages(sender, report string) error {
 	if sender == "" {
 		return fmt.Errorf("sender is required")
 	}
-	args := make([]any, 0, 5)
-	args = append(args, "REJECTQUEUEMESSAGES", "SENDER", sender)
 	if report != "" {
-		args = append(args, "REPORT", report)
+		_, err := cli.Query("REJECTQUEUEMESSAGES", "SENDER", sender, "REPORT", report)
+		return err
 	}
-	_, err := cli.Query(args...)
+	_, err := cli.Query("REJECTQUEUEMESSAGES", "SENDER", sender)
 	return err
 }
 
@@ -236,9 +203,7 @@ func (cli *Cli) SetTempBlacklistedIPs(ips []net.IP) error {
 	}
 
 	var sb strings.Builder
-	// Примерный расчет: (длина IPv4 + скобки + запятая) * кол-во
-	sb.Grow(len(ips) * 18)
-
+	// CGP ожидает список в формате [ip1],[ip2]
 	for i, ip := range ips {
 		if ip == nil {
 			continue
@@ -255,7 +220,7 @@ func (cli *Cli) SetTempBlacklistedIPs(ips []net.IP) error {
 	return err
 }
 
-// SetTempUnblockableIPs аналогично заменяет список исключений.
+// SetTempUnblockableIPs аналогично.
 func (cli *Cli) SetTempUnblockableIPs(ips []net.IP) error {
 	if len(ips) == 0 {
 		_, err := cli.Query("SETTEMPUNBLOCKABLEIPS", "")
@@ -263,8 +228,6 @@ func (cli *Cli) SetTempUnblockableIPs(ips []net.IP) error {
 	}
 
 	var sb strings.Builder
-	sb.Grow(len(ips) * 18)
-
 	for i, ip := range ips {
 		if ip == nil {
 			continue
@@ -281,7 +244,7 @@ func (cli *Cli) SetTempUnblockableIPs(ips []net.IP) error {
 	return err
 }
 
-// SetTrace включает или выключает трассировку указанного модуля в системный лог (syslog).
+// SetTrace включает или выключает трассировку указанного модуля.
 func (cli *Cli) SetTrace(facility TraceFacility, on bool) error {
 	if facility == "" {
 		return fmt.Errorf("trace facility is required")
@@ -294,8 +257,7 @@ func (cli *Cli) SetTrace(facility TraceFacility, on bool) error {
 	return err
 }
 
-// TempBlacklistIP добавляет адрес в список временно заблокированных или удаляет его.
-// Если timeout <= 0, адрес удаляется (DELETE).
+// TempBlacklistIP добавляет адрес в список или удаляет его.
 func (cli *Cli) TempBlacklistIP(ip net.IP, timeout time.Duration) error {
 	if ip == nil {
 		return fmt.Errorf("IP address is required")
@@ -304,13 +266,11 @@ func (cli *Cli) TempBlacklistIP(ip net.IP, timeout time.Duration) error {
 		_, err := cli.Query("TEMPBLACKLISTIP", ip.String(), "DELETE")
 		return err
 	}
-	seconds := int(timeout.Seconds())
-	_, err := cli.Query("TEMPBLACKLISTIP", ip.String(), "TIMEOUT", seconds)
+	_, err := cli.Query("TEMPBLACKLISTIP", ip.String(), "TIMEOUT", int(timeout.Seconds()))
 	return err
 }
 
 // TempUnblockIP добавляет адрес в список исключений или удаляет его.
-// Если timeout <= 0, адрес удаляется.
 func (cli *Cli) TempUnblockIP(ip net.IP, timeout time.Duration) error {
 	if ip == nil {
 		return fmt.Errorf("IP address is required")
@@ -319,8 +279,7 @@ func (cli *Cli) TempUnblockIP(ip net.IP, timeout time.Duration) error {
 		_, err := cli.Query("TEMPUNBLOCKIP", ip.String(), "DELETE")
 		return err
 	}
-	seconds := int(timeout.Seconds())
-	_, err := cli.Query("TEMPUNBLOCKIP", ip.String(), "TIMEOUT", seconds)
+	_, err := cli.Query("TEMPUNBLOCKIP", ip.String(), "TIMEOUT", int(timeout.Seconds()))
 	return err
 }
 
@@ -337,67 +296,4 @@ func (cli *Cli) TestLoop(seconds int) (int, error) {
 func (cli *Cli) WriteLog(level int, record string) error {
 	_, err := cli.Query("WRITELOG", level, record)
 	return err
-}
-
-// хелперы
-
-func (cli *Cli) parseTempIPs(raw string) []TempIP {
-	if raw == "" {
-		return nil
-	}
-
-	b := []byte(raw)
-
-	// Считаем запятые, чтобы выделить память один раз.
-	// Кол-во элементов = кол-во запятых + 1
-	count := bytes.Count(b, []byte{','}) + 1
-	res := make([]TempIP, 0, count)
-
-	for i := 0; i < len(b); {
-		start := bytes.IndexByte(b[i:], '[')
-		if start == -1 {
-			break
-		}
-		start += i
-
-		end := bytes.IndexByte(b[start:], ']')
-		if end == -1 {
-			break
-		}
-		end += start
-
-		item := TempIP{
-			IP: net.ParseIP(string(b[start+1 : end])),
-		}
-
-		curr := end + 1
-		if curr < len(b) && b[curr] == '-' {
-			curr++
-			if curr < len(b) && b[curr] == '*' {
-				item.Permanent = true
-				curr++
-			} else {
-				val := 0
-				foundDigit := false
-				for curr < len(b) && b[curr] >= '0' && b[curr] <= '9' {
-					val = val*10 + int(b[curr]-'0')
-					curr++
-					foundDigit = true
-				}
-				if foundDigit {
-					item.TimeLeft = time.Duration(val) * time.Second
-				}
-			}
-		}
-
-		res = append(res, item)
-
-		nextComma := bytes.IndexByte(b[curr:], ',')
-		if nextComma == -1 {
-			break
-		}
-		i = curr + nextComma + 1
-	}
-
-	return res
 }

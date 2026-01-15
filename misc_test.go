@@ -45,58 +45,49 @@ func TestMiscellaneousLive(t *testing.T) {
 
 	// --- Работа с временными IP (Blacklist/Unblock) ---
 	t.Run("TempIPOperations", func(t *testing.T) {
-		testIP := net.ParseIP("192.168.250.250")
+		testIP := "192.168.250.250"
 
-		// 1. Сохраняем текущий блэклист для восстановления
-		// Так как GetTempBlacklistedIPs теперь возвращает []TempIP,
-		// нам нужно извлечь только IP для последующего восстановления через Set...
-		oldData, err := cli.GetTempBlacklistedIPs()
+		// 1. Backup
+		oldList, err := cli.GetTempBlacklistedIPs()
 		if err != nil {
-			t.Fatalf("Failed to backup blacklist: %v", err)
+			t.Fatalf("Step 1 (Backup) failed: %v", err)
 		}
-
-		oldIPs := make([]net.IP, len(oldData))
-		for i, v := range oldData {
-			oldIPs[i] = v.IP
+		if oldList == nil {
+			t.Fatal("Step 1: GetTempBlacklistedIPs returned nil object")
 		}
+		oldIPs := oldList.IPs()
+		t.Logf("Backup done. Current blacklist size: %d", oldList.Len())
 
-		// 2. Тестируем точечную блокировку
+		// 2. Add
 		duration := 5 * time.Minute
-		if err := cli.TempBlacklistIP(testIP, duration); err != nil {
-			t.Errorf("TempBlacklistIP failed: %v", err)
+		ipObj := net.ParseIP(testIP)
+		if err := cli.TempBlacklistIP(ipObj, duration); err != nil {
+			t.Fatalf("Step 2 (Add) failed: %v", err)
 		}
 
-		// 3. Проверяем наличие в списке и работу парсера
-		list, err := cli.GetTempBlacklistedIPs()
+		// 3. Verify
+		newList, err := cli.GetTempBlacklistedIPs()
 		if err != nil {
-			t.Errorf("GetTempBlacklistedIPs failed: %v", err)
+			t.Fatalf("Step 3 (Verify) failed: %v", err)
 		}
 
-		found := false
-		for _, item := range list {
-			if item.IP.Equal(testIP) {
-				found = true
-				if item.TimeLeft == 0 && !item.Permanent {
-					t.Error("TimeLeft should be greater than 0")
-				}
-				break
-			}
+		found, err := newList.Exists(testIP)
+		if err != nil {
+			t.Fatalf("Step 3 (Exists) errored: %v", err)
 		}
 		if !found {
-			t.Error("Test IP not found in blacklist")
+			t.Error("Step 3: Test IP not found in blacklist after addition")
 		}
 
-		// 4. Тестируем удаление через DELETE (timeout <= 0)
-		if err := cli.TempBlacklistIP(testIP, 0); err != nil {
-			t.Errorf("TempBlacklistIP DELETE failed: %v", err)
+		// 4. Delete
+		if err := cli.TempBlacklistIP(ipObj, 0); err != nil {
+			t.Errorf("Step 4 (Delete) failed: %v", err)
 		}
 
-		// 5. Восстанавливаем исходное состояние
-		defer func() {
-			if err := cli.SetTempBlacklistedIPs(oldIPs); err != nil {
-				t.Errorf("Cleanup: failed to restore blacklist: %v", err)
-			}
-		}()
+		// 5. Restore
+		if err := cli.SetTempBlacklistedIPs(oldIPs); err != nil {
+			t.Errorf("Step 5 (Restore) failed: %v", err)
+		}
 	})
 
 	// --- Очереди и Логи ---
@@ -111,17 +102,17 @@ func TestMiscellaneousLive(t *testing.T) {
 			t.Errorf("WriteLog failed: %v", err)
 		}
 
-		// GetMessageQueueInfo для несуществующей очереди (проверка на возврат пустой мапы)
+		// GetMessageQueueInfo для несуществующей очереди
 		info, err := cli.GetMessageQueueInfo("SMTP", "nonexistent.vsu.ru")
 		if err != nil {
 			t.Errorf("GetMessageQueueInfo failed: %v", err)
 		}
 		if info == nil {
-			t.Error("Expected empty map, got nil")
+			t.Error("Expected empty map (or initialized map), got nil")
 		}
 	})
 
-	// --- Тест производительности (опционально) ---
+	// --- Тест производительности ---
 	t.Run("PerformanceTest", func(t *testing.T) {
 		perf, err := cli.TestLoop(1)
 		if err != nil {
