@@ -64,8 +64,8 @@ close $fh_cli;
 delete $sections{fake};
 
 # 3. Вывод отчета
-print "CGP CLI IMPLEMENTATION REPORT (Active Sections Only)\n";
-print "=" x 52 . "\n";
+print "CGP CLI IMPLEMENTATION REPORT\n";
+print "=" x 29 . "\n";
 
 foreach my $sec (sort keys %sections) {
     my @cmds = sort keys %{$sections{$sec}};
