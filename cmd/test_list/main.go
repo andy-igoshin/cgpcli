@@ -19,7 +19,6 @@ func main() {
 	}
 
 	// 2. Инициализация клиента
-	// Используем ваш конструктор New
 	cli, err := cgpcli.New("127.0.0.1", cgpuser, cgppass, cgpcli.APOP, false)
 	if err != nil {
 		log.Fatalf("Failed to connect: %v", err)
@@ -31,7 +30,7 @@ func main() {
 	// 3. Вызов функции с использованием битовой маски
 	// Например: запрашиваем Аккаунты и Форвардеры, игнорируя Алиасы
 	mask := cgpcli.TypeAccount | cgpcli.TypeForwarder | cgpcli.TypeAlias
-	
+
 	res, err := cli.ListDomainObjects("test.domain.name", 100, "", mask, "")
 	if err != nil {
 		log.Fatalf("ListDomainObjects error: %v", err)
@@ -53,10 +52,10 @@ func main() {
 
 	for _, name := range keys {
 		obj := res.Objects[name]
-		
+
 		// Благодаря Enum мы можем делать чистые проверки
 		typeLabel := obj.Type.String()
-		
+
 		if len(obj.Targets) > 0 {
 			fmt.Printf("[%s] %-15s -> %v\n", typeLabel, obj.Name, obj.Targets)
 		} else {
