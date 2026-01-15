@@ -312,7 +312,7 @@ func (cli *Cli) parseResponse() (err error) {
 	if code < CodeOk || code > CodeGenErr1 {
 		cli.respCode = CodeStrange
 		cli.respData = line
-		return nil
+		return fmt.Errorf("STRANGE CODE: %d : %s", code, line)
 	}
 
 	cli.respCode = CliCode(code)
