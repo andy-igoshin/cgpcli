@@ -2,6 +2,7 @@ package cgpcli
 
 import (
 	"bytes"
+	"net"
 	"reflect"
 	"testing"
 	"time"
@@ -93,6 +94,16 @@ func TestUnmarshal(t *testing.T) {
 				"list": []any{},
 			},
 		},
+		{
+			name:  "CGP_IP_Address",
+			input: "#I[127.0.0.1]:8080",
+			want:  CGPIP{IP: net.ParseIP("127.0.0.1"), Port: 8080},
+		},
+		{
+			name:  "CGP_IPv6_Address",
+			input: "#I[::1]",
+			want:  CGPIP{IP: net.ParseIP("::1"), Port: 0},
+		},
 	}
 
 	for _, tt := range tests {
@@ -116,8 +127,6 @@ func TestDecodeDataBlock(t *testing.T) {
 		expected []byte
 	}{
 		{"SimpleBlock", "[data]", []byte("data")},
-		{"TaggedBlock", "#[more data]", []byte("more data")},
-		{"TaggedIBlock", "#I[binary]", []byte("binary")},
 		{"Concatenated", "[part1][part2]", []byte("part1part2")},
 		{"WithSpaces", "[part1]  [part2]", []byte("part1part2")},
 	}

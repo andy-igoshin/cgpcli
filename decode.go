@@ -3,13 +3,12 @@ package cgpcli
 import (
 	"bytes"
 	"fmt"
+	"net"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
 )
-
-const cgpInternalTimeLayout = "02-01-2006_15:04:05"
 
 var (
 	dateFields = map[string]bool{
@@ -17,9 +16,11 @@ var (
 	}
 	quotaFields = map[string]bool{
 		"MaxAccountSize": true,
-		"MaxWebSize":     true,
+		"MaxFileSize":    true,
 		"MaxMailboxSize": true,
+		"MaxMailOutSize": true,
 		"MaxMessageSize": true,
+		"MaxWebSize":     true,
 	}
 )
 
@@ -34,7 +35,6 @@ func (d *decodeState) init(data []byte) *decodeState {
 	d.data = data
 	d.len = len(data)
 	d.span = 0
-	// Предвыделяем память под атомы. 4КБ покрывает 99% нужд CLI.
 	d.scratch.Grow(4096)
 	return d
 }
@@ -161,8 +161,7 @@ func (d *decodeState) wordInterface(asString bool) any {
 
 	curr := d.data[d.span]
 
-	// 1. Проверка на блок данных: [..], #[..], #I[..]
-	// Если это блок, мы СРАЗУ уходим в readCgpBlock и возвращаем []byte
+	// 1. Обработка блоков данных: [..], #[..], #I[..]
 	if curr == '[' {
 		d.span++
 		return d.readCgpBlock('[', ']')
@@ -170,48 +169,58 @@ func (d *decodeState) wordInterface(asString bool) any {
 
 	if curr == '#' && d.span+1 < d.len {
 		next := d.data[d.span+1]
-		// Это блок данных с префиксом #[ или #I[
-		if next == '[' {
-			d.span += 2
-			return d.readCgpBlock('[', ']')
-		}
+		// Специфический тип IP Address: #I[addr]:port
 		if next == 'I' && d.span+2 < d.len && d.data[d.span+2] == '[' {
 			d.span += 3
-			return d.readCgpBlock('[', ']')
+			ipData := d.readCgpBlock('[', ']')
+			res := CGPIP{IP: net.ParseIP(string(ipData))}
+			if d.span < d.len && d.data[d.span] == ':' {
+				d.span++
+				start := d.span
+				for d.span < d.len && d.data[d.span] >= '0' && d.data[d.span] <= '9' {
+					d.span++
+				}
+				portStr := string(d.data[start:d.span])
+				res.Port, _ = strconv.Atoi(portStr)
+			}
+			return res
 		}
-		// Если это не блок, значит это #число, #Tдата или #(структура)
-		// Оставляем это для обработки ниже (isTagged = true)
 	}
 
 	d.scratch.Reset()
-	isTagged := curr == '#'
 	isQuoted := curr == '"'
+	isTagged := curr == '#'
 	isUnkData := false
 
 	if isQuoted {
-		// ... (Логика кавычек без изменений) ...
+		// Логика кавычек с поддержкой конкатенации "str1""str2"
 		for d.span < d.len && d.data[d.span] == '"' {
-			d.span++
+			d.span++ // пропускаем открывающую кавычку
 			for d.span < d.len {
 				ch := d.data[d.span]
 				if ch == '\\' && d.span+3 < d.len {
+					// Восьмеричные последовательности \NNN
 					octStr := string(d.data[d.span+1 : d.span+4])
 					if val, err := strconv.ParseInt(octStr, 8, 32); err == nil {
 						d.scratch.WriteByte(byte(val))
 						d.span += 4
 						continue
 					}
+					// Обычный escape
 					d.scratch.WriteByte(d.data[d.span+1])
 					d.span += 2
 					continue
 				}
 				if ch == '"' {
 					d.span++
+					// Если за кавычкой сразу идет еще одна — это конкатенация
 					if d.span < d.len && d.data[d.span] == '"' {
+						// В некоторых версиях CGP "" внутри кавычек — это просто кавычка
 						d.scratch.WriteByte('"')
 						d.span++
 						continue
 					}
+					// Конец квотированной строки
 					d.skipSpaces()
 					break
 				}
@@ -220,17 +229,13 @@ func (d *decodeState) wordInterface(asString bool) any {
 			}
 		}
 	} else {
-		// 2. Логика для обычных слов, чисел и тегов #(...)
+		// Логика для слов, чисел и тегов #(...)
 		if isTagged {
 			if bytes.HasPrefix(d.data[d.span:], []byte("#(")) {
 				isUnkData = true
-				d.scratch.WriteString("#(")
-				d.span += 2
+				// Оставляем span на #, цикл ниже его заберет
 			} else {
-				// НЕ пропускаем '#', он нам нужен в scratch для парсинга даты/числа
-				// Но так как старый код делал d.span++, нам нужно решить:
-				// либо писать '#' в scratch, либо обрезать его потом.
-				// Чтобы не ломать вашу логику ниже (raw[1:]), записываем '#'
+				// Забираем # и сдвигаем span, чтобы не зациклиться
 				d.scratch.WriteByte('#')
 				d.span++
 			}
@@ -239,15 +244,16 @@ func (d *decodeState) wordInterface(asString bool) any {
 		for d.span < d.len {
 			ch := d.data[d.span]
 			if isUnkData {
+				d.scratch.WriteByte(ch)
+				d.span++
 				if ch == ')' {
-					d.scratch.WriteByte(')')
-					d.span++
 					break
 				}
-			} else {
-				if isSpace(ch) || ch == '=' || ch == ';' || ch == ',' || ch == ')' || ch == '}' {
-					break
-				}
+				continue
+			}
+			// Разделители CGP
+			if isSpace(ch) || ch == '=' || ch == ';' || ch == ',' || ch == ')' || ch == '}' {
+				break
 			}
 			d.scratch.WriteByte(ch)
 			d.span++
@@ -259,45 +265,35 @@ func (d *decodeState) wordInterface(asString bool) any {
 		return raw
 	}
 
+	// Пост-обработка накопленного "сырого" слова
 	if isTagged && !isUnkData {
-		// raw сейчас выглядит как "#T02-..." или "#123"
+		if raw == "#NULL#" {
+			return nil
+		}
+		// Временные метки
 		if strings.HasPrefix(raw, "#T") {
-			if t, err := time.Parse(cgpInternalTimeLayout, raw[2:]); err == nil {
-				return t
+			switch raw {
+			case "#TPAST":
+				return TimePast
+			case "#TFUTURE":
+				return TimeFuture
+			default:
+				if t, err := time.Parse(cgpInternalTimeLayout, raw[2:]); err == nil {
+					return t
+				}
 			}
+			return raw
 		}
-		// Пробуем парсить как число, отрезав '#'
-		if val, err := strconv.ParseInt(raw[1:], 10, 64); err == nil {
-			return val
-		}
-		return raw
+		// Числа с базами (0x, 0o, 0b)
+		return parseCGPNumber(raw)
 	}
 
+	// Попытка распарсить как обычное число (без префикса #)
 	if val, err := strconv.ParseInt(raw, 10, 64); err == nil {
 		return val
 	}
-	return raw
-}
 
-func (d *decodeState) readCgpBlock(open, close byte) []byte {
-	d.scratch.Reset()
-	for d.span < d.len {
-		if d.data[d.span] == close {
-			d.span++
-			d.skipSpaces()
-			// Обработка продолжения блока: [data1][data2]
-			if d.span < d.len && d.data[d.span] == open {
-				d.span++
-				continue
-			}
-			break
-		}
-		d.scratch.WriteByte(d.data[d.span])
-		d.span++
-	}
-	res := make([]byte, d.scratch.Len())
-	copy(res, d.scratch.Bytes())
-	return res
+	return raw
 }
 
 func (d *decodeState) xmlInterface() any {
@@ -346,6 +342,42 @@ func (d *decodeState) xmlInterface() any {
 	return string(d.data[startSpan:d.span])
 }
 
+func parseCGPNumber(raw string) any {
+	if len(raw) < 2 {
+		return raw
+	}
+	s := raw[1:] // Отрезаем '#'
+
+	base := 10
+	start := 0
+	if s[0] == '-' {
+		start = 1
+	}
+
+	if len(s[start:]) >= 2 && s[start] == '0' {
+		switch s[start+1] {
+		case 'x':
+			base = 16
+		case 'o':
+			base = 8
+		case 'b':
+			base = 2
+		}
+		if base != 10 {
+			// Убираем индикатор базы (0x, 0o, 0b) для strconv
+			toParse := s[:start] + s[start+2:]
+			if val, err := strconv.ParseInt(toParse, base, 64); err == nil {
+				return val
+			}
+		}
+	}
+
+	if val, err := strconv.ParseInt(s, 10, 64); err == nil {
+		return val
+	}
+	return raw
+}
+
 func parseCGPSize(s string) any {
 	if s == "unlimited" {
 		return int64(-1)
@@ -377,4 +409,25 @@ func parseCGPSize(s string) any {
 		return val * multiplier
 	}
 	return s
+}
+
+func (d *decodeState) readCgpBlock(open, close byte) []byte {
+	d.scratch.Reset()
+	for d.span < d.len {
+		if d.data[d.span] == close {
+			d.span++
+			d.skipSpaces()
+			// Обработка продолжения блока: [data1][data2]
+			if d.span < d.len && d.data[d.span] == open {
+				d.span++
+				continue
+			}
+			break
+		}
+		d.scratch.WriteByte(d.data[d.span])
+		d.span++
+	}
+	res := make([]byte, d.scratch.Len())
+	copy(res, d.scratch.Bytes())
+	return res
 }

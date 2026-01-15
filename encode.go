@@ -3,22 +3,23 @@ package cgpcli
 import (
 	"bufio"
 	"bytes"
-	"encoding/hex"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 )
-
-type Atom string
-type DataBlock []byte
 
 type encodeWriter interface {
 	io.Writer
 	WriteByte(byte) error
 	WriteString(string) (int, error)
+}
+
+// cgpMarshaler — контракт для типов с собственной логикой упаковки
+type cgpMarshaler interface {
+	MarshalCGP() string
 }
 
 var cgpSafeTable = [256]byte{
@@ -29,49 +30,7 @@ var cgpSafeTable = [256]byte{
 	'a': 1, 'b': 1, 'c': 1, 'd': 1, 'e': 1, 'f': 1, 'g': 1, 'h': 1, 'i': 1, 'j': 1,
 	'k': 1, 'l': 1, 'm': 1, 'n': 1, 'o': 1, 'p': 1, 'q': 1, 'r': 1, 's': 1, 't': 1,
 	'u': 1, 'v': 1, 'w': 1, 'x': 1, 'y': 1, 'z': 1,
-	'_': 1,
-}
-
-// isCGPIdentifier проверяет, может ли строка быть КЛЮЧОМ без кавычек.
-// Разрешены только буквы, цифры и подчеркивание. Точки и тире требуют кавычек.
-func isCGPIdentifier(s string) bool {
-	if s == "" {
-		return false
-	}
-	for _, r := range s {
-		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '_') {
-			return false
-		}
-	}
-	return true
-}
-
-// isCGPSystemLiteral проверяет, может ли строка быть ЗНАЧЕНИЕМ без кавычек.
-// Разрешены системные константы и числовые квоты с суффиксами.
-func isCGPSystemLiteral(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	switch strings.ToLower(s) {
-	case "default", "unlimited", "yes", "no", "none", "any":
-		return true
-	}
-
-	// Проверка на число или квоту (например, 10G)
-	isNumeric := true
-	for i, r := range s {
-		if r >= '0' && r <= '9' {
-			continue
-		}
-		// Суффикс допустим только в конце строки
-		if i == len(s)-1 && strings.ContainsRune("KMGTkmgt", r) {
-			continue
-		}
-		isNumeric = false
-		break
-	}
-	return isNumeric
+	'_': 1, '@': 1, '.': 1, '-': 1,
 }
 
 // isCGPSafeString проверяет, можно ли передать строку без кавычек.
@@ -80,9 +39,7 @@ func isCGPSafeString(s string) bool {
 	if s == "" {
 		return false
 	}
-	// Идем по байтам. len(s) возвращает количество байт, а не рун.
 	for i := 0; i < len(s); i++ {
-		// s[i] возвращает байт (byte/uint8)
 		if cgpSafeTable[s[i]] == 0 {
 			return false
 		}
@@ -116,16 +73,22 @@ func formatCGPSize(v int64) string {
 }
 
 func MarshalTo(w *bufio.Writer, v any) error {
-	return marshal(w, v, false)
+	return marshal(w, v, "")
 }
 
 func MarshalToString(v any) (string, error) {
 	var b bytes.Buffer
-	err := marshal(&b, v, false)
+	err := marshal(&b, v, "")
 	return b.String(), err
 }
 
-func marshal(w encodeWriter, v any, asKey bool) error {
+func marshal(w encodeWriter, v any, keyName string) error {
+	// 1. Приоритет кастомного маршалинга
+	if m, ok := v.(cgpMarshaler); ok {
+		_, err := w.WriteString(m.MarshalCGP())
+		return err
+	}
+
 	switch val := v.(type) {
 	case Atom:
 		_, err := w.WriteString(string(val))
@@ -137,12 +100,23 @@ func marshal(w encodeWriter, v any, asKey bool) error {
 		return w.WriteByte(']')
 
 	case []byte:
-		w.WriteString("#[")
-		enc := hex.NewEncoder(w)
+		w.WriteByte('[')
+		enc := base64.NewEncoder(base64.StdEncoding, w)
 		enc.Write(val)
+		enc.Close()
 		return w.WriteByte(']')
 
+	// --- Строки ---
 	case string:
+		if val == "" {
+			_, err := w.WriteString(`""`)
+			return err
+		}
+		// Исключение для Created (legacy)
+		if _, ok := dateFields[keyName]; ok {
+			_, err := w.WriteString(strconv.Quote(val))
+			return err
+		}
 		if isCGPSafeString(val) {
 			_, err := w.WriteString(val)
 			return err
@@ -150,6 +124,7 @@ func marshal(w encodeWriter, v any, asKey bool) error {
 		_, err := w.WriteString(strconv.Quote(val))
 		return err
 
+	// --- Числа ---
 	case int, int32, int64:
 		var n int64
 		switch i := val.(type) {
@@ -160,83 +135,110 @@ func marshal(w encodeWriter, v any, asKey bool) error {
 		case int64:
 			n = i
 		}
-		_, err := w.WriteString(formatCGPSize(n))
-		return err
-
-	case bool:
-		var err error
-		if val {
-			_, err = w.WriteString("YES")
-		} else {
-			_, err = w.WriteString("NO")
-		}
-		return err
-
-	case time.Time:
-		if val.IsZero() {
-			_, err := w.WriteString(`""`)
+		if _, ok := quotaFields[keyName]; ok {
+			_, err := w.WriteString(formatCGPSize(n))
 			return err
 		}
-		w.WriteByte('"')
-		w.WriteString(val.Format("02-Jan-2006 15:04:05 -0700"))
-		return w.WriteByte('"')
+		_, err := w.WriteString(strconv.FormatInt(n, 10))
+		return err
 
+	// --- Время ---
+	case time.Time:
+		if val.IsZero() {
+			_, err := w.WriteString("#NULL#")
+			return err
+		}
+		if _, ok := dateFields[keyName]; ok {
+			fmt.Fprintf(w, "\"%s\"", val.Format(cgpInternalTimeLayout))
+			return nil
+		}
+		if val.Equal(TimePast) {
+			_, err := w.WriteString("#TPAST")
+			return err
+		}
+		if val.Equal(TimeFuture) {
+			_, err := w.WriteString("#TFUTURE")
+			return err
+		}
+		w.WriteString("#T")
+		w.WriteString(val.Format(cgpInternalTimeLayout))
+		return nil
+
+	// --- Словари (Maps) ---
 	case map[string]any:
-		w.WriteByte('{')
-		keys := make([]string, 0, len(val))
-		for k := range val {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		for _, k := range keys {
-			marshal(w, k, true)
-			w.WriteString("=")
-			marshal(w, val[k], false)
-			w.WriteByte(';')
-		}
-		return w.WriteByte('}')
+		return marshalMapAny(w, val)
 
+	case map[string]string:
+		return marshalMapString(w, val)
+
+	// --- Списки (Slices) ---
 	case []any:
 		w.WriteByte('(')
 		for i, item := range val {
-			marshal(w, item, false)
-			if i < len(val)-1 {
+			if i > 0 {
 				w.WriteByte(',')
 			}
+			marshal(w, item, "")
 		}
 		return w.WriteByte(')')
-
-	case map[string]string:
-		w.WriteByte('{')
-		keys := make([]string, 0, len(val))
-		for k := range val {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		for _, k := range keys {
-			marshal(w, k, true)
-			w.WriteString("=")
-			marshal(w, val[k], false)
-			w.WriteByte(';')
-		}
-		return w.WriteByte('}')
 
 	case []string:
 		w.WriteByte('(')
 		for i, s := range val {
-			marshal(w, s, false)
-			if i < len(val)-1 {
+			if i > 0 {
 				w.WriteByte(',')
 			}
+			marshal(w, s, "")
 		}
 		return w.WriteByte(')')
 
-	default:
-		if val == nil {
-			_, err := w.WriteString("#NULL#")
+	// --- Остальное ---
+	case bool:
+		if val {
+			_, err := w.WriteString("YES")
 			return err
 		}
+		_, err := w.WriteString("NO")
+		return err
+
+	case nil:
+		_, err := w.WriteString("#NULL#")
+		return err
+
+	default:
 		_, err := w.WriteString(fmt.Sprint(val))
 		return err
 	}
+}
+
+func marshalMapAny(w encodeWriter, m map[string]any) error {
+	w.WriteByte('{')
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		marshal(w, k, "")
+		w.WriteByte('=')
+		marshal(w, m[k], k)
+		w.WriteByte(';')
+	}
+	return w.WriteByte('}')
+}
+
+func marshalMapString(w encodeWriter, m map[string]string) error {
+	w.WriteByte('{')
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		marshal(w, k, "")
+		w.WriteByte('=')
+		marshal(w, m[k], k)
+		w.WriteByte(';')
+	}
+	return w.WriteByte('}')
 }

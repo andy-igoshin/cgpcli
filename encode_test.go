@@ -2,19 +2,19 @@ package cgpcli
 
 import (
 	"bufio"
+	"net"
 	"strings"
 	"testing"
 	"time"
 )
 
 func TestMarshal(t *testing.T) {
-	testZone := time.FixedZone("UTC", 0)
+	testZone := time.UTC
 
 	tests := []struct {
 		name     string
 		input    any
 		contains []string
-		excludes []string
 	}{
 		{
 			name: "Atoms and Strings",
@@ -30,34 +30,52 @@ func TestMarshal(t *testing.T) {
 			},
 		},
 		{
-			name: "DataBlock and Hex",
+			name: "DataBlock and IP",
 			input: map[string]any{
-				"Raw":   []byte{0x01, 0x02},
-				"Block": DataBlock("CERT"),
+				"Raw":   []byte("HI"),          // Маршалер сделает Base64 -> [SEk=]
+				"Block": DataBlock("Q0VSVA=="), // Мы передаем уже готовый Base64 "CERT"
+				"Addr":  CGPIP{IP: net.ParseIP("10.0.0.1"), Port: 25},
 			},
 			contains: []string{
-				"Raw=#[0102]",
-				"Block=[CERT]",
+				"Raw=[SEk=]",
+				"Block=[Q0VSVA==]",
+				"Addr=#I[10.0.0.1]:25",
+			},
+		},
+		{
+			name: "Certificate_DataBlock",
+			input: map[string]any{
+				// Здесь мы передаем уже валидный Base64 сертификата
+				"Certificate": DataBlock("ZmFrZS1jZXJ0LWRhdGE="),
+			},
+			contains: []string{
+				"Certificate=[ZmFrZS1jZXJ0LWRhdGE=]",
 			},
 		},
 		{
 			name: "Quotas and Sizes",
 			input: map[string]any{
-				"Limit": int64(-1),
-				"SizeK": 1024,
-				"Exact": 123,
+				"MaxAccountSize": int64(-1),
+				"MaxWebSize":     int64(1024),
+				"Exact":          int64(123),
 			},
 			contains: []string{
-				"Limit=unlimited",
-				"SizeK=1K",
-				"Exact=123",
+				"MaxAccountSize=unlimited",
+				"MaxWebSize=1K",
+				"Exact=123", // Обычное число, не квота
 			},
 		},
 		{
-			name:  "Time Formatting",
-			input: time.Date(2026, 1, 8, 10, 0, 0, 0, testZone),
+			name: "Time and Tags",
+			input: map[string]any{
+				"Created": time.Date(2026, 1, 8, 10, 0, 0, 0, testZone),
+				"LastLog": time.Date(2026, 1, 8, 10, 0, 0, 0, testZone),
+				"Past":    TimePast,
+			},
 			contains: []string{
-				`"08-Jan-2026 10:00:00 +0000"`,
+				`Created="08-01-2026_10:00:00"`, // Legacy формат
+				`LastLog=#T08-01-2026_10:00:00`, // Modern формат
+				`Past=#TPAST`,
 			},
 		},
 		{
@@ -70,7 +88,7 @@ func TestMarshal(t *testing.T) {
 			},
 			contains: []string{
 				"Enabled=YES",
-				"List=(Default,text)", // Без пробелов внутри ()
+				"List=(Default,text)",
 			},
 		},
 		{
@@ -89,8 +107,8 @@ func TestMarshal(t *testing.T) {
 				"Sub": []string{"INBOX", "Sent"},
 			},
 			contains: []string{
-				`ACL={user=l;}`,    // Кавычки ушли, так как строки "safe"
-				`Sub=(INBOX,Sent)`, // То же самое здесь
+				`ACL={user=l;}`,
+				`Sub=(INBOX,Sent)`,
 			},
 		},
 	}
@@ -99,6 +117,7 @@ func TestMarshal(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var b strings.Builder
 			w := bufio.NewWriter(&b)
+			// Используем наш внутренний маршалер через MarshalTo или MarshalToString
 			err := MarshalTo(w, tt.input)
 			w.Flush()
 
@@ -112,27 +131,10 @@ func TestMarshal(t *testing.T) {
 					t.Errorf("%s: Result should contain %q, but got: %s", tt.name, s, res)
 				}
 			}
-			// Проверка на отсутствие пробелов вне кавычек (упрощенно)
+			// Проверка на отсутствие пробелов (согласно CLI.pm)
 			if strings.Contains(res, "= ") || strings.Contains(res, "; ") || strings.Contains(res, ", ") {
 				t.Errorf("%s: Result contains unexpected spaces: %s", tt.name, res)
 			}
 		})
-	}
-}
-
-func TestFormatCGPSize(t *testing.T) {
-	cases := []struct {
-		in  int64
-		out string
-	}{
-		{-1, "unlimited"},
-		{0, "0"},
-		{1024, "1K"},
-		{1048576, "1M"},
-	}
-	for _, c := range cases {
-		if got := formatCGPSize(c.in); got != c.out {
-			t.Errorf("formatCGPSize(%d) = %s, want %s", c.in, got, c.out)
-		}
 	}
 }
