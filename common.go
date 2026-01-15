@@ -361,7 +361,7 @@ func (cli *Cli) Send(args ...any) (err error) {
 		if i > 0 {
 			cli.buf.WriteByte(' ')
 		}
-		if err := marshal(&cli.buf, arg, false); err != nil {
+		if err := marshal(&cli.buf, arg, ""); err != nil {
 			return err
 		}
 	}
