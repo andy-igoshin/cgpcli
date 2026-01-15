@@ -28,21 +28,6 @@ func (cli *Cli) getMapAny(cmd string, subject string) (map[string]any, error) {
 	return m, nil
 }
 
-// setMapAny — строгая отправка словаря данных (SET, UPDATE, MODIFY).
-func (cli *Cli) setMapAny(cmd string, subject string, data map[string]any) error {
-	if data == nil {
-		return fmt.Errorf("%s: data map is nil", cmd)
-	}
-
-	var err error
-	if subject != "" {
-		_, err = cli.Query(cmd, Atom(subject), data)
-	} else {
-		_, err = cli.Query(cmd, data)
-	}
-	return err
-}
-
 // getSliceAny — строгое получение списка ([]any) от сервера.
 func (cli *Cli) getSliceAny(cmd string, subject string) ([]any, error) {
 	var res any
@@ -84,6 +69,41 @@ func (cli *Cli) getSliceString(cmd string, subject string) ([]string, error) {
 	return result, nil
 }
 
+func (cli *Cli) getString(cmd string, args ...string) (string, error) {
+	// Создаем общий слайс: [0] - команда, остальные - аргументы
+	params := make([]any, len(args)+1)
+	params[0] = cmd
+	for i, v := range args {
+		params[i+1] = v
+	}
+
+	res, err := cli.Query(params...)
+	if err != nil {
+		return "", err
+	}
+
+	s, ok := res.(string)
+	if !ok {
+		return "", fmt.Errorf("%s: response is %T, expected string", cmd, res)
+	}
+	return s, nil
+}
+
+// setMapAny — строгая отправка словаря данных (SET, UPDATE, MODIFY).
+func (cli *Cli) setMapAny(cmd string, subject string, data map[string]any) error {
+	if data == nil {
+		return fmt.Errorf("%s: data map is nil", cmd)
+	}
+
+	var err error
+	if subject != "" {
+		_, err = cli.Query(cmd, Atom(subject), data)
+	} else {
+		_, err = cli.Query(cmd, data)
+	}
+	return err
+}
+
 // toAnySlice — безопасное приведение к слайсу для вложенных данных (Rules).
 func (cli *Cli) toAnySlice(v any) []any {
 	if s, ok := v.([]any); ok {
@@ -119,7 +139,7 @@ func (cli *Cli) toStringMap(cmd string, data map[string]any) (map[string]string,
 	return result, nil
 }
 
-// toStringSlice2 — временный строгий конвертер для точечного рефакторинга.
+// toStringSlice - конвертирует []any в []string
 func (cli *Cli) toStringSlice(v any) ([]string, error) {
 	raw, ok := v.([]any)
 	if !ok {
@@ -128,7 +148,6 @@ func (cli *Cli) toStringSlice(v any) ([]string, error) {
 		}
 		return nil, fmt.Errorf("expected []any, got %T", v)
 	}
-
 	result := make([]string, len(raw))
 	for i, item := range raw {
 		s, err := cli.valToString("", item)
