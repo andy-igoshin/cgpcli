@@ -59,6 +59,15 @@ func main() {
 		cgpcli.PrettyPrint(settings)
 	}
 
+	// Читаем настройки (Effective Settings)
+	fmt.Println("\n[Account Effective Settings]")
+	settings, err = cli.GetAccountSettings(target)
+	if err != nil {
+		log.Printf("Settings error: %v", err)
+	} else {
+		cgpcli.PrettyPrint(settings)
+	}
+
 	// Читаем состояние (Info)
 	fmt.Println("\n[Account Info]")
 	info, err := cli.GetAccountInfo(target, nil)
