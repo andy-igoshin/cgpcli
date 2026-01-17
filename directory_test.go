@@ -85,7 +85,7 @@ func TestDirectory_AccessRightsStructure(t *testing.T) {
 			t.Errorf("Expected []any, got %T", rawResponse)
 			return
 		}
-		
+
 		if len(arr) != 1 {
 			t.Errorf("Expected len 1, got %d", len(arr))
 		}
