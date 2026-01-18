@@ -18,12 +18,15 @@ var (
 		"LDAPPagedCacheTimeout": true,
 	}
 	quotaFields = map[string]bool{
-		"MaxAccountSize": true,
-		"MaxFileSize":    true,
-		"MaxMailboxSize": true,
-		"MaxMailOutSize": true,
-		"MaxMessageSize": true,
-		"MaxWebSize":     true,
+		"ArchiveSizeLimit": true,
+		"DigestSizeLimit":  true,
+		"MaxAccountSize":   true,
+		"MaxFileSize":      true,
+		"MaxMailboxSize":   true,
+		"MaxMailOutSize":   true,
+		"MaxMessageSize":   true,
+		"MaxWebSize":       true,
+		"SizeLimit":        true,
 	}
 )
 
