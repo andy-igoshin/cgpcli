@@ -3,6 +3,7 @@ package cgpcli
 import (
 	"fmt"
 	"strconv"
+	"time"
 )
 
 // getMapAny — строгое получение словаря (map[string]any) от сервера.
@@ -60,7 +61,7 @@ func (cli *Cli) getSliceString(cmd string, subject string) ([]string, error) {
 
 	result := make([]string, len(raw))
 	for i, v := range raw {
-		s, err := cli.valToString(cmd, v)
+		s, err := toString(cmd, v)
 		if err != nil {
 			return nil, err
 		}
@@ -126,11 +127,51 @@ func (cli *Cli) toInt(v any) int {
 	}
 }
 
+// toInt64 безопасно приводит различные числовые типы к int64.
+func toInt64(v any) int64 {
+	switch val := v.(type) {
+	case int64:
+		return val
+	case int:
+		return int64(val)
+	case int32:
+		return int64(val)
+	case float64:
+		return int64(val)
+	case float32:
+		return int64(val)
+	default:
+		return 0
+	}
+}
+
+func toString(cmd string, v any) (string, error) {
+	switch val := v.(type) {
+	case string:
+		return val, nil
+	case time.Time:
+		return val.Format("02-Jan-2006 15:04:05"), nil
+	case int:
+		return strconv.Itoa(val), nil
+	case int64:
+		return strconv.FormatInt(val, 10), nil
+	case float64:
+		return strconv.FormatFloat(val, 'f', -1, 64), nil
+	case bool:
+		return strconv.FormatBool(val), nil
+	case nil:
+		return "", nil
+	default:
+		// Вместо "тихого" приведения через fmt.Sprintf, возвращаем ошибку
+		return "", fmt.Errorf("%s: unexpected value type %T (value: %v)", cmd, v, v)
+	}
+}
+
 // toStringMap — конвертирует map[string]any в map[string]string (для ListAccounts и др.).
 func (cli *Cli) toStringMap(cmd string, data map[string]any) (map[string]string, error) {
 	result := make(map[string]string, len(data))
 	for k, v := range data {
-		s, err := cli.valToString(cmd, v)
+		s, err := toString(cmd, v)
 		if err != nil {
 			return nil, err
 		}
@@ -140,37 +181,28 @@ func (cli *Cli) toStringMap(cmd string, data map[string]any) (map[string]string,
 }
 
 // toStringSlice - конвертирует []any в []string
-func (cli *Cli) toStringSlice(v any) ([]string, error) {
-	raw, ok := v.([]any)
+func toStringSlice(cmd string, v any) ([]string, error) {
+	arr, ok := v.([]any)
 	if !ok {
 		if v == nil {
 			return []string{}, nil
 		}
-		return nil, fmt.Errorf("expected []any, got %T", v)
+		return nil, fmt.Errorf("%s: expected []any, got %T", cmd, v)
 	}
-	result := make([]string, len(raw))
-	for i, item := range raw {
-		s, err := cli.valToString("", item)
+	res := make([]string, len(arr))
+	for i, val := range arr {
+		s, err := toString(cmd, val)
 		if err != nil {
 			return nil, err
 		}
-		result[i] = s
+		res[i] = s
 	}
-	return result, nil
+	return res, nil
 }
 
-// valToString — системное приведение значения к строке (string или числа через strconv).
-func (cli *Cli) valToString(cmd string, v any) (string, error) {
-	switch val := v.(type) {
-	case string:
-		return val, nil
-	case int:
-		return strconv.Itoa(val), nil
-	case int64:
-		return strconv.FormatInt(val, 10), nil
-	case float64:
-		return strconv.FormatFloat(val, 'f', -1, 64), nil
-	default:
-		return "", fmt.Errorf("%s: unexpected value type %T (value: %v)", cmd, v, v)
+func toTime(v any) time.Time {
+	if t, ok := v.(time.Time); ok {
+		return t
 	}
+	return time.Time{}
 }

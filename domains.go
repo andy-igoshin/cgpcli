@@ -207,11 +207,11 @@ func (cli *Cli) ListDomainObjects(domain string, limit int, filter string, what 
 				if first, isSlice := v[0].([]any); isSlice {
 					obj.Type = TypeForwarder
 					obj.Subtype = "forwarder"
-					obj.Targets, targetErr = cli.toStringSlice(first)
+					obj.Targets, targetErr = toStringSlice("LISTDOMAINOBJECTS", first)
 				} else {
 					obj.Type = TypeAlias
 					obj.Subtype = "alias"
-					obj.Targets, targetErr = cli.toStringSlice(v)
+					obj.Targets, targetErr = toStringSlice("LISTDOMAINOBJECTS", v)
 				}
 				if targetErr != nil {
 					return nil, fmt.Errorf("LISTDOMAINOBJECTS: invalid target format for %s: %w", name, targetErr)

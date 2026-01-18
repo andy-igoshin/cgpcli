@@ -29,7 +29,7 @@ func (cli *Cli) FindForwarders(domain, target string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return cli.toStringSlice(res)
+	return toStringSlice("FINDFORWARDERS", res)
 }
 
 func (cli *Cli) GetForwarder(forwarder string) (string, error) {
@@ -40,7 +40,7 @@ func (cli *Cli) GetForwarder(forwarder string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return cli.valToString("GETFORWARDER", res)
+	return toString("GETFORWARDER", res)
 }
 
 func (cli *Cli) ListForwarders(domain string) ([]string, error) {
@@ -51,7 +51,7 @@ func (cli *Cli) ListForwarders(domain string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return cli.toStringSlice(res)
+	return toStringSlice("LISTFORWARDERS", res)
 }
 
 func (cli *Cli) RenameForwarder(oldName, newName string) error {

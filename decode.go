@@ -14,6 +14,9 @@ var (
 	dateFields = map[string]bool{
 		"Created": true,
 	}
+	durationFields = map[string]bool{
+		"LDAPPagedCacheTimeout": true,
+	}
 	quotaFields = map[string]bool{
 		"MaxAccountSize": true,
 		"MaxFileSize":    true,
@@ -115,14 +118,15 @@ func (d *decodeState) dictionaryInterface() any {
 			d.span++
 			val := d.valueInterface(false)
 
-			if dateFields[key] {
-				if s, ok := val.(string); ok && s != "" {
+			if s, ok := val.(string); ok && s != "" {
+				switch {
+				case dateFields[key]:
 					if t, err := time.Parse(cgpInternalTimeLayout, s); err == nil {
 						val = t
 					}
-				}
-			} else if quotaFields[key] {
-				if s, ok := val.(string); ok {
+				case durationFields[key]:
+					val = parseCGPDuration(s)
+				case quotaFields[key]:
 					val = parseCGPSize(s)
 				}
 			}
@@ -265,6 +269,13 @@ func (d *decodeState) wordInterface(asString bool) any {
 		return raw
 	}
 
+	switch raw {
+	case "YES":
+		return true
+	case "NO":
+		return false
+	}
+
 	// Пост-обработка накопленного "сырого" слова
 	if isTagged && !isUnkData {
 		if raw == "#NULL#" {
@@ -340,6 +351,41 @@ func (d *decodeState) xmlInterface() any {
 		d.span++
 	}
 	return string(d.data[startSpan:d.span])
+}
+
+func parseCGPDuration(s string) time.Duration {
+	if s == "" {
+		return 0
+	}
+
+	lastIdx := len(s) - 1
+	multiplier := time.Second
+	numPart := s
+	hasSuffix := true
+
+	switch s[lastIdx] {
+	case 's', 'S':
+		multiplier = time.Second
+	case 'm', 'M':
+		multiplier = time.Minute
+	case 'h', 'H':
+		multiplier = time.Hour
+	case 'd', 'D':
+		multiplier = time.Hour * 24
+	default:
+		hasSuffix = false
+	}
+
+	if hasSuffix {
+		numPart = s[:lastIdx]
+	}
+
+	val, err := strconv.ParseInt(numPart, 10, 64)
+	if err != nil {
+		return 0
+	}
+
+	return time.Duration(val) * multiplier
 }
 
 func parseCGPNumber(raw string) any {

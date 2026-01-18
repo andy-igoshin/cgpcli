@@ -42,6 +42,7 @@ const (
 	CodePassword         = 300
 	CodeGenErr           = 500
 	CodeGenErr1          = 501
+	CodeGenErr12         = 512
 	CodeStrange          = 10000
 )
 
@@ -301,6 +302,12 @@ func (cli *Cli) parseResponse() (err error) {
 
 	line = bytes.TrimRight(line, "\r\n")
 
+	if cli.debug {
+		os.Stderr.Write([]byte("<<< RECV: "))
+		os.Stderr.Write(line)
+		os.Stderr.Write([]byte("\n"))
+	}
+
 	idx := bytes.IndexByte(line, ' ')
 	if idx == -1 {
 		cli.respCode = parseCode(line)
@@ -309,7 +316,7 @@ func (cli *Cli) parseResponse() (err error) {
 	}
 
 	code := parseCode(line)
-	if code < CodeOk || code > CodeGenErr1 {
+	if code < CodeOk || code > CodeGenErr12 {
 		cli.respCode = CodeStrange
 		cli.respData = line
 		return fmt.Errorf("STRANGE CODE: %d : %s", code, line)
@@ -331,12 +338,6 @@ func (cli *Cli) Query(args ...any) (any, error) {
 	}
 	if !cli.IsSuccess() {
 		return nil, fmt.Errorf("CGP Error %d: %s", cli.respCode, string(cli.respData))
-	}
-
-	if cli.debug {
-		os.Stderr.Write([]byte("<<< RECV: "))
-		os.Stderr.Write(cli.respData)
-		os.Stderr.Write([]byte("\n"))
 	}
 
 	var res any

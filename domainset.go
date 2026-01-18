@@ -135,7 +135,7 @@ func (cli *Cli) ListDomainStorage(shared bool) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return cli.toStringSlice(res)
+	return toStringSlice("LISTDOMAINSTORAGE", res)
 }
 
 // ListDomains возвращает список всех доменов.

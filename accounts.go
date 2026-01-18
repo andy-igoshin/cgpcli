@@ -146,7 +146,7 @@ func (cli *Cli) GetAccountAccessModes(account string) ([]string, error) {
 		if len(val) <= 1 {
 			return []string{}, nil
 		}
-		return cli.toStringSlice(val[1:])
+		return toStringSlice("GetAccountAccessModes", val[1:])
 	default:
 		return []string{}, nil
 	}

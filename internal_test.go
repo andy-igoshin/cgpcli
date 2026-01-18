@@ -24,8 +24,7 @@ func getTestCli(t *testing.T) *Cli {
 
 // --- Unit Tests (Логика конвертации без сети) ---
 
-func TestValToString(t *testing.T) {
-	cli := &Cli{}
+func TestToString(t *testing.T) {
 	tests := []struct {
 		name    string
 		input   any
@@ -37,18 +36,17 @@ func TestValToString(t *testing.T) {
 		{"int64", int64(456), "456", false},
 		{"float64", 789.0, "789", false},
 		{"invalid type", []int{1}, "", true},
-		{"nil", nil, "", true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := cli.valToString("TEST", tt.input)
+			got, err := toString("TEST", tt.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("valToString() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("toString() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("valToString() got = %v, want %v", got, tt.want)
+				t.Errorf("toString() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
