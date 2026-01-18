@@ -3,6 +3,7 @@ package cgpcli
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -113,6 +114,14 @@ func toAnySlice(v any) []any {
 	return []any{}
 }
 
+func toCGPText(s string) string {
+	return strings.ReplaceAll(s, "\n", `\e`)
+}
+
+func toGoText(s string) string {
+	return strings.ReplaceAll(s, `\e`, "\n")
+}
+
 // toInt — безопасное приведение к int для числовых параметров.
 func toInt(v any) int {
 	switch val := v.(type) {
@@ -162,7 +171,6 @@ func toString(cmd string, v any) (string, error) {
 	case nil:
 		return "", nil
 	default:
-		// Вместо "тихого" приведения через fmt.Sprintf, возвращаем ошибку
 		return "", fmt.Errorf("%s: unexpected value type %T (value: %v)", cmd, v, v)
 	}
 }
