@@ -114,7 +114,7 @@ func (cli *Cli) toAnySlice(v any) []any {
 }
 
 // toInt — безопасное приведение к int для числовых параметров.
-func (cli *Cli) toInt(v any) int {
+func /*(cli *Cli)*/ toInt(v any) int {
 	switch val := v.(type) {
 	case int:
 		return val

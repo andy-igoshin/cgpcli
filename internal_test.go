@@ -53,7 +53,6 @@ func TestToString(t *testing.T) {
 }
 
 func TestToInt(t *testing.T) {
-	cli := &Cli{}
 	tests := []struct {
 		input any
 		want  int
@@ -65,7 +64,7 @@ func TestToInt(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		if got := cli.toInt(tt.input); got != tt.want {
+		if got := toInt(tt.input); got != tt.want {
 			t.Errorf("toInt(%v) = %v, want %v", tt.input, got, tt.want)
 		}
 	}

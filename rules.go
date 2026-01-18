@@ -85,7 +85,7 @@ func (cli *Cli) getMailRules(cmd, subject string) ([]MailRule, error) {
 	for _, r := range raw {
 		name, _ := r[1].(string)
 		rules = append(rules, MailRule{
-			Priority:   cli.toInt(r[0]),
+			Priority:   toInt(r[0]),
 			Name:       name,
 			Conditions: cli.toAnySlice(r[2]),
 			Actions:    cli.toAnySlice(r[3]),
@@ -131,7 +131,7 @@ func (cli *Cli) getSignalRules(cmd, subject string) ([]SignalRule, error) {
 
 	rules := make([]SignalRule, 0, len(raw))
 	for _, r := range raw {
-		prio, delay, event := unpackSignalPriority(cli.toInt(r[0]))
+		prio, delay, event := unpackSignalPriority(toInt(r[0]))
 		name, _ := r[1].(string)
 		rules = append(rules, SignalRule{
 			Priority:   prio,

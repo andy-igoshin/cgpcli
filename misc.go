@@ -289,7 +289,7 @@ func (cli *Cli) TestLoop(seconds int) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	return cli.toInt(res), nil
+	return toInt(res), nil
 }
 
 // WriteLog пишет запись в системный лог сервера.
