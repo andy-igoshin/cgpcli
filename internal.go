@@ -59,15 +59,15 @@ func (cli *Cli) getSliceString(cmd string, subject string) ([]string, error) {
 		return nil, err
 	}
 
-	result := make([]string, len(raw))
+	res := make([]string, len(raw))
 	for i, v := range raw {
 		s, err := toString(cmd, v)
 		if err != nil {
 			return nil, err
 		}
-		result[i] = s
+		res[i] = s
 	}
-	return result, nil
+	return res, nil
 }
 
 func (cli *Cli) getString(cmd string, args ...string) (string, error) {
@@ -169,15 +169,15 @@ func toString(cmd string, v any) (string, error) {
 
 // toStringMap — конвертирует map[string]any в map[string]string (для ListAccounts и др.).
 func toStringMap(cmd string, data map[string]any) (map[string]string, error) {
-	result := make(map[string]string, len(data))
+	res := make(map[string]string, len(data))
 	for k, v := range data {
 		s, err := toString(cmd, v)
 		if err != nil {
 			return nil, err
 		}
-		result[k] = s
+		res[k] = s
 	}
-	return result, nil
+	return res, nil
 }
 
 // toStringSlice - конвертирует []any в []string
