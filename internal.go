@@ -106,7 +106,7 @@ func (cli *Cli) setMapAny(cmd string, subject string, data map[string]any) error
 }
 
 // toAnySlice — безопасное приведение к слайсу для вложенных данных (Rules).
-func (cli *Cli) toAnySlice(v any) []any {
+func toAnySlice(v any) []any {
 	if s, ok := v.([]any); ok {
 		return s
 	}

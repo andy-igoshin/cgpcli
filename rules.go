@@ -87,8 +87,8 @@ func (cli *Cli) getMailRules(cmd, subject string) ([]MailRule, error) {
 		rules = append(rules, MailRule{
 			Priority:   toInt(r[0]),
 			Name:       name,
-			Conditions: cli.toAnySlice(r[2]),
-			Actions:    cli.toAnySlice(r[3]),
+			Conditions: toAnySlice(r[2]),
+			Actions:    toAnySlice(r[3]),
 			Comment:    cli.getComment(r),
 		})
 	}
@@ -138,8 +138,8 @@ func (cli *Cli) getSignalRules(cmd, subject string) ([]SignalRule, error) {
 			Delay:      delay,
 			EventCode:  event,
 			Name:       name,
-			Conditions: cli.toAnySlice(r[2]),
-			Actions:    cli.toAnySlice(r[3]),
+			Conditions: toAnySlice(r[2]),
+			Actions:    toAnySlice(r[3]),
 			Comment:    cli.getComment(r),
 		})
 	}
