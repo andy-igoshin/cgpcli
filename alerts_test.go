@@ -14,12 +14,10 @@ func TestAlerts_TypeConversion(t *testing.T) {
 		"20260115214705": int64(98765432109876),
 	}
 
-	cli := &Cli{}
-
 	t.Run("Convert any map to string map via valToString", func(t *testing.T) {
 		// Используем ваш toStringMap (который внутри вызывает valToString)
 		// Мы ожидаем, что int64 станет строкой "98765432109876"
-		res, err := cli.toStringMap("GETSERVERALERTS", mockResponse)
+		res, err := toStringMap("GETSERVERALERTS", mockResponse)
 		if err != nil {
 			t.Fatalf("toStringMap failed: %v", err)
 		}

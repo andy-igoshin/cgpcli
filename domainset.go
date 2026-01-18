@@ -303,7 +303,7 @@ func (cli *Cli) listTelnums(cmd, filter string, limit int) (map[string]string, e
 		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
 	}
 	delete(dict, "")
-	return cli.toStringMap(cmd, dict)
+	return toStringMap(cmd, dict)
 }
 
 func (cli *Cli) setTrustedCerts(cmd string, certs []string) error {

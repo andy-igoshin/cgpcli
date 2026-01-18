@@ -72,7 +72,6 @@ func TestToInt(t *testing.T) {
 }
 
 func TestToStringMap(t *testing.T) {
-	cli := &Cli{}
 	input := map[string]any{
 		"Key1": "StringValue",
 		"Key2": 2026,
@@ -82,7 +81,7 @@ func TestToStringMap(t *testing.T) {
 		"Key2": "2026",
 	}
 
-	got, err := cli.toStringMap("TEST", input)
+	got, err := toStringMap("TEST", input)
 	if err != nil {
 		t.Fatalf("toStringMap failed: %v", err)
 	}
@@ -146,7 +145,7 @@ func TestInternalIntegration(t *testing.T) {
 			t.Fatalf("LISTACCOUNTS call failed for %s: %v", targetDomain, err)
 		}
 
-		accounts, err := cli.toStringMap("LISTACCOUNTS", raw)
+		accounts, err := toStringMap("LISTACCOUNTS", raw)
 		if err != nil {
 			t.Errorf("toStringMap conversion failed: %v", err)
 		}

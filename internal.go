@@ -168,7 +168,7 @@ func toString(cmd string, v any) (string, error) {
 }
 
 // toStringMap — конвертирует map[string]any в map[string]string (для ListAccounts и др.).
-func (cli *Cli) toStringMap(cmd string, data map[string]any) (map[string]string, error) {
+func toStringMap(cmd string, data map[string]any) (map[string]string, error) {
 	result := make(map[string]string, len(data))
 	for k, v := range data {
 		s, err := toString(cmd, v)

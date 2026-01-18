@@ -146,7 +146,7 @@ func (cli *Cli) ListAccounts(domain string) (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return cli.toStringMap("LISTACCOUNTS", raw)
+	return toStringMap("LISTACCOUNTS", raw)
 }
 
 func (cli *Cli) ListAdminDomains(domain string) ([]string, error) {
@@ -243,7 +243,7 @@ func (cli *Cli) ListDomainTelnums(domain, filter string, limit int) (map[string]
 		return nil, fmt.Errorf("LISTDOMAINTELNUMS: expected map, got %T", res)
 	}
 	delete(dict, "")
-	return cli.toStringMap("LISTDOMAINTELNUMS", dict)
+	return toStringMap("LISTDOMAINTELNUMS", dict)
 }
 
 func (cli *Cli) ResumeDomain(domain string) error {

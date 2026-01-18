@@ -13,7 +13,7 @@ func (cli *Cli) GetAccountAlerts(account string) (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return cli.toStringMap("GETACCOUNTALERTS", res)
+	return toStringMap("GETACCOUNTALERTS", res)
 }
 
 func (cli *Cli) GetClusterAlerts() (map[string]string, error) {
@@ -21,7 +21,7 @@ func (cli *Cli) GetClusterAlerts() (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return cli.toStringMap("GETCLUSTERALERTS", res)
+	return toStringMap("GETCLUSTERALERTS", res)
 }
 
 func (cli *Cli) GetDomainAlerts(domain string) (map[string]string, error) {
@@ -29,7 +29,7 @@ func (cli *Cli) GetDomainAlerts(domain string) (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return cli.toStringMap("GETDOMAINALERTS", res)
+	return toStringMap("GETDOMAINALERTS", res)
 }
 
 func (cli *Cli) GetServerAlerts() (map[string]string, error) {
@@ -37,7 +37,7 @@ func (cli *Cli) GetServerAlerts() (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return cli.toStringMap("GETSERVERALERTS", res)
+	return toStringMap("GETSERVERALERTS", res)
 }
 
 func (cli *Cli) PostAccountAlert(account, alert string) error {
