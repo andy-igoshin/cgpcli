@@ -68,8 +68,6 @@ func TestIntegration_Directory_Units(t *testing.T) {
 	cli := setupSandbox(t)
 	defer cli.Logout()
 
-	cli.SetDebug(true)
-
 	// Используем уникальное имя для каждого запуска теста,
 	// чтобы избежать "хвостов" от предыдущих падений.
 	testUnit := fmt.Sprintf("GoUnit_%d", time.Now().UnixNano()%10000)
