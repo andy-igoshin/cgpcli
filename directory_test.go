@@ -1,98 +1,103 @@
 package cgpcli
 
 import (
-	"reflect"
+	"fmt"
+	"os"
 	"testing"
+	"time"
 )
 
-func TestDirectory_CreateUnitArgs(t *testing.T) {
-	// Убрали неиспользуемый cli, так как мы тестируем саму логику формирования слайса
-	tests := []struct {
-		name     string
-		unitName string
-		mount    string
-		shared   bool
-		remote   bool
-		expected []any
-	}{
-		{
-			name:     "Local Private",
-			unitName: "Office1",
-			mount:    "ou=off1,dc=ext",
-			shared:   false,
-			remote:   false,
-			expected: []any{"CREATEDIRECTORYUNIT", "Office1", "ou=off1,dc=ext"},
-		},
-		{
-			name:     "Remote Shared",
-			unitName: "LDAP-Gate",
-			mount:    "dc=remote",
-			shared:   true,
-			remote:   true,
-			expected: []any{"CREATEDIRECTORYUNIT", "LDAP-Gate", "SHARED", "REMOTE", "dc=remote"},
-		},
+func setupSandbox(t *testing.T) *Cli {
+	host := os.Getenv("CGPHOST")
+	user := os.Getenv("CGPUSER")
+	pass := os.Getenv("CGPPASS")
+
+	if host == "" {
+		t.Skip("Sandbox environment (CGPHOST) not configured")
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			args := make([]any, 0, 5)
-			args = append(args, "CREATEDIRECTORYUNIT", tt.unitName)
-			if tt.shared {
-				args = append(args, "SHARED")
-			}
-			if tt.remote {
-				args = append(args, "REMOTE")
-			}
-			args = append(args, tt.mount)
-
-			if !reflect.DeepEqual(args, tt.expected) {
-				t.Errorf("Args mismatch.\nGot: %v\nExp: %v", args, tt.expected)
-			}
-		})
+	cli, err := New(host, user, pass, APOP, false)
+	if err != nil {
+		t.Fatalf("Connect failed: %v", err)
 	}
+
+	return cli
 }
 
-func TestDirectory_ListUnitsParsing(t *testing.T) {
-	mockRaw := map[string]any{
-		"": "Main",
-	}
+func TestIntegration_Directory_AccessRights(t *testing.T) {
+	cli := setupSandbox(t)
+	defer cli.Logout()
 
-	cli := &Cli{}
-
-	t.Run("Parse mount point and name", func(t *testing.T) {
-		res, err := cli.toStringMap("LISTDIRECTORYUNITS", mockRaw)
+	t.Run("Verify Structure and Expert Parsing", func(t *testing.T) {
+		rights, err := cli.GetDirectoryAccessRights(false)
 		if err != nil {
-			t.Fatalf("toStringMap failed: %v", err)
+			t.Fatalf("Expert parsing failed or server returned unexpected format: %v", err)
 		}
 
-		expected := map[string]string{"": "Main"}
-		if !reflect.DeepEqual(res, expected) {
-			t.Errorf("Expected %v, got %v", expected, res)
+		if len(rights) == 0 {
+			t.Log("Directory Access Rights list is empty on this server")
+			return
+		}
+
+		// Проверяем наличие эталонного правила ReadOptions
+		var found bool
+		for _, r := range rights {
+			if r.Name == "ReadOptions" {
+				found = true
+				if r.Type == "" {
+					t.Error("Rule 'ReadOptions' has empty Type")
+				}
+				if len(r.ReadAttrs) == 0 {
+					t.Error("Rule 'ReadOptions' has empty ReadAttrs (expected at least '*')")
+				}
+				break
+			}
+		}
+
+		if !found {
+			t.Log("Rule 'ReadOptions' not found, verifying general data integrity")
+			r := rights[0]
+			if r.Name == "" {
+				t.Error("First rule has empty name")
+			}
 		}
 	})
 }
 
-func TestDirectory_AccessRightsStructure(t *testing.T) {
-	// rawResponse теперь явно any, чтобы эмулировать результат cli.Query()
-	var rawResponse any = []any{
-		[]any{"HidePasswords", "*", "anyone", "prohibit", []any{}, []any{"pass"}, []any{"pass"}, []any{}},
-	}
+func TestIntegration_Directory_Units(t *testing.T) {
+	cli := setupSandbox(t)
+	defer cli.Logout()
 
-	t.Run("Type assertion for Access Rights", func(t *testing.T) {
-		// Теперь приведение типа сработает, так как rawResponse — интерфейс
-		arr, ok := rawResponse.([]any)
-		if !ok {
-			t.Errorf("Expected []any, got %T", rawResponse)
-			return
+	cli.SetDebug(true)
+
+	// Используем уникальное имя для каждого запуска теста,
+	// чтобы избежать "хвостов" от предыдущих падений.
+	testUnit := fmt.Sprintf("GoUnit_%d", time.Now().UnixNano()%10000)
+	mount := fmt.Sprintf("tmp/go_test_%s", testUnit)
+
+	t.Run("Lifecycle", func(t *testing.T) {
+		// Очистка перед тестом (на всякий случай)
+		_ = cli.DeleteDirectoryUnit(testUnit, false)
+
+		// Создание
+		err := cli.CreateDirectoryUnit(testUnit, mount, false, false)
+		if err != nil {
+			t.Fatalf("Create failed: %v", err)
 		}
 
-		if len(arr) != 1 {
-			t.Errorf("Expected len 1, got %d", len(arr))
+		// Проверка
+		units, err := cli.ListDirectoryUnits(false)
+		if err != nil {
+			t.Fatalf("List failed: %v", err)
 		}
 
-		rule, ok := arr[0].([]any)
-		if !ok || len(rule) != 8 {
-			t.Errorf("Rule should be []any with len 8, got %T", arr[0])
+		if _, ok := units[testUnit]; !ok {
+			t.Errorf("Unit %s not found in list. Got: %v", testUnit, units)
+		}
+
+		// Удаление
+		if err := cli.DeleteDirectoryUnit(testUnit, false); err != nil {
+			t.Errorf("Delete failed: %v", err)
 		}
 	})
 }

@@ -30,4 +30,13 @@ func main() {
 	} else {
 		cgpcli.PrettyPrint(rights)
 	}
+
+	fmt.Println("\n--- Directory Integration ---")
+	// Настройки интеграции (LDAP, Active Directory и т.д.)
+	integration, err := cli.Query("GETDIRECTORYINTEGRATION")
+	if err != nil {
+		fmt.Printf("GetIntegration error: %v\n", err)
+	} else {
+		cgpcli.PrettyPrint(integration)
+	}
 }
