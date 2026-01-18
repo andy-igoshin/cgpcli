@@ -67,14 +67,6 @@ func (r SignalRule) ToSlice() []any {
 // Internal Helpers (Private)
 // -----------------------------------------------------------------------------
 
-func (cli *Cli) getComment(r []any) string {
-	if len(r) > 4 {
-		comment, _ := r[4].(string)
-		return comment
-	}
-	return ""
-}
-
 func (cli *Cli) getMailRules(cmd, subject string) ([]MailRule, error) {
 	raw, err := cli.getRawRules(cmd, subject)
 	if err != nil {
@@ -89,7 +81,7 @@ func (cli *Cli) getMailRules(cmd, subject string) ([]MailRule, error) {
 			Name:       name,
 			Conditions: toAnySlice(r[2]),
 			Actions:    toAnySlice(r[3]),
-			Comment:    cli.getComment(r),
+			Comment:    getRuleComment(r),
 		})
 	}
 	return rules, nil
@@ -140,10 +132,18 @@ func (cli *Cli) getSignalRules(cmd, subject string) ([]SignalRule, error) {
 			Name:       name,
 			Conditions: toAnySlice(r[2]),
 			Actions:    toAnySlice(r[3]),
-			Comment:    cli.getComment(r),
+			Comment:    getRuleComment(r),
 		})
 	}
 	return rules, nil
+}
+
+func getRuleComment(r []any) string {
+	if len(r) > 4 {
+		comment, _ := r[4].(string)
+		return comment
+	}
+	return ""
 }
 
 // -----------------------------------------------------------------------------
