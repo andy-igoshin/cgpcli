@@ -20,8 +20,6 @@ func TestMailingLists_Integration(t *testing.T) {
 	}
 	defer cli.Logout()
 
-	//	cli.SetDebug(true);
-
 	const (
 		testDomain = "test.domain.name"
 		testOwner  = "testuser1@test.domain.name"
