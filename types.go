@@ -62,3 +62,11 @@ func (c CGPIP) MarshalCGP() string {
 	}
 	return sb.String()
 }
+
+type SessionOffset int
+
+const (
+	OffsetBeg SessionOffset = -1
+	OffsetEnd SessionOffset = -2
+	OffsetNew SessionOffset = -3
+)
