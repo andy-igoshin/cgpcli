@@ -126,24 +126,32 @@ func TestDecodeDataBlock(t *testing.T) {
 		input    string
 		expected []byte
 	}{
-		{"SimpleBlock", "[data]", []byte("data")},
-		{"Concatenated", "[part1][part2]", []byte("part1part2")},
-		{"WithSpaces", "[part1]  [part2]", []byte("part1part2")},
+		// "ZGF0YQ==" это "data" в Base64
+		{"SimpleBlock", "[ZGF0YQ==]", []byte("data")},
+
+		// "cGFydDE=" (part1) + "cGFydDI=" (part2)
+		{"Concatenated", "[cGFydDE=][cGFydDI=]", []byte("part1part2")},
+
+		// С пробелами между блоками
+		{"WithSpaces", "[cGFydDE=]  [cGFydDI=]", []byte("part1part2")},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var res any
+			// Используем Unmarshal, который вызывает наш readCgpBlock
 			err := Unmarshal([]byte(tt.input), &res)
 			if err != nil {
 				t.Fatalf("Unmarshal failed: %v", err)
 			}
+
 			b, ok := res.([]byte)
 			if !ok {
 				t.Fatalf("expected []byte, got %T", res)
 			}
+
 			if !bytes.Equal(b, tt.expected) {
-				t.Errorf("expected %q, got %q", tt.expected, b)
+				t.Errorf("expected %q, got %q (hex: %x)", tt.expected, b, b)
 			}
 		})
 	}

@@ -2,6 +2,7 @@ package cgpcli
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"net"
 	"reflect"
@@ -461,22 +462,66 @@ func parseCGPSize(s string) any {
 }
 
 func (d *decodeState) readCgpBlock(open, close byte) []byte {
-	d.scratch.Reset()
-	for d.span < d.len {
-		if d.data[d.span] == close {
-			d.span++
-			d.skipSpaces()
-			// Обработка продолжения блока: [data1][data2]
-			if d.span < d.len && d.data[d.span] == open {
-				d.span++
-				continue
-			}
-			break
-		}
-		d.scratch.WriteByte(d.data[d.span])
-		d.span++
-	}
-	res := make([]byte, d.scratch.Len())
-	copy(res, d.scratch.Bytes())
-	return res
+    // 1. Быстрый поиск конца всей цепочки блоков и расчет суммарной длины B64
+    startSpan := d.span
+    totalB64Len := 0
+
+    for {
+        // Считаем символы внутри текущего блока
+        for d.span < d.len && d.data[d.span] != close {
+            totalB64Len++
+            d.span++
+        }
+        if d.span < d.len { d.span++ } // Пропускаем ']'
+
+        d.skipSpaces()
+        if d.span < d.len && d.data[d.span] == open {
+            d.span++
+            continue
+        }
+        break
+    }
+
+    // Возвращаем указатель назад для фактического чтения
+    endSpan := d.span
+    d.span = startSpan
+
+    // 2. Выделяем память один раз (с запасом под B64, потом сделаем Slice)
+    // DecodedLen(n) возвращает (n / 4) * 3
+    maxDecodedLen := base64.StdEncoding.DecodedLen(totalB64Len)
+    result := make([]byte, 0, maxDecodedLen)
+
+    // 3. Фактическое декодирование фрагментов
+    for d.span < endSpan {
+        d.scratch.Reset()
+        for d.span < endSpan && d.data[d.span] != close {
+            d.scratch.WriteByte(d.data[d.span])
+            d.span++
+        }
+        if d.span < d.len { d.span++ } // Пропускаем ']'
+
+        if d.scratch.Len() > 0 {
+            src := d.scratch.Bytes()
+            n := base64.StdEncoding.DecodedLen(len(src))
+            start := len(result)
+
+            result = result[:start+n]
+            actualLen, err := base64.StdEncoding.Decode(result[start:], src)
+
+            if err == nil {
+                // Усекаем до реально декодированного размера
+                result = result[:start+actualLen]
+            } else {
+                // Fallback: если не B64, копируем как есть
+                result = result[:start]
+                result = append(result, src...)
+            }
+        }
+        d.skipSpaces()
+        if d.span < endSpan && d.data[d.span] == open {
+            d.span++
+            continue
+        }
+    }
+    return result
 }
