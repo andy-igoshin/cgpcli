@@ -3,6 +3,7 @@ package cgpcli
 
 import (
 	"fmt"
+	"encoding/base64"
 	"strings"
 )
 
@@ -280,7 +281,7 @@ func (cli *Cli) getTrustedCerts(cmd string) ([]string, error) {
 		if !ok {
 			return nil, fmt.Errorf("%s: expected []byte at index %d, got %T", cmd, i, item)
 		}
-		certs = append(certs, string(b))
+		certs = append(certs, base64.StdEncoding.EncodeToString(b))
 	}
 	return certs, nil
 }
