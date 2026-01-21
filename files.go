@@ -2,7 +2,6 @@
 package cgpcli
 
 import (
-	"encoding/base64"
 	"fmt"
 	"time"
 )
@@ -20,13 +19,13 @@ type StorageFileContent struct {
 	CurrentSize  int64
 }
 
-func (cli *Cli) DeleteStorageFile(account, file, authAccount string) error {
-	args := make([]any, 0, 6)
-	args = append(args, "DELETESTORAGEFILE", Atom(account), "FILE", file)
+func (cli *Cli) DeleteStorageFile(account, file, authAccount string) (err error) {
+	const cmd = "DELETESTORAGEFILE"
 	if authAccount != "" {
-		args = append(args, "AUTH", authAccount)
+		_, err = cli.Query(cmd, Atom(account), "FILE", file, "AUTH", authAccount)
+	} else {
+		_, err = cli.Query(cmd, Atom(account), "FILE", file)
 	}
-	_, err := cli.Query(args...)
 	return err
 }
 
@@ -92,7 +91,9 @@ func (cli *Cli) ReadStorageFile(account, file string, offset, size int64, authAc
 	const cmd = "READSTORAGEFILE"
 	args := make([]any, 0, 10)
 	args = append(args, cmd, Atom(account), "FILE", file)
-	if offset > 0 {
+
+	// Используем != 0, чтобы учитывались константы OffsetBeg/End (-1, -2)
+	if offset != 0 {
 		args = append(args, "OFFSET", offset)
 	}
 	if size > 0 {
@@ -107,21 +108,18 @@ func (cli *Cli) ReadStorageFile(account, file string, offset, size int64, authAc
 		return nil, err
 	}
 
+	// Ожидаем массив: [datablock, timestamp, currentSize]
 	arr, ok := res.([]any)
 	if !ok || len(arr) < 3 {
 		return nil, fmt.Errorf("%s: expected array, got %T", cmd, res)
 	}
 
 	var data []byte
-	if v, ok := arr[0].([]byte); ok {
-		data = make([]byte, base64.StdEncoding.DecodedLen(len(v)))
-		n, err := base64.StdEncoding.Decode(data, v)
-		if err != nil {
-			return nil, fmt.Errorf("%s: failed to decode DataBlock: %w", cmd, err)
+	if arr[0] != nil {
+		data, ok = arr[0].([]byte)
+		if !ok {
+			return nil, fmt.Errorf("%s: expected []byte for DataBlock, got %T", cmd, arr[0])
 		}
-		data = data[:n]
-	} else if arr[0] != nil {
-		return nil, fmt.Errorf("%s: expected []byte for DataBlock, got %T", cmd, arr[0])
 	}
 
 	return &StorageFileContent{
@@ -154,13 +152,13 @@ func (cli *Cli) ReadStorageFileAttr(account, file string, attrs []string, authAc
 	return arr, nil
 }
 
-func (cli *Cli) RenameStorageFile(account, oldFile, newFile, authAccount string) error {
-	args := make([]any, 0, 8)
-	args = append(args, "RENAMESTORAGEFILE", Atom(account), "FILE", oldFile, "INTO", newFile)
+func (cli *Cli) RenameStorageFile(account, oldFile, newFile, authAccount string) (err error) {
+	const cmd = "RENAMESTORAGEFILE"
 	if authAccount != "" {
-		args = append(args, "AUTH", authAccount)
+		_, err = cli.Query(cmd, Atom(account), "FILE", oldFile, "INTO", newFile, "AUTH", authAccount)
+	} else {
+		_, err = cli.Query(cmd, Atom(account), "FILE", oldFile, "INTO", newFile)
 	}
-	_, err := cli.Query(args...)
 	return err
 }
 
@@ -169,17 +167,17 @@ func (cli *Cli) SetFileSubscription(account string, subs []string) error {
 	return err
 }
 
-func (cli *Cli) UpdateStorageFileAttr(account, file string, attrs []any, authAccount string) error {
-	args := make([]any, 0, 8)
-	args = append(args, "UPDATESTORAGEFILEATTR", Atom(account), "FILE", file, attrs)
+func (cli *Cli) UpdateStorageFileAttr(account, file string, attrs []any, authAccount string) (err error) {
+	const cmd = "UPDATESTORAGEFILEATTR"
 	if authAccount != "" {
-		args = append(args, "AUTH", authAccount)
+		_, err = cli.Query(cmd, Atom(account), "FILE", file, attrs, "AUTH", authAccount)
+	} else {
+		_, err = cli.Query(cmd, Atom(account), "FILE", file, attrs)
 	}
-	_, err := cli.Query(args...)
 	return err
 }
 
-func (cli *Cli) WriteStorageFile(account, file string, offset any, data []byte, authAccount string) error {
+func (cli *Cli) WriteStorageFile(account, file string, offset any, data []byte, authAccount string) (err error) {
 	args := make([]any, 0, 10)
 	args = append(args, "WRITESTORAGEFILE", Atom(account), "FILE", file)
 
@@ -196,9 +194,8 @@ func (cli *Cli) WriteStorageFile(account, file string, offset any, data []byte, 
 		args = append(args, "AUTH", authAccount)
 	}
 
-	// data ([]byte) будет автоматически закодирован в [base64] вашим маршалером
 	args = append(args, "DATA", data)
 
-	_, err := cli.Query(args...)
+	_, err = cli.Query(args...)
 	return err
 }
