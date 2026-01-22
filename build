@@ -27,9 +27,27 @@ elif [ "$1" == "sandbox-test" ]; then
     echo "--- Running tests on sandbox ---"
     ssh "${REMOTE_HOST}" "cd ${REMOTE_PATH} && ./build test"
 
+elif [ "$1" == "sandbox-test-once" ]; then
+
+    . .env
+
+    echo "--- Syncing sources to sandbox ---"
+    rsync -avz --delete \
+          --exclude '.git/' \
+          --exclude '*.bin' \
+          --exclude 'vendor/' \
+          "./" "${REMOTE_HOST}:${REMOTE_PATH}/"
+
+    echo ""
+    echo "--- Running tests on sandbox ---"
+    ssh "${REMOTE_HOST}" "cd ${REMOTE_PATH} && ./build test-once $2"
+
 elif [ "$1" == "test" ]; then
     . .env
     go test -v
+elif [ "$1" == "test-once" ]; then
+    . .env
+    go test -v -run $2
 elif [ "$1" == "tidy" ]; then
     go mod tidy
 elif [ "$1" == "vet" ]; then
