@@ -44,6 +44,7 @@ const (
 	CodeGenErr1          = 501
 	CodeGenErr12         = 512
 	CodeGenErr25         = 525
+	CodeGenErr99         = 599
 	CodeStrange          = 10000
 )
 
@@ -317,7 +318,7 @@ func (cli *Cli) parseResponse() (err error) {
 	}
 
 	code := parseCode(line)
-	if code < CodeOk || code > CodeGenErr25 {
+	if code < CodeOk || code > CodeGenErr99 {
 		cli.respCode = CodeStrange
 		cli.respData = line
 		return fmt.Errorf("STRANGE CODE: %d : %s", code, line)
