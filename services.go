@@ -45,7 +45,7 @@ func (cli *Cli) RemoveAccountSubset(account, subset string) (err error) {
 		return fmt.Errorf("account name and subset name are required")
 	}
 	_, err = cli.Query("REMOVEACCOUNTSUBSET", Atom(account), "SUBSET", subset)
-	return err
+	return
 }
 
 // Roster выполняет операции с ростером (списком контактов) аккаунта.
