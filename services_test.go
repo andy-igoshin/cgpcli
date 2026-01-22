@@ -20,8 +20,6 @@ func TestAccountServices_Integration(t *testing.T) {
 	}
 	defer cli.Logout()
 
-	cli.SetDebug(true)
-
 	const me = "testuser1@test.domain.name"
 
 	t.Run("DatasetOperations", func(t *testing.T) {
