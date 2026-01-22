@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestWebSkins_FullIntegration(t *testing.T) {
+func TestWebSkins_Integration(t *testing.T) {
 	host := os.Getenv("CGPHOST")
 	user := os.Getenv("CGPUSER")
 	pass := os.Getenv("CGPPASS")
