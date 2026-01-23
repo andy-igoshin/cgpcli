@@ -2,8 +2,8 @@
 package cgpcli
 
 import (
-	"fmt"
 	"encoding/base64"
+	"fmt"
 	"strings"
 )
 
