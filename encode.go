@@ -6,8 +6,10 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"net"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -22,6 +24,30 @@ type cgpMarshaler interface {
 	MarshalCGP() string
 }
 
+type fieldMarshaler func(any) string
+
+var customMarshalers = map[string]fieldMarshaler{
+	"DNSServers": func(v any) string {
+		ips, ok := v.([]net.IP)
+		if !ok || len(ips) == 0 {
+			return `""`
+		}
+		var sb strings.Builder
+		for i, ip := range ips {
+			if i > 0 {
+				sb.WriteString(", ")
+			}
+			sb.WriteByte('[')
+			sb.WriteString(ip.String())
+			sb.WriteByte(']')
+		}
+		return strconv.Quote(sb.String())
+	},
+	"LANAddress":  marshalSingleIP,
+	"WANAddress":  marshalSingleIP,
+	"WAN6Address": marshalSingleIP,
+}
+
 var cgpSafeTable = [256]byte{
 	'0': 1, '1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1,
 	'A': 1, 'B': 1, 'C': 1, 'D': 1, 'E': 1, 'F': 1, 'G': 1, 'H': 1, 'I': 1, 'J': 1,
@@ -31,6 +57,33 @@ var cgpSafeTable = [256]byte{
 	'k': 1, 'l': 1, 'm': 1, 'n': 1, 'o': 1, 'p': 1, 'q': 1, 'r': 1, 's': 1, 't': 1,
 	'u': 1, 'v': 1, 'w': 1, 'x': 1, 'y': 1, 'z': 1,
 	'_': 1, '@': 1, '.': 1, '-': 1,
+}
+
+func formatCGPDuration(d time.Duration) string {
+	switch d {
+	case -1:
+		return "never"
+	case 0:
+		return "immediately"
+	}
+
+	totalSeconds := int64(d.Seconds())
+
+	// Дни (24h)
+	if totalSeconds%(24*3600) == 0 {
+		return strconv.FormatInt(totalSeconds/(24*3600), 10) + "d"
+	}
+	// Часы
+	if totalSeconds%3600 == 0 {
+		return strconv.FormatInt(totalSeconds/3600, 10) + "h"
+	}
+	// Минуты
+	if totalSeconds%60 == 0 {
+		return strconv.FormatInt(totalSeconds/60, 10) + "m"
+	}
+
+	// Секунды (по умолчанию)
+	return strconv.FormatInt(totalSeconds, 10) + "s"
 }
 
 // isCGPSafeString проверяет, можно ли передать строку без кавычек.
@@ -83,7 +136,13 @@ func MarshalToString(v any) (string, error) {
 }
 
 func marshal(w encodeWriter, v any, keyName string) error {
-	// 1. Приоритет кастомного маршалинга
+	// Проверяем кастомные маршалеры по имени ключа
+	if marshaler, ok := customMarshalers[keyName]; ok {
+		_, err := w.WriteString(marshaler(v))
+		return err
+	}
+
+	// Приоритет кастомного маршалинга (интерфейс cgpMarshaler)
 	if m, ok := v.(cgpMarshaler); ok {
 		_, err := w.WriteString(m.MarshalCGP())
 		return err
@@ -164,6 +223,10 @@ func marshal(w encodeWriter, v any, keyName string) error {
 		w.WriteString(val.Format(cgpInternalTimeLayout))
 		return nil
 
+	case time.Duration:
+		_, err := w.WriteString(formatCGPDuration(val))
+		return err
+
 	// --- Словари (Maps) ---
 	case map[string]any:
 		return marshalMapAny(w, val)
@@ -241,4 +304,11 @@ func marshalMapString(w encodeWriter, m map[string]string) error {
 		w.WriteByte(';')
 	}
 	return w.WriteByte('}')
+}
+
+func marshalSingleIP(v any) string {
+	if ip, ok := v.(net.IP); ok {
+		return strconv.Quote("[" + ip.String() + "]")
+	}
+	return `""`
 }

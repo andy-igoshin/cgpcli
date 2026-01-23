@@ -16,7 +16,30 @@ var (
 		"Created": true,
 	}
 	durationFields = map[string]bool{
+		"BlockedLoginTime":      true,
+		"BlockedLoginsPeriod":   true,
+		"CacheNegative":         true,
+		"DefaultRegister":       true,
+		"DeleteInterval":        true,
+		"DequeuerWaitTime":      true,
+		"DialogMediaIdle":       true,
+		"DialogSignalIdle":      true,
+		"DialogTimeLimit":       true,
+		"InitialWait":           true,
 		"LDAPPagedCacheTimeout": true,
+		"MaxRegister":           true,
+		"MinRegister":           true,
+		"NATTCPPingPeriod":      true,
+		"NATUDPPingPeriod":      true,
+		"ProtocolErrorsPeriod":  true,
+		"RestartPause":          true,
+		"SessionTimeLimit":      true,
+		"SwapInterval":          true,
+		"TCPTimeWait":           true,
+		"TempClientTime":        true,
+		"TempUnBlockableTime":   true,
+		"TimeLimit":             true,
+		"Timeout":               true,
 	}
 	quotaFields = map[string]bool{
 		"ArchiveSizeLimit": true,
@@ -27,9 +50,47 @@ var (
 		"MaxMailOutSize":   true,
 		"MaxMessageSize":   true,
 		"MaxWebSize":       true,
+		"MBOXSizeToIndex":  true,
 		"SizeLimit":        true,
 	}
 )
+
+type fieldParser func(any) any
+
+var customParsers = map[string]fieldParser{
+	"DNSServers": func(v any) any {
+		s, ok := v.(string)
+		if !ok || s == "" {
+			return []net.IP{} // легальный пустой список
+		}
+		// Очистка от скобок
+		s = strings.ReplaceAll(s, "[", "")
+		s = strings.ReplaceAll(s, "]", "")
+		parts := strings.Split(s, ",")
+
+		res := make([]net.IP, 0, len(parts))
+		for _, p := range parts {
+			trimmed := strings.TrimSpace(p)
+			if trimmed == "" {
+				continue
+			}
+			if ip := net.ParseIP(trimmed); ip != nil {
+				res = append(res, ip)
+			}
+		}
+		return res
+	},
+	"DummyIPs": func(v any) any {
+		s, ok := v.(string)
+		if !ok {
+			return IPList{}
+		}
+		return parseIPList(s)
+	},
+	"LANAddress":  parseSingleIP,
+	"WANAddress":  parseSingleIP,
+	"WAN6Address": parseSingleIP,
+}
 
 type decodeState struct {
 	data    []byte
@@ -274,9 +335,9 @@ func (d *decodeState) wordInterface(asString bool) any {
 	}
 
 	switch raw {
-	case "YES":
+	case "YES", "yes":
 		return true
-	case "NO":
+	case "NO", "no":
 		return false
 	}
 
@@ -359,6 +420,12 @@ func (d *decodeState) xmlInterface() any {
 
 func parseCGPDuration(s string) time.Duration {
 	if s == "" {
+		return 0
+	}
+	switch strings.ToLower(s) {
+	case "never":
+		return -1
+	case "immediately":
 		return 0
 	}
 
@@ -461,67 +528,83 @@ func parseCGPSize(s string) any {
 	return s
 }
 
+func parseSingleIP(v any) any {
+	s, ok := v.(string)
+	if !ok || s == "" {
+		return nil
+	}
+	s = strings.Trim(s, "[] ")
+	if ip := net.ParseIP(s); ip != nil {
+		return ip
+	}
+	return v
+}
+
 func (d *decodeState) readCgpBlock(open, close byte) []byte {
-    // 1. Быстрый поиск конца всей цепочки блоков и расчет суммарной длины B64
-    startSpan := d.span
-    totalB64Len := 0
+	// 1. Быстрый поиск конца всей цепочки блоков и расчет суммарной длины B64
+	startSpan := d.span
+	totalB64Len := 0
 
-    for {
-        // Считаем символы внутри текущего блока
-        for d.span < d.len && d.data[d.span] != close {
-            totalB64Len++
-            d.span++
-        }
-        if d.span < d.len { d.span++ } // Пропускаем ']'
+	for {
+		// Считаем символы внутри текущего блока
+		for d.span < d.len && d.data[d.span] != close {
+			totalB64Len++
+			d.span++
+		}
+		if d.span < d.len {
+			d.span++
+		} // Пропускаем ']'
 
-        d.skipSpaces()
-        if d.span < d.len && d.data[d.span] == open {
-            d.span++
-            continue
-        }
-        break
-    }
+		d.skipSpaces()
+		if d.span < d.len && d.data[d.span] == open {
+			d.span++
+			continue
+		}
+		break
+	}
 
-    // Возвращаем указатель назад для фактического чтения
-    endSpan := d.span
-    d.span = startSpan
+	// Возвращаем указатель назад для фактического чтения
+	endSpan := d.span
+	d.span = startSpan
 
-    // 2. Выделяем память один раз (с запасом под B64, потом сделаем Slice)
-    // DecodedLen(n) возвращает (n / 4) * 3
-    maxDecodedLen := base64.StdEncoding.DecodedLen(totalB64Len)
-    result := make([]byte, 0, maxDecodedLen)
+	// 2. Выделяем память один раз (с запасом под B64, потом сделаем Slice)
+	// DecodedLen(n) возвращает (n / 4) * 3
+	maxDecodedLen := base64.StdEncoding.DecodedLen(totalB64Len)
+	result := make([]byte, 0, maxDecodedLen)
 
-    // 3. Фактическое декодирование фрагментов
-    for d.span < endSpan {
-        d.scratch.Reset()
-        for d.span < endSpan && d.data[d.span] != close {
-            d.scratch.WriteByte(d.data[d.span])
-            d.span++
-        }
-        if d.span < d.len { d.span++ } // Пропускаем ']'
+	// 3. Фактическое декодирование фрагментов
+	for d.span < endSpan {
+		d.scratch.Reset()
+		for d.span < endSpan && d.data[d.span] != close {
+			d.scratch.WriteByte(d.data[d.span])
+			d.span++
+		}
+		if d.span < d.len {
+			d.span++
+		} // Пропускаем ']'
 
-        if d.scratch.Len() > 0 {
-            src := d.scratch.Bytes()
-            n := base64.StdEncoding.DecodedLen(len(src))
-            start := len(result)
+		if d.scratch.Len() > 0 {
+			src := d.scratch.Bytes()
+			n := base64.StdEncoding.DecodedLen(len(src))
+			start := len(result)
 
-            result = result[:start+n]
-            actualLen, err := base64.StdEncoding.Decode(result[start:], src)
+			result = result[:start+n]
+			actualLen, err := base64.StdEncoding.Decode(result[start:], src)
 
-            if err == nil {
-                // Усекаем до реально декодированного размера
-                result = result[:start+actualLen]
-            } else {
-                // Fallback: если не B64, копируем как есть
-                result = result[:start]
-                result = append(result, src...)
-            }
-        }
-        d.skipSpaces()
-        if d.span < endSpan && d.data[d.span] == open {
-            d.span++
-            continue
-        }
-    }
-    return result
+			if err == nil {
+				// Усекаем до реально декодированного размера
+				result = result[:start+actualLen]
+			} else {
+				// Fallback: если не B64, копируем как есть
+				result = result[:start]
+				result = append(result, src...)
+			}
+		}
+		d.skipSpaces()
+		if d.span < endSpan && d.data[d.span] == open {
+			d.span++
+			continue
+		}
+	}
+	return result
 }
