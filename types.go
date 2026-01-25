@@ -7,8 +7,6 @@ import (
 	"time"
 )
 
-const cgpInternalTimeLayout = "02-01-2006_15:04:05"
-
 // Специальные метки времени CGP.
 // Используются для представления #TPAST и #TFUTURE.
 var (
