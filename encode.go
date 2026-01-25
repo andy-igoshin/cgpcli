@@ -9,7 +9,6 @@ import (
 	"net"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -22,30 +21,6 @@ type encodeWriter interface {
 // cgpMarshaler — контракт для типов с собственной логикой упаковки
 type cgpMarshaler interface {
 	MarshalCGP() string
-}
-
-type fieldMarshaler func(any) string
-
-var customMarshalers = map[string]fieldMarshaler{
-	"DNSServers": func(v any) string {
-		ips, ok := v.([]net.IP)
-		if !ok || len(ips) == 0 {
-			return `""`
-		}
-		var sb strings.Builder
-		for i, ip := range ips {
-			if i > 0 {
-				sb.WriteString(", ")
-			}
-			sb.WriteByte('[')
-			sb.WriteString(ip.String())
-			sb.WriteByte(']')
-		}
-		return strconv.Quote(sb.String())
-	},
-	"LANAddress":  marshalSingleIP,
-	"WANAddress":  marshalSingleIP,
-	"WAN6Address": marshalSingleIP,
 }
 
 var cgpSafeTable = [256]byte{
@@ -135,104 +110,86 @@ func MarshalToString(v any) (string, error) {
 	return b.String(), err
 }
 
-func marshal(w encodeWriter, v any, keyName string) error {
+func marshal(w encodeWriter, v any, keyName string) (err error) {
 	// Проверяем кастомные маршалеры по имени ключа
-	if marshaler, ok := customMarshalers[keyName]; ok {
-		_, err := w.WriteString(marshaler(v))
+	if raw, ok := transformWrite(keyName, v); ok {
+		if isCGPSafeString(raw) {
+			_, err = w.WriteString(raw)
+			return err
+		}
+		_, err = w.WriteString(strconv.Quote(raw))
 		return err
 	}
 
 	// Приоритет кастомного маршалинга (интерфейс cgpMarshaler)
 	if m, ok := v.(cgpMarshaler); ok {
-		_, err := w.WriteString(m.MarshalCGP())
+		_, err = w.WriteString(m.MarshalCGP())
 		return err
 	}
 
 	switch val := v.(type) {
 	case Atom:
-		_, err := w.WriteString(string(val))
+		_, err = w.WriteString(string(val))
 		return err
 
 	case DataBlock:
 		w.WriteByte('[')
 		w.Write(val)
-		return w.WriteByte(']')
+		err = w.WriteByte(']')
+		return err
 
 	case []byte:
 		w.WriteByte('[')
 		enc := base64.NewEncoder(base64.StdEncoding, w)
 		enc.Write(val)
 		enc.Close()
-		return w.WriteByte(']')
+		err = w.WriteByte(']')
+		return err
 
 	// --- Строки ---
 	case string:
-		if val == "" {
-			_, err := w.WriteString(`""`)
-			return err
-		}
-		// Исключение для Created (legacy)
-		if _, ok := dateFields[keyName]; ok {
-			_, err := w.WriteString(strconv.Quote(val))
-			return err
-		}
 		if isCGPSafeString(val) {
-			_, err := w.WriteString(val)
+			_, err = w.WriteString(val)
 			return err
 		}
-		_, err := w.WriteString(strconv.Quote(val))
+		_, err = w.WriteString(strconv.Quote(val))
 		return err
 
 	// --- Числа ---
 	case int, int32, int64:
-		var n int64
-		switch i := val.(type) {
-		case int:
-			n = int64(i)
-		case int32:
-			n = int64(i)
-		case int64:
-			n = i
-		}
-		if _, ok := quotaFields[keyName]; ok {
-			_, err := w.WriteString(formatCGPSize(n))
-			return err
-		}
-		_, err := w.WriteString(strconv.FormatInt(n, 10))
+		_, err = w.WriteString(strconv.FormatInt(toInt64(val), 10))
 		return err
 
 	// --- Время ---
 	case time.Time:
 		if val.IsZero() {
-			_, err := w.WriteString("#NULL#")
+			_, err = w.WriteString("#NULL#")
 			return err
 		}
-		if _, ok := dateFields[keyName]; ok {
-			fmt.Fprintf(w, "\"%s\"", val.Format(cgpInternalTimeLayout))
-			return nil
-		}
 		if val.Equal(TimePast) {
-			_, err := w.WriteString("#TPAST")
+			_, err = w.WriteString("#TPAST")
 			return err
 		}
 		if val.Equal(TimeFuture) {
-			_, err := w.WriteString("#TFUTURE")
+			_, err = w.WriteString("#TFUTURE")
 			return err
 		}
 		w.WriteString("#T")
-		w.WriteString(val.Format(cgpInternalTimeLayout))
-		return nil
+		_, err = w.WriteString(val.UTC().Format(cgpInternalTimeLayout))
+		return err
 
 	case time.Duration:
-		_, err := w.WriteString(formatCGPDuration(val))
+		_, err = w.WriteString(formatCGPDuration(val))
 		return err
 
 	// --- Словари (Maps) ---
 	case map[string]any:
-		return marshalMapAny(w, val)
+		err = marshalMapAny(w, val)
+		return err
 
 	case map[string]string:
-		return marshalMapString(w, val)
+		err = marshalMapString(w, val)
+		return err
 
 	// --- Списки (Slices) ---
 	case []any:
@@ -243,7 +200,8 @@ func marshal(w encodeWriter, v any, keyName string) error {
 			}
 			marshal(w, item, "")
 		}
-		return w.WriteByte(')')
+		err = w.WriteByte(')')
+		return err
 
 	case []string:
 		w.WriteByte('(')
@@ -253,23 +211,24 @@ func marshal(w encodeWriter, v any, keyName string) error {
 			}
 			marshal(w, s, "")
 		}
-		return w.WriteByte(')')
+		err = w.WriteByte(')')
+		return err
 
 	// --- Остальное ---
 	case bool:
 		if val {
-			_, err := w.WriteString("YES")
+			_, err = w.WriteString("YES")
 			return err
 		}
-		_, err := w.WriteString("NO")
+		_, err = w.WriteString("NO")
 		return err
 
 	case nil:
-		_, err := w.WriteString("#NULL#")
+		_, err = w.WriteString("#NULL#")
 		return err
 
 	default:
-		_, err := w.WriteString(fmt.Sprint(val))
+		_, err = w.WriteString(strconv.Quote(fmt.Sprint(val)))
 		return err
 	}
 }

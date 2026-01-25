@@ -11,87 +11,6 @@ import (
 	"time"
 )
 
-var (
-	dateFields = map[string]bool{
-		"Created": true,
-	}
-	durationFields = map[string]bool{
-		"BlockedLoginTime":      true,
-		"BlockedLoginsPeriod":   true,
-		"CacheNegative":         true,
-		"DefaultRegister":       true,
-		"DeleteInterval":        true,
-		"DequeuerWaitTime":      true,
-		"DialogMediaIdle":       true,
-		"DialogSignalIdle":      true,
-		"DialogTimeLimit":       true,
-		"InitialWait":           true,
-		"LDAPPagedCacheTimeout": true,
-		"MaxRegister":           true,
-		"MinRegister":           true,
-		"NATTCPPingPeriod":      true,
-		"NATUDPPingPeriod":      true,
-		"ProtocolErrorsPeriod":  true,
-		"RestartPause":          true,
-		"SessionTimeLimit":      true,
-		"SwapInterval":          true,
-		"TCPTimeWait":           true,
-		"TempClientTime":        true,
-		"TempUnBlockableTime":   true,
-		"TimeLimit":             true,
-		"Timeout":               true,
-	}
-	quotaFields = map[string]bool{
-		"ArchiveSizeLimit": true,
-		"DigestSizeLimit":  true,
-		"MaxAccountSize":   true,
-		"MaxFileSize":      true,
-		"MaxMailboxSize":   true,
-		"MaxMailOutSize":   true,
-		"MaxMessageSize":   true,
-		"MaxWebSize":       true,
-		"MBOXSizeToIndex":  true,
-		"SizeLimit":        true,
-	}
-)
-
-type fieldParser func(any) any
-
-var customParsers = map[string]fieldParser{
-	"DNSServers": func(v any) any {
-		s, ok := v.(string)
-		if !ok || s == "" {
-			return []net.IP{} // легальный пустой список
-		}
-		// Очистка от скобок
-		s = strings.ReplaceAll(s, "[", "")
-		s = strings.ReplaceAll(s, "]", "")
-		parts := strings.Split(s, ",")
-
-		res := make([]net.IP, 0, len(parts))
-		for _, p := range parts {
-			trimmed := strings.TrimSpace(p)
-			if trimmed == "" {
-				continue
-			}
-			if ip := net.ParseIP(trimmed); ip != nil {
-				res = append(res, ip)
-			}
-		}
-		return res
-	},
-	"DummyIPs": func(v any) any {
-		s, ok := v.(string)
-		if !ok {
-			return IPList{}
-		}
-		return parseIPList(s)
-	},
-	"LANAddress":  parseSingleIP,
-	"WANAddress":  parseSingleIP,
-	"WAN6Address": parseSingleIP,
-}
-
 type decodeState struct {
 	data    []byte
 	len     int
@@ -171,7 +90,6 @@ func (d *decodeState) dictionaryInterface() any {
 			d.span++
 			break
 		}
-
 		keyRaw := d.wordInterface(true)
 		key, ok := keyRaw.(string)
 		if !ok {
@@ -182,20 +100,7 @@ func (d *decodeState) dictionaryInterface() any {
 		if d.span < d.len && d.data[d.span] == '=' {
 			d.span++
 			val := d.valueInterface(false)
-
-			if s, ok := val.(string); ok && s != "" {
-				switch {
-				case dateFields[key]:
-					if t, err := time.Parse(cgpInternalTimeLayout, s); err == nil {
-						val = t
-					}
-				case durationFields[key]:
-					val = parseCGPDuration(s)
-				case quotaFields[key]:
-					val = parseCGPSize(s)
-				}
-			}
-			res[key] = val
+			res[key] = transformRead(key, val)
 		}
 		d.skipSpaces()
 		if d.span < d.len && d.data[d.span] == ';' {
