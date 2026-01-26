@@ -80,6 +80,8 @@ func (cli *Cli) getString(cmd string, args ...string) (string, error) {
 		res, err = cli.Query(cmd)
 	case 1:
 		res, err = cli.Query(cmd, args[0])
+	case 2:
+		res, err = cli.Query(cmd, args[0], args[1])
 	default:
 		// Конвертируем []string в []any только здесь
 		params := make([]any, len(args))
