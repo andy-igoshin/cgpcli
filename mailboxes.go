@@ -11,8 +11,8 @@ func (cli *Cli) CreateMailbox(account, mailbox, class, authAccount string) error
 		return fmt.Errorf("account and mailbox names are required")
 	}
 
-	args := make([]any, 0, 8)
-	args = append(args, "CREATEMAILBOX", Atom(account), "MAILBOX", mailbox)
+	args := make([]any, 0, 7)
+	args = append(args, Atom(account), "MAILBOX", mailbox)
 	if class != "" {
 		args = append(args, "CLASS", class)
 	}
@@ -20,7 +20,7 @@ func (cli *Cli) CreateMailbox(account, mailbox, class, authAccount string) error
 		args = append(args, "AUTH", authAccount)
 	}
 
-	_, err := cli.Query(args...)
+	_, err := cli.Query("CREATEMAILBOX", args...)
 	return err
 }
 
@@ -35,13 +35,13 @@ func (cli *Cli) DeleteMailbox(account, mailbox string, recursive bool, authAccou
 		keyword = "MAILBOXES"
 	}
 
-	args := make([]any, 0, 6)
-	args = append(args, "DELETEMAILBOX", Atom(account), keyword, mailbox)
+	args := make([]any, 0, 5)
+	args = append(args, Atom(account), keyword, mailbox)
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
 
-	_, err := cli.Query(args...)
+	_, err := cli.Query("DELETEMAILBOX", args...)
 	return err
 }
 
@@ -51,13 +51,14 @@ func (cli *Cli) GetMailboxACL(account, mailbox, authAccount string) (map[string]
 		return nil, fmt.Errorf("account and mailbox names are required")
 	}
 
-	args := make([]any, 0, 6)
-	args = append(args, "GETMAILBOXACL", Atom(account), "MAILBOX", mailbox)
+	const cmd = "GETMAILBOXACL"
+	args := make([]any, 0, 5)
+	args = append(args, Atom(account), "MAILBOX", mailbox)
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
 
-	res, err := cli.Query(args...)
+	res, err := cli.Query(cmd, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +70,7 @@ func (cli *Cli) GetMailboxACL(account, mailbox, authAccount string) (map[string]
 
 	acl := make(map[string]string, len(dict))
 	for k, v := range dict {
-		s, err := toString("GETMAILBOXACL", v)
+		s, err := toString(cmd, v)
 		if err != nil {
 			return nil, err
 		}
@@ -111,13 +112,13 @@ func (cli *Cli) GetMailboxInfo(account, mailbox, authAccount string) (map[string
 		return nil, fmt.Errorf("account and mailbox names are required")
 	}
 
-	args := make([]any, 0, 6)
-	args = append(args, "GETMAILBOXINFO", Atom(account), "MAILBOX", mailbox)
+	args := make([]any, 0, 5)
+	args = append(args, Atom(account), "MAILBOX", mailbox)
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
 
-	res, err := cli.Query(args...)
+	res, err := cli.Query("GETMAILBOXINFO", args...)
 	if err != nil {
 		return nil, err
 	}
@@ -163,8 +164,8 @@ func (cli *Cli) ListMailboxes(account, filter, authAccount string) (map[string]a
 		return nil, fmt.Errorf("account name is required")
 	}
 
-	args := make([]any, 0, 6)
-	args = append(args, "LISTMAILBOXES", Atom(account))
+	args := make([]any, 0, 5)
+	args = append(args, Atom(account))
 	if filter != "" {
 		args = append(args, "FILTER", filter)
 	}
@@ -172,7 +173,7 @@ func (cli *Cli) ListMailboxes(account, filter, authAccount string) (map[string]a
 		args = append(args, "AUTH", authAccount)
 	}
 
-	res, err := cli.Query(args...)
+	res, err := cli.Query("LISTMAILBOXES", args...)
 	if err != nil {
 		return nil, err
 	}
@@ -195,13 +196,13 @@ func (cli *Cli) RenameMailbox(account, oldName, newName string, recursive bool, 
 		keyword = "MAILBOXES"
 	}
 
-	args := make([]any, 0, 8)
-	args = append(args, "RENAMEMAILBOX", Atom(account), keyword, oldName, "INTO", newName)
+	args := make([]any, 0, 7)
+	args = append(args, Atom(account), keyword, oldName, "INTO", newName)
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
 
-	_, err := cli.Query(args...)
+	_, err := cli.Query("RENAMEMAILBOX", args...)
 	return err
 }
 
@@ -211,14 +212,14 @@ func (cli *Cli) SetMailboxACL(account, mailbox, authAccount string, newACL map[s
 		return fmt.Errorf("account, mailbox and non-empty newACL are required")
 	}
 
-	args := make([]any, 0, 8)
-	args = append(args, "SETMAILBOXACL", Atom(account), "MAILBOX", mailbox)
+	args := make([]any, 0, 7)
+	args = append(args, Atom(account), "MAILBOX", mailbox)
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
 	args = append(args, newACL)
 
-	_, err := cli.Query(args...)
+	_, err := cli.Query("SETMAILBOXACL", args...)
 	return err
 }
 
@@ -237,14 +238,14 @@ func (cli *Cli) SetMailboxClass(account, mailbox, newClass, authAccount string) 
 		return fmt.Errorf("account, mailbox and newClass are required")
 	}
 
-	args := make([]any, 0, 8)
-	args = append(args, "SETMAILBOXCLASS", Atom(account), "MAILBOX", mailbox)
+	args := make([]any, 0, 7)
+	args = append(args, Atom(account), "MAILBOX", mailbox)
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
 	args = append(args, "CLASS", newClass)
 
-	_, err := cli.Query(args...)
+	_, err := cli.Query("SETMAILBOXCLASS", args...)
 	return err
 }
 

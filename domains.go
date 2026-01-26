@@ -157,8 +157,8 @@ func (cli *Cli) ListDomainObjects(domain string, limit int, filter string, what 
 	if domain == "" {
 		return nil, fmt.Errorf("domain name is required")
 	}
-	args := make([]any, 0, 10)
-	args = append(args, "LISTDOMAINOBJECTS", domain)
+	args := make([]any, 0, 9)
+	args = append(args, domain)
 	if filter != "" {
 		args = append(args, "FILTER", filter)
 	}
@@ -174,7 +174,7 @@ func (cli *Cli) ListDomainObjects(domain string, limit int, filter string, what 
 	}
 	args = append(args, "COOKIE", cookie)
 
-	res, err := cli.Query(args...)
+	res, err := cli.Query("LISTDOMAINOBJECTS", args...)
 	if err != nil {
 		return nil, err
 	}
@@ -227,23 +227,24 @@ func (cli *Cli) ListDomainTelnums(domain, filter string, limit int) (map[string]
 	if domain == "" {
 		return nil, fmt.Errorf("domain name is required")
 	}
-	args := make([]any, 0, 5)
-	args = append(args, "LISTDOMAINTELNUMS", domain)
+	const cmd = "LISTDOMAINTELNUMS"
+	args := make([]any, 0, 4)
+	args = append(args, domain)
 	if filter != "" {
 		args = append(args, "FILTER", filter)
 	}
 	args = append(args, limit)
 
-	res, err := cli.Query(args...)
+	res, err := cli.Query(cmd, args...)
 	if err != nil {
 		return nil, err
 	}
 	dict, ok := res.(map[string]any)
 	if !ok {
-		return nil, fmt.Errorf("LISTDOMAINTELNUMS: expected map, got %T", res)
+		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
 	}
 	delete(dict, "")
-	return toStringMap("LISTDOMAINTELNUMS", dict)
+	return toStringMap(cmd, dict)
 }
 
 func (cli *Cli) ResumeDomain(domain string) error {

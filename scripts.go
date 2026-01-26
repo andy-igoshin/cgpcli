@@ -6,15 +6,12 @@ import (
 )
 
 func (cli *Cli) RunScript(account, prog, entry string, param map[string]any) (any, error) {
-	if account == "" {
-		return nil, fmt.Errorf("account name is required")
-	}
-	if prog == "" {
-		return nil, fmt.Errorf("program name is required")
+	if account == "" || prog == "" {
+		return nil, fmt.Errorf("account name and prog name are required")
 	}
 
-	args := make([]any, 0, 8)
-	args = append(args, "RUNSCRIPT", account, "PROGRAM", prog)
+	args := make([]any, 0, 7)
+	args = append(args, account, "PROGRAM", prog)
 	if entry != "" {
 		args = append(args, "ENTRY", entry)
 	}
@@ -22,5 +19,5 @@ func (cli *Cli) RunScript(account, prog, entry string, param map[string]any) (an
 		args = append(args, "PARAM", param)
 	}
 
-	return cli.Query(args...)
+	return cli.Query("RUNSCRIPT", args...)
 }

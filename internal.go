@@ -72,14 +72,23 @@ func (cli *Cli) getSliceString(cmd string, subject string) ([]string, error) {
 }
 
 func (cli *Cli) getString(cmd string, args ...string) (string, error) {
-	// Создаем общий слайс: [0] - команда, остальные - аргументы
-	params := make([]any, len(args)+1)
-	params[0] = cmd
-	for i, v := range args {
-		params[i+1] = v
+	var res any
+	var err error
+
+	switch len(args) {
+	case 0:
+		res, err = cli.Query(cmd)
+	case 1:
+		res, err = cli.Query(cmd, args[0])
+	default:
+		// Конвертируем []string в []any только здесь
+		params := make([]any, len(args))
+		for i, v := range args {
+			params[i] = v
+		}
+		res, err = cli.Query(cmd, params...)
 	}
 
-	res, err := cli.Query(params...)
 	if err != nil {
 		return "", err
 	}

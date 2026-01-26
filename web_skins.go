@@ -286,8 +286,7 @@ func (cli *Cli) StoreClusterSkinFile(skin, file string, data []byte) (err error)
 
 // StoreDomainSkinFile сохраняет файл в кастомный скин домена или удаляет его.
 func (cli *Cli) StoreDomainSkinFile(domain, skin, file string, data []byte) (err error) {
-	args := make([]any, 0, 8)
-	args = append(args, "STOREDOMAINSKINFILE")
+	args := make([]any, 0, 7)
 	if domain != "" {
 		args = append(args, domain, "SKIN")
 	}
@@ -299,7 +298,7 @@ func (cli *Cli) StoreDomainSkinFile(domain, skin, file string, data []byte) (err
 		args = append(args, "DELETE")
 	}
 
-	_, err = cli.Query(args...)
+	_, err = cli.Query("STOREDOMAINSKINFILE", args...)
 	return
 }
 

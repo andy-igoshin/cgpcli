@@ -21,9 +21,8 @@ func (cli *Cli) CreateDirectoryUnit(name, mountPoint string, shared, remote bool
 		return fmt.Errorf("CREATEDIRECTORYUNIT: unit name and mount point are required")
 	}
 
-	// Здесь оставляем формирование из-за комбинаций флагов
-	args := make([]any, 0, 5)
-	args = append(args, "CREATEDIRECTORYUNIT", name)
+	args := make([]any, 0, 4)
+	args = append(args, name)
 	if shared {
 		args = append(args, "SHARED")
 	}
@@ -32,7 +31,7 @@ func (cli *Cli) CreateDirectoryUnit(name, mountPoint string, shared, remote bool
 	}
 	args = append(args, mountPoint)
 
-	_, err := cli.Query(args...)
+	_, err := cli.Query("CREATEDIRECTORYUNIT", args...)
 	return err
 }
 

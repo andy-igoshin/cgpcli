@@ -331,8 +331,8 @@ func (cli *Cli) parseResponse() (err error) {
 	return nil
 }
 
-func (cli *Cli) Query(args ...any) (any, error) {
-	if err := cli.Send(args...); err != nil {
+func (cli *Cli) Query(cmd string, args ...any) (any, error) {
+	if err := cli.Send(cmd, args...); err != nil {
 		return nil, err
 	}
 	if err := cli.parseResponse(); err != nil {
@@ -347,7 +347,7 @@ func (cli *Cli) Query(args ...any) (any, error) {
 	return res, err
 }
 
-func (cli *Cli) Send(args ...any) (err error) {
+func (cli *Cli) Send(cmd string, args ...any) (err error) {
 	if time.Since(cli.lastAccess) > cgpTimeout || cli.conn == nil {
 		cli.close()
 		if err := cli.connect(); err != nil {
@@ -357,13 +357,12 @@ func (cli *Cli) Send(args ...any) (err error) {
 
 	cli.lastAccess = time.Now()
 	cli.conn.SetWriteDeadline(time.Now().Add(cmdTimeout))
-
 	cli.buf.Reset()
 
-	for i, arg := range args {
-		if i > 0 {
-			cli.buf.WriteByte(' ')
-		}
+	cli.buf.WriteString(cmd)
+
+	for _, arg := range args {
+		cli.buf.WriteByte(' ')
 		if err := marshal(&cli.buf, arg, ""); err != nil {
 			return err
 		}
@@ -371,8 +370,7 @@ func (cli *Cli) Send(args ...any) (err error) {
 	cli.buf.WriteByte('\n')
 
 	if cli.debug {
-		os.Stderr.Write([]byte(">>> SEND: "))
-		os.Stderr.Write(cli.buf.Bytes())
+		fmt.Fprintf(os.Stderr, ">>> SEND: %s", cli.buf.String())
 	}
 
 	_, err = cli.writer.Write(cli.buf.Bytes())

@@ -47,8 +47,8 @@ func (cli *Cli) CreateAccount(account string, settings map[string]any, accType A
 	if account == "" {
 		return fmt.Errorf("account name is required")
 	}
-	args := make([]any, 0, 8)
-	args = append(args, "CREATEACCOUNT", account)
+	args := make([]any, 0, 7)
+	args = append(args, account)
 	if accType != TypeDefault {
 		args = append(args, accType.String())
 	}
@@ -61,7 +61,7 @@ func (cli *Cli) CreateAccount(account string, settings map[string]any, accType A
 	if settings != nil {
 		args = append(args, settings)
 	}
-	_, err = cli.Query(args...)
+	_, err = cli.Query("CREATEACCOUNT", args...)
 	return
 }
 
@@ -381,13 +381,13 @@ func (cli *Cli) SetAccountACL(account, authAccount string, newACL map[string]any
 	if account == "" || newACL == nil {
 		return fmt.Errorf("account name and ACL dictionary are required")
 	}
-	args := make([]any, 0, 5)
-	args = append(args, "SETACCOUNTACL", Atom(account))
+	args := make([]any, 0, 4)
+	args = append(args, Atom(account))
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
 	args = append(args, newACL)
-	_, err = cli.Query(args...)
+	_, err = cli.Query("SETACCOUNTACL", args...)
 	return
 }
 
@@ -432,7 +432,7 @@ func (cli *Cli) SetAccountPassword(account, password, method, tag string, check 
 		return fmt.Errorf("account name is required")
 	}
 	args := make([]any, 0, 8)
-	args = append(args, "SETACCOUNTPASSWORD", account, "PASSWORD", password)
+	args = append(args, account, "PASSWORD", password)
 	if method != "" {
 		args = append(args, "METHOD", method)
 	}
@@ -442,7 +442,7 @@ func (cli *Cli) SetAccountPassword(account, password, method, tag string, check 
 	if check {
 		args = append(args, "CHECK")
 	}
-	_, err = cli.Query(args...)
+	_, err = cli.Query("SETACCOUNTPASSWORD", args...)
 	return
 }
 

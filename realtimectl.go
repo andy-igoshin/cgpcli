@@ -42,8 +42,8 @@ func (cli *Cli) StartPBXTask(account, program, entry string, param any) (string,
 		return "", fmt.Errorf("account and program name are required")
 	}
 
-	args := make([]any, 0, 8)
-	args = append(args, "STARTPBXTASK", account, "PROGRAM", program)
+	args := make([]any, 0, 7)
+	args = append(args, account, "PROGRAM", program)
 	if entry != "" {
 		args = append(args, "ENTRY", entry)
 	}
@@ -51,7 +51,7 @@ func (cli *Cli) StartPBXTask(account, program, entry string, param any) (string,
 		args = append(args, "PARAM", param)
 	}
 
-	res, err := cli.Query(args...)
+	res, err := cli.Query("STARTPBXTASK", args...)
 	if err != nil {
 		return "", err
 	}

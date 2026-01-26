@@ -40,8 +40,8 @@ func (cli *Cli) GetFileSubscription(account string) ([]string, error) {
 
 func (cli *Cli) GetStorageFileInfo(account, path, authAccount string) (*StorageFileInfo, error) {
 	const cmd = "GETSTORAGEFILEINFO"
-	args := make([]any, 0, 6)
-	args = append(args, cmd, Atom(account))
+	args := make([]any, 0, 5)
+	args = append(args, Atom(account))
 	if path != "" {
 		args = append(args, "PATH", path)
 	}
@@ -49,7 +49,7 @@ func (cli *Cli) GetStorageFileInfo(account, path, authAccount string) (*StorageF
 		args = append(args, "AUTH", authAccount)
 	}
 
-	res, err := cli.Query(args...)
+	res, err := cli.Query(cmd, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -67,8 +67,8 @@ func (cli *Cli) GetStorageFileInfo(account, path, authAccount string) (*StorageF
 
 func (cli *Cli) ListStorageFiles(account, path, authAccount string) (map[string]any, error) {
 	const cmd = "LISTSTORAGEFILES"
-	args := make([]any, 0, 6)
-	args = append(args, cmd, Atom(account))
+	args := make([]any, 0, 5)
+	args = append(args, Atom(account))
 	if path != "" {
 		args = append(args, "PATH", path)
 	}
@@ -76,7 +76,7 @@ func (cli *Cli) ListStorageFiles(account, path, authAccount string) (map[string]
 		args = append(args, "AUTH", authAccount)
 	}
 
-	res, err := cli.Query(args...)
+	res, err := cli.Query(cmd, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -89,8 +89,8 @@ func (cli *Cli) ListStorageFiles(account, path, authAccount string) (map[string]
 
 func (cli *Cli) ReadStorageFile(account, file string, offset, size int64, authAccount string) (*StorageFileContent, error) {
 	const cmd = "READSTORAGEFILE"
-	args := make([]any, 0, 10)
-	args = append(args, cmd, Atom(account), "FILE", file)
+	args := make([]any, 0, 9)
+	args = append(args, Atom(account), "FILE", file)
 
 	// Используем != 0, чтобы учитывались константы OffsetBeg/End (-1, -2)
 	if offset != 0 {
@@ -103,7 +103,7 @@ func (cli *Cli) ReadStorageFile(account, file string, offset, size int64, authAc
 		args = append(args, "AUTH", authAccount)
 	}
 
-	res, err := cli.Query(args...)
+	res, err := cli.Query(cmd, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -131,8 +131,8 @@ func (cli *Cli) ReadStorageFile(account, file string, offset, size int64, authAc
 
 func (cli *Cli) ReadStorageFileAttr(account, file string, attrs []string, authAccount string) ([]any, error) {
 	const cmd = "READSTORAGEFILEATTR"
-	args := make([]any, 0, 8)
-	args = append(args, cmd, Atom(account), "FILE", file)
+	args := make([]any, 0, 6)
+	args = append(args, Atom(account), "FILE", file)
 	if len(attrs) > 0 {
 		args = append(args, attrs)
 	}
@@ -140,7 +140,7 @@ func (cli *Cli) ReadStorageFileAttr(account, file string, attrs []string, authAc
 		args = append(args, "AUTH", authAccount)
 	}
 
-	res, err := cli.Query(args...)
+	res, err := cli.Query(cmd, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -178,8 +178,8 @@ func (cli *Cli) UpdateStorageFileAttr(account, file string, attrs []any, authAcc
 }
 
 func (cli *Cli) WriteStorageFile(account, file string, offset any, data []byte, authAccount string) (err error) {
-	args := make([]any, 0, 10)
-	args = append(args, "WRITESTORAGEFILE", Atom(account), "FILE", file)
+	args := make([]any, 0, 9)
+	args = append(args, Atom(account), "FILE", file)
 
 	if offset != nil {
 		switch v := offset.(type) {
@@ -196,6 +196,6 @@ func (cli *Cli) WriteStorageFile(account, file string, offset any, data []byte, 
 
 	args = append(args, "DATA", data)
 
-	_, err = cli.Query(args...)
+	_, err = cli.Query("WRITESTORAGEFILE", args...)
 	return err
 }

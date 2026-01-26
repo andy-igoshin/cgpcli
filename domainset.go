@@ -12,12 +12,12 @@ func (cli *Cli) CreateDirectoryDomain(domain string, settings map[string]any) er
 	if domain == "" {
 		return fmt.Errorf("domain is required")
 	}
-	args := make([]any, 0, 3)
-	args = append(args, "CREATEDIRECTORYDOMAIN", domain)
+	args := make([]any, 0, 2)
+	args = append(args, domain)
 	if settings != nil {
 		args = append(args, settings)
 	}
-	_, err := cli.Query(args...)
+	_, err := cli.Query("CREATEDIRECTORYDOMAIN", args...)
 	return err
 }
 
@@ -26,8 +26,8 @@ func (cli *Cli) CreateDomain(domain string, shared bool, storage string, setting
 	if domain == "" {
 		return fmt.Errorf("domain is required")
 	}
-	args := make([]any, 0, 7)
-	args = append(args, "CREATEDOMAIN", domain)
+	args := make([]any, 0, 6)
+	args = append(args, domain)
 	if shared {
 		args = append(args, "SHARED")
 	}
@@ -37,7 +37,7 @@ func (cli *Cli) CreateDomain(domain string, shared bool, storage string, setting
 	if settings != nil {
 		args = append(args, settings)
 	}
-	_, err := cli.Query(args...)
+	_, err := cli.Query("CREATEDOMAIN", args...)
 	return err
 }
 
@@ -46,13 +46,12 @@ func (cli *Cli) CreateDomainStorage(storage string, shared bool) error {
 	if storage == "" {
 		return fmt.Errorf("storage path is required")
 	}
-	args := make([]any, 0, 4)
-	args = append(args, "CREATEDOMAINSTORAGE")
+	args := make([]any, 0, 3)
 	if shared {
 		args = append(args, "SHARED")
 	}
 	args = append(args, "PATH", storage)
-	_, err := cli.Query(args...)
+	_, err := cli.Query("CREATEDOMAINSTORAGE", args...)
 	return err
 }
 
@@ -61,12 +60,12 @@ func (cli *Cli) DeleteDomain(domain string, force bool) error {
 	if domain == "" {
 		return fmt.Errorf("domain is required")
 	}
-	args := make([]any, 0, 3)
-	args = append(args, "DELETEDOMAIN", domain)
+	args := make([]any, 0, 2)
+	args = append(args, domain)
 	if force {
 		args = append(args, "FORCE")
 	}
-	_, err := cli.Query(args...)
+	_, err := cli.Query("DELETEDOMAIN", args...)
 	return err
 }
 
@@ -127,16 +126,16 @@ func (cli *Cli) ListClusterTelnums(f string, l int) (map[string]string, error) {
 
 // ListDomainStorage возвращает список путей хранилища.
 func (cli *Cli) ListDomainStorage(shared bool) ([]string, error) {
+	const cmd = "LISTDOMAINSTORAGE"
 	args := make([]any, 0, 2)
-	args = append(args, "LISTDOMAINSTORAGE")
 	if shared {
 		args = append(args, "SHARED")
 	}
-	res, err := cli.Query(args...)
+	res, err := cli.Query(cmd, args...)
 	if err != nil {
 		return nil, err
 	}
-	return toStringSlice("LISTDOMAINSTORAGE", res)
+	return toStringSlice(cmd, res)
 }
 
 // ListDomains возвращает список всех доменов.
@@ -171,12 +170,12 @@ func (cli *Cli) RenameDomain(oldName, newName string, storage string) error {
 	if oldName == "" || newName == "" {
 		return fmt.Errorf("old and new names are required")
 	}
-	args := make([]any, 0, 6)
-	args = append(args, "RENAMEDOMAIN", oldName, "INTO", newName)
+	args := make([]any, 0, 5)
+	args = append(args, oldName, "INTO", newName)
 	if storage != "" {
 		args = append(args, "PATH", storage)
 	}
-	_, err := cli.Query(args...)
+	_, err := cli.Query("RENAMEDOMAIN", args...)
 	return err
 }
 
@@ -287,15 +286,14 @@ func (cli *Cli) getTrustedCerts(cmd string) ([]string, error) {
 }
 
 func (cli *Cli) listTelnums(cmd, filter string, limit int) (map[string]string, error) {
-	args := make([]any, 0, 4)
-	args = append(args, cmd)
+	args := make([]any, 0, 3)
 	if filter != "" {
 		args = append(args, "FILTER", filter)
 	}
 	if limit > 0 {
 		args = append(args, limit)
 	}
-	res, err := cli.Query(args...)
+	res, err := cli.Query(cmd, args...)
 	if err != nil {
 		return nil, err
 	}

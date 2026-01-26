@@ -108,8 +108,8 @@ func (cli *Cli) GetSubscriberInfo(list, subscriber string) (*SubscriberInfo, err
 
 // List выполняет операции над подписчиками (subscribe, unsubscribe, feed и др.).
 func (cli *Cli) List(list, operation, subscriber string, silently, confirm bool) error {
-	args := make([]any, 0, 6)
-	args = append(args, "LIST", list, operation)
+	args := make([]any, 0, 5)
+	args = append(args, list, operation)
 	if silently {
 		args = append(args, "silently")
 	}
@@ -117,7 +117,7 @@ func (cli *Cli) List(list, operation, subscriber string, silently, confirm bool)
 		args = append(args, "confirm")
 	}
 	args = append(args, subscriber)
-	_, err := cli.Query(args...)
+	_, err := cli.Query("LIST", args...)
 	return err
 }
 
@@ -134,14 +134,15 @@ func (cli *Cli) ListLists(domain string) ([]string, error) {
 // ListSubscribers возвращает только список адресов подписчиков.
 func (cli *Cli) ListSubscribers(list, filter string, limit int) ([]string, error) {
 	const cmd = "LISTSUBSCRIBERS"
-	args := []any{cmd, list}
+	args := make([]any, 0, 4)
+	args = append(args, list)
 	if filter != "" {
 		args = append(args, "FILTER", filter)
 	}
 	if limit > 0 {
 		args = append(args, limit)
 	}
-	res, err := cli.Query(args...)
+	res, err := cli.Query(cmd, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -149,19 +150,21 @@ func (cli *Cli) ListSubscribers(list, filter string, limit int) ([]string, error
 }
 
 // ProcessBounce инициирует процедуру обработки ошибки доставки (bounce) для адреса.
-func (cli *Cli) ProcessBounce(list, subscriber string, fatal bool) error {
-	args := []any{"PROCESSBOUNCE", list}
+func (cli *Cli) ProcessBounce(list, subscriber string, fatal bool) (err error) {
+	args := make([]any, 0, 4)
+	args = append(args, list)
 	if fatal {
 		args = append(args, "FATAL")
 	}
 	args = append(args, "FOR", subscriber)
-	_, err := cli.Query(args...)
-	return err
+	_, err = cli.Query("PROCESSBOUNCE", args...)
+	return
 }
 
 // ReadSubscribers возвращает общее число подписчиков и массив структур SubscriberInfo.
 func (cli *Cli) ReadSubscribers(list, filter string, limit int) (int64, []SubscriberInfo, error) {
-	args := []any{"READSUBSCRIBERS", list}
+	args := make([]any, 0, 4)
+	args = append(args, list)
 	if filter != "" {
 		args = append(args, "FILTER", filter)
 	}
@@ -169,7 +172,7 @@ func (cli *Cli) ReadSubscribers(list, filter string, limit int) (int64, []Subscr
 		args = append(args, limit)
 	}
 
-	res, err := cli.Query(args...)
+	res, err := cli.Query("READSUBSCRIBERS", args...)
 	if err != nil {
 		return 0, nil, err
 	}

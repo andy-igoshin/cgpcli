@@ -16,12 +16,12 @@ func (cli *Cli) CreateGroup(group string, settings map[string]any) error {
 	if group == "" {
 		return fmt.Errorf("group name is required")
 	}
-	args := make([]any, 0, 3)
-	args = append(args, "CREATEGROUP", group)
+	args := make([]any, 0, 2)
+	args = append(args, group)
 	if settings != nil {
 		args = append(args, settings)
 	}
-	_, err := cli.Query(args...)
+	_, err := cli.Query("CREATEGROUP", args...)
 	return err
 }
 
@@ -81,16 +81,20 @@ func (cli *Cli) IsGroupExists(group string) (bool, error) {
 
 // ListGroups возвращает список имен всех групп в указанном домене.
 func (cli *Cli) ListGroups(domain string) ([]string, error) {
-	args := make([]any, 0, 2)
-	args = append(args, "LISTGROUPS")
+	const cmd = "LISTGROUPS"
+	var res any
+	var err error
+
 	if domain != "" {
-		args = append(args, domain)
+		res, err = cli.Query(cmd, domain)
+	} else {
+		res, err = cli.Query(cmd)
 	}
-	res, err := cli.Query(args...)
+
 	if err != nil {
 		return nil, err
 	}
-	return toStringSlice("LISTGROUPS", res)
+	return toStringSlice(cmd, res)
 }
 
 // RenameGroup переименовывает группу или переносит её в другой домен.
