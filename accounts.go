@@ -47,7 +47,7 @@ func (cli *Cli) CreateAccount(account string, settings map[string]any, accType A
 	if account == "" {
 		return fmt.Errorf("account name is required")
 	}
-	args := make([]any, 0, 7)
+	args := make([]any, 0, 6)
 	args = append(args, account)
 	if accType != TypeDefault {
 		args = append(args, accType.String())
