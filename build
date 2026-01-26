@@ -48,6 +48,8 @@ elif [ "$1" == "test" ]; then
 elif [ "$1" == "test-once" ]; then
     . .env
     go test -v -run $2
+elif [ "$1" == "bench" ]; then
+    go test -bench=. -benchmem $2
 elif [ "$1" == "tidy" ]; then
     go mod tidy
 elif [ "$1" == "vet" ]; then
