@@ -8,8 +8,6 @@ import (
 	"strings"
 )
 
-// --- Types ---
-
 type IPCIDR struct{ net.IPNet }
 
 type IPEntry struct {
@@ -25,8 +23,6 @@ type (
 	IPSeq     []any
 	IPUnknown string
 )
-
-// --- IPList Methods (Alphabetical) ---
 
 func (l *IPList) Add(input string, comment string) error {
 	isNegative := false
@@ -79,7 +75,6 @@ func (l IPList) Contains(ip net.IP) bool {
 }
 
 func (l *IPList) Delete(input string) error {
-	// При удалении нам неважно, есть "!" или нет, ищем само значение
 	cleanInput := strings.TrimPrefix(strings.TrimSpace(input), "!")
 	val := parseDataPart(cleanInput)
 
@@ -164,8 +159,6 @@ func (l IPList) MarshalCGP() string {
 func (l IPList) String() string {
 	return l.marshal()
 }
-
-// --- Internal Functions (Alphabetical) ---
 
 func dataToString(val any) string {
 	switch v := val.(type) {
