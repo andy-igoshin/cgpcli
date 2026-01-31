@@ -34,14 +34,14 @@ func (cli *Cli) SetStatElement(objectID, op string, val int64) error {
 	if op != "INC" && op != "SET" {
 		return fmt.Errorf("operation must be INC or SET")
 	}
-	_, err := cli.Query("SETSTATELEMENT", objectID, op, val)
-	return err
+	return cli.QueryNV("SETSTATELEMENT", objectID, op, val)
 }
 
 // GetNextStatName возвращает имя следующего элемента статистики.
 // Возвращает io.EOF, когда элементы закончились.
 func (cli *Cli) GetNextStatName(objectID string) (string, error) {
-	res, err := cli.Query("GETNEXTSTATNAME", objectID)
+	const cmd = "GETNEXTSTATNAME"
+	res, err := cli.Query(cmd, objectID)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			return "", io.EOF
@@ -50,7 +50,7 @@ func (cli *Cli) GetNextStatName(objectID string) (string, error) {
 	}
 	s, ok := res.(string)
 	if !ok {
-		return "", fmt.Errorf("GETNEXTSTATNAME: expected string, got %T", res)
+		return "", fmt.Errorf("%s: expected string, got %T", cmd, res)
 	}
 	return s, nil
 }
@@ -70,8 +70,7 @@ func (cli *Cli) GetDialogInfo(dialogID int64) (map[string]any, error) {
 
 // Shutdown инициирует остановку сервера CommuniGate Pro.
 func (cli *Cli) Shutdown() error {
-	_, err := cli.Query("SHUTDOWN")
-	return err
+	return cli.QueryNV("SHUTDOWN")
 }
 
 // -----------------------------------------------------------------------------

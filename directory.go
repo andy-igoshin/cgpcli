@@ -18,7 +18,7 @@ type DirAccessRight struct {
 
 func (cli *Cli) CreateDirectoryUnit(name, mountPoint string, shared, remote bool) error {
 	if name == "" || mountPoint == "" {
-		return fmt.Errorf("CREATEDIRECTORYUNIT: unit name and mount point are required")
+		return fmt.Errorf("unit name and mount point are required")
 	}
 
 	args := make([]any, 0, 4)
@@ -30,21 +30,20 @@ func (cli *Cli) CreateDirectoryUnit(name, mountPoint string, shared, remote bool
 		args = append(args, "REMOTE")
 	}
 	args = append(args, mountPoint)
-
-	_, err := cli.Query("CREATEDIRECTORYUNIT", args...)
-	return err
+	return cli.QueryNV("CREATEDIRECTORYUNIT", args...)
 }
 
-func (cli *Cli) DeleteDirectoryUnit(name string, shared bool) error {
+func (cli *Cli) DeleteDirectoryUnit(name string, shared bool) (err error) {
 	if name == "" {
-		return fmt.Errorf("DELETEDIRECTORYUNIT: unit name is required")
+		return fmt.Errorf("unit name is required")
 	}
+	const cmd = "DELETEDIRECTORYUNIT"
 	if shared {
-		_, err := cli.Query("DELETEDIRECTORYUNIT", name, "SHARED")
-		return err
+		err = cli.QueryNV(cmd, name, "SHARED")
+	} else {
+		err = cli.QueryNV(cmd, name)
 	}
-	_, err := cli.Query("DELETEDIRECTORYUNIT", name)
-	return err
+	return
 }
 
 func (cli *Cli) GetDirectoryAccessRights(shared bool) ([]DirAccessRight, error) {
@@ -74,7 +73,6 @@ func (cli *Cli) GetDirectoryAccessRights(shared bool) ([]DirAccessRight, error) 
 		}
 
 		var r DirAccessRight
-		// Используем строгий парсинг с проверкой ошибок
 		if r.Name, err = toString(cmd, fields[0]); err != nil {
 			return nil, err
 		}
@@ -106,13 +104,14 @@ func (cli *Cli) GetDirectoryAccessRights(shared bool) ([]DirAccessRight, error) 
 }
 
 func (cli *Cli) GetDirectoryUnit(name string, shared bool) (map[string]any, error) {
-	const cmd = "GETDIRECTORYUNIT"
 	if name == "" {
-		return nil, fmt.Errorf("%s: unit name is required", cmd)
+		return nil, fmt.Errorf("unit name is required")
 	}
 
+	const cmd = "GETDIRECTORYUNIT"
 	var res any
 	var err error
+
 	if shared {
 		res, err = cli.Query(cmd, name, "SHARED")
 	} else {
@@ -157,23 +156,21 @@ func (cli *Cli) ListDirectoryUnits(shared bool) (map[string]string, error) {
 	return units, nil
 }
 
-func (cli *Cli) RelocateDirectoryUnit(name, newMountPoint string, shared bool) error {
-	const cmd = "RELOCATEDIRECTORYUNIT"
+func (cli *Cli) RelocateDirectoryUnit(name, newMountPoint string, shared bool) (err error) {
 	if name == "" || newMountPoint == "" {
-		return fmt.Errorf("%s: unit name and new mount point are required", cmd)
+		return fmt.Errorf("unit name and new mount point are required")
 	}
-
+	const cmd = "RELOCATEDIRECTORYUNIT"
 	if shared {
-		_, err := cli.Query(cmd, name, "SHARED", newMountPoint)
-		return err
+		err = cli.QueryNV(cmd, name, "SHARED", newMountPoint)
+	} else {
+		err = cli.QueryNV(cmd, name, newMountPoint)
 	}
-	_, err := cli.Query(cmd, name, newMountPoint)
-	return err
+	return
 }
 
-func (cli *Cli) SetDirectoryAccessRights(shared bool, rights []DirAccessRight) error {
+func (cli *Cli) SetDirectoryAccessRights(shared bool, rights []DirAccessRight) (err error) {
 	const cmd = "SETDIRECTORYACCESSRIGHTS"
-
 	raw := make([]any, len(rights))
 	for i, r := range rights {
 		raw[i] = []any{
@@ -183,22 +180,22 @@ func (cli *Cli) SetDirectoryAccessRights(shared bool, rights []DirAccessRight) e
 	}
 
 	if shared {
-		_, err := cli.Query(cmd, "SHARED", raw)
-		return err
+		err = cli.QueryNV(cmd, "SHARED", raw)
+	} else {
+		err = cli.QueryNV(cmd, raw)
 	}
-	_, err := cli.Query(cmd, raw)
-	return err
+	return
 }
 
-func (cli *Cli) SetDirectoryUnit(name string, shared bool, settings map[string]any) error {
-	const cmd = "SETDIRECTORYUNIT"
+func (cli *Cli) SetDirectoryUnit(name string, shared bool, settings map[string]any) (err error) {
 	if name == "" {
-		return fmt.Errorf("%s: unit name is required", cmd)
+		return fmt.Errorf("unit name is required")
 	}
+	const cmd = "SETDIRECTORYUNIT"
 	if shared {
-		_, err := cli.Query(cmd, name, "SHARED", settings)
-		return err
+		err = cli.QueryNV(cmd, name, "SHARED", settings)
+	} else {
+		err = cli.QueryNV(cmd, name, settings)
 	}
-	_, err := cli.Query(cmd, name, settings)
-	return err
+	return
 }

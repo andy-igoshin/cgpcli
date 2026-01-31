@@ -14,9 +14,10 @@ const (
 	TypeAuto     FieldType = iota
 	TypeDate               // Формат Created (02-Jan-2006_15:04:05)
 	TypeDuration           // Интервалы (10s, 1m, never, immediately)
-	TypeSize               // Квоты и размеры (10K, 5M, unlimited)
 	TypeIP                 // Одиночный IP адрес в скобках [1.2.3.4]
 	TypeIPList             // Список IP адресов (DNSServers и др.)
+	TypeIPSA               // Строка вида "[ip1], [ip2]" <-> []net.IP
+	TypeSize               // Квоты и размеры (10K, 5M, unlimited)
 	TypeString             // Принудительное сохранение значения как строки
 )
 
@@ -64,7 +65,7 @@ var FieldExceptions = map[string]FieldType{
 	"SizeLimit":        TypeSize,
 
 	// Сетевые исключения
-	"DNSServers":  TypeIPList,
+	"DNSServers":  TypeIPSA,
 	"DummyIPs":    TypeIPList,
 	"LANAddress":  TypeIP,
 	"WANAddress":  TypeIP,
@@ -105,7 +106,9 @@ func transformRead(key string, val any) any {
 	case TypeSize:
 		return parseCGPSize(s)
 	case TypeIP:
-		return parseSingleIP(s)
+		return parseIPSingle(s)
+	case TypeIPSA:
+		return parseIPSA(s)
 	case TypeIPList:
 		return parseIPList(s)
 	}
@@ -131,6 +134,11 @@ func transformWrite(key string, v any) (string, bool) {
 	case TypeIP:
 		if ip, ok := v.(net.IP); ok {
 			return "[" + ip.String() + "]", true
+		}
+
+	case TypeIPSA:
+		if ips, ok := v.([]net.IP); ok {
+			return toIPsString(ips), true
 		}
 
 	case TypeString:

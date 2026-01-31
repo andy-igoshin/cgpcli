@@ -296,7 +296,6 @@ func parseCode(b []byte) CliCode {
 func (cli *Cli) parseResponse() (err error) {
 	cli.conn.SetReadDeadline(time.Now().Add(cmdTimeout))
 
-	// Внутренний буфер CGP имеет размер 128k
 	line, err := cli.reader.ReadSlice('\n')
 	if err != nil {
 		return fmt.Errorf("can't read line: %s", err)
@@ -331,27 +330,40 @@ func (cli *Cli) parseResponse() (err error) {
 	return nil
 }
 
-func (cli *Cli) Query(cmd string, args ...any) (any, error) {
-	if err := cli.Send(cmd, args...); err != nil {
-		return nil, err
+func (cli *Cli) Query(cmd string, args ...any) (res any, err error) {
+	if err = cli.Send(cmd, args...); err != nil {
+		return
 	}
-	if err := cli.parseResponse(); err != nil {
-		return nil, err
+	if err = cli.parseResponse(); err != nil {
+		return
 	}
 	if !cli.IsSuccess() {
-		return nil, fmt.Errorf("CGP Error %d: %s", cli.respCode, string(cli.respData))
+		err = fmt.Errorf("CGP Error %d: %s", cli.respCode, string(cli.respData))
+		return
 	}
 
-	var res any
-	err := Unmarshal(cli.respData, &res)
-	return res, err
+	err = Unmarshal(cli.respData, &res)
+	return
+}
+
+func (cli *Cli) QueryNV(cmd string, args ...any) (err error) {
+	if err = cli.Send(cmd, args...); err != nil {
+		return
+	}
+	if err = cli.parseResponse(); err != nil {
+		return
+	}
+	if !cli.IsSuccess() {
+		err = fmt.Errorf("CGP Error %d: %s", cli.respCode, string(cli.respData))
+	}
+	return
 }
 
 func (cli *Cli) Send(cmd string, args ...any) (err error) {
 	if time.Since(cli.lastAccess) > cgpTimeout || cli.conn == nil {
 		cli.close()
-		if err := cli.connect(); err != nil {
-			return err
+		if err = cli.connect(); err != nil {
+			return
 		}
 	}
 
@@ -363,8 +375,8 @@ func (cli *Cli) Send(cmd string, args ...any) (err error) {
 
 	for _, arg := range args {
 		cli.buf.WriteByte(' ')
-		if err := marshal(&cli.buf, arg, ""); err != nil {
-			return err
+		if err = marshal(&cli.buf, arg, ""); err != nil {
+			return
 		}
 	}
 	cli.buf.WriteByte('\n')
@@ -375,7 +387,7 @@ func (cli *Cli) Send(cmd string, args ...any) (err error) {
 
 	_, err = cli.writer.Write(cli.buf.Bytes())
 	if err != nil {
-		return err
+		return
 	}
 
 	return cli.writer.Flush()

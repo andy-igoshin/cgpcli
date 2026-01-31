@@ -5,12 +5,11 @@ import (
 	"fmt"
 )
 
-func (cli *Cli) CreateClusterPBX(language string) (err error) {
+func (cli *Cli) CreateClusterPBX(language string) error {
 	if language == "" {
 		return fmt.Errorf("language is required")
 	}
-	_, err = cli.Query("CREATECLUSTERPBX", language)
-	return
+	return cli.QueryNV("CREATECLUSTERPBX", language)
 }
 
 // CreateDomainPBX создает среду RTA для домена или её национальное подмножество.
@@ -20,63 +19,44 @@ func (cli *Cli) CreateDomainPBX(domain, language string) (err error) {
 	}
 	const cmd = "CREATEDOMAINPBX"
 	if language != "" {
-		_, err = cli.Query(cmd, domain, "FILE", language)
+		err = cli.QueryNV(cmd, domain, "FILE", language)
 	} else {
-		_, err = cli.Query(cmd, domain)
+		err = cli.QueryNV(cmd, domain)
 	}
 	return
 }
 
-func (cli *Cli) CreateServerPBX(language string) (err error) {
+func (cli *Cli) CreateServerPBX(language string) error {
 	if language == "" {
 		return fmt.Errorf("language is required")
 	}
-	_, err = cli.Query("CREATESERVERPBX", language)
-	return
+	return cli.QueryNV("CREATESERVERPBX", language)
 }
 
-func (cli *Cli) DeleteClusterPBX(language string) (err error) {
+func (cli *Cli) DeleteClusterPBX(language string) error {
 	if language == "" {
 		return fmt.Errorf("language is required")
 	}
-	_, err = cli.Query("DELETECLUSTERPBX", language)
-	return
+	return cli.QueryNV("DELETECLUSTERPBX", language)
 }
 
 // DeleteDomainPBX удаляет национальное подмножество среды RTA домена.
-func (cli *Cli) DeleteDomainPBX(domain, language string) (err error) {
+func (cli *Cli) DeleteDomainPBX(domain, language string) error {
 	if domain == "" || language == "" {
 		return fmt.Errorf("domain and language are required")
 	}
-	_, err = cli.Query("DELETEDOMAINPBX", domain, "FILE", language)
-	return
+	return cli.QueryNV("DELETEDOMAINPBX", domain, "FILE", language)
 }
 
-func (cli *Cli) DeleteServerPBX(language string) (err error) {
+func (cli *Cli) DeleteServerPBX(language string) error {
 	if language == "" {
 		return fmt.Errorf("language is required")
 	}
-	_, err = cli.Query("DELETESERVERPBX", language)
-	return
+	return cli.QueryNV("DELETESERVERPBX", language)
 }
 
 func (cli *Cli) ListClusterPBXFiles(language string) (map[string]any, error) {
-	const cmd = "LISTCLUSTERPBXFILES"
-	var res any
-	var err error
-	if language != "" {
-		res, err = cli.Query(cmd, language)
-	} else {
-		res, err = cli.Query(cmd)
-	}
-	if err != nil {
-		return nil, err
-	}
-	m, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
-	}
-	return m, nil
+	return cli.getMapAny("LISTCLUSTERPBXFILES", language)
 }
 
 // ListDomainPBXFiles возвращает список файлов в среде RTA домена.
@@ -102,41 +82,11 @@ func (cli *Cli) ListDomainPBXFiles(domain, language string) (map[string]any, err
 }
 
 func (cli *Cli) ListServerPBXFiles(language string) (map[string]any, error) {
-	const cmd = "LISTSERVERPBXFILES"
-	var res any
-	var err error
-	if language != "" {
-		res, err = cli.Query(cmd, language)
-	} else {
-		res, err = cli.Query(cmd)
-	}
-	if err != nil {
-		return nil, err
-	}
-	m, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
-	}
-	return m, nil
+	return cli.getMapAny("LISTSERVERPBXFILES", language)
 }
 
 func (cli *Cli) ListStockPBXFiles(language string) (map[string]any, error) {
-	const cmd = "LISTSTOCKPBXFILES"
-	var res any
-	var err error
-	if language != "" {
-		res, err = cli.Query(cmd, language)
-	} else {
-		res, err = cli.Query(cmd)
-	}
-	if err != nil {
-		return nil, err
-	}
-	m, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
-	}
-	return m, nil
+	return cli.getMapAny("LISTSTOCKPBXFILES", language)
 }
 
 func (cli *Cli) ReadClusterPBXFile(file string) ([]byte, error) {
@@ -189,6 +139,9 @@ func (cli *Cli) ReadServerPBXFile(file string) ([]byte, error) {
 }
 
 func (cli *Cli) ReadStockPBXFile(file string) ([]byte, error) {
+	if file == "" {
+		return nil, fmt.Errorf("file is required")
+	}
 	const cmd = "READSTOCKPBXFILE"
 	res, err := cli.Query(cmd, file)
 	if err != nil {
@@ -207,9 +160,9 @@ func (cli *Cli) StoreClusterPBXFile(file string, data []byte) (err error) {
 	}
 	const cmd = "STORECLUSTERPBXFILE"
 	if data == nil {
-		_, err = cli.Query(cmd, file, "DELETE")
+		err = cli.QueryNV(cmd, file, "DELETE")
 	} else {
-		_, err = cli.Query(cmd, file, "DATA", data)
+		err = cli.QueryNV(cmd, file, "DATA", data)
 	}
 	return
 }
@@ -221,9 +174,9 @@ func (cli *Cli) StoreDomainPBXFile(domain, file string, data []byte) (err error)
 	}
 	const cmd = "STOREDOMAINPBXFILE"
 	if data == nil {
-		_, err = cli.Query(cmd, domain, "FILE", file, "DELETE")
+		err = cli.QueryNV(cmd, domain, "FILE", file, "DELETE")
 	} else {
-		_, err = cli.Query(cmd, domain, "FILE", file, "DATA", data)
+		err = cli.QueryNV(cmd, domain, "FILE", file, "DATA", data)
 	}
 	return
 }
@@ -234,9 +187,9 @@ func (cli *Cli) StoreServerPBXFile(file string, data []byte) (err error) {
 	}
 	const cmd = "STORESERVERPBXFILE"
 	if data == nil {
-		_, err = cli.Query(cmd, file, "DELETE")
+		err = cli.QueryNV(cmd, file, "DELETE")
 	} else {
-		_, err = cli.Query(cmd, file, "DATA", data)
+		err = cli.QueryNV(cmd, file, "DATA", data)
 	}
 	return
 }

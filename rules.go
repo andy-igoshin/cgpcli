@@ -20,21 +20,21 @@ const (
 // -----------------------------------------------------------------------------
 
 type MailRule struct {
-	Priority   int    `json:"priority"`
-	Name       string `json:"name"`
-	Conditions []any  `json:"conditions"`
-	Actions    []any  `json:"actions"`
-	Comment    string `json:"comment,omitempty"`
+	Priority   int
+	Name       string
+	Conditions []any
+	Actions    []any
+	Comment    string
 }
 
 type SignalRule struct {
-	Priority   int    `json:"priority"`
-	Delay      int    `json:"delay"`
-	EventCode  int    `json:"event_code,omitempty"`
-	Name       string `json:"name"`
-	Conditions []any  `json:"conditions"`
-	Actions    []any  `json:"actions"`
-	Comment    string `json:"comment,omitempty"`
+	Priority   int
+	Delay      int
+	EventCode  int
+	Name       string
+	Conditions []any
+	Actions    []any
+	Comment    string
 }
 
 type ruleConstraint interface {
@@ -162,9 +162,9 @@ func setRulesGeneric[T ruleConstraint](cli *Cli, cmd, subject string, rules []T)
 
 	var err error
 	if subject != "" {
-		_, err = cli.Query(cmd, Atom(subject), rawRules)
+		err = cli.QueryNV(cmd, Atom(subject), rawRules)
 	} else {
-		_, err = cli.Query(cmd, rawRules)
+		err = cli.QueryNV(cmd, rawRules)
 	}
 	return err
 }
@@ -176,9 +176,9 @@ func updateRuleGeneric[T ruleConstraint](cli *Cli, cmd, subject string, rule T) 
 
 	var err error
 	if subject != "" {
-		_, err = cli.Query(cmd, Atom(subject), rule.ToSlice())
+		err = cli.QueryNV(cmd, Atom(subject), rule.ToSlice())
 	} else {
-		_, err = cli.Query(cmd, rule.ToSlice())
+		err = cli.QueryNV(cmd, rule.ToSlice())
 	}
 	return err
 }

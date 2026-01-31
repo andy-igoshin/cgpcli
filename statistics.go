@@ -6,31 +6,33 @@ import (
 )
 
 // GetAccountStat возвращает статистику аккаунта.
-func (cli *Cli) GetAccountStat(account string, key string) (any, error) {
+func (cli *Cli) GetAccountStat(account string, key string) (res any, err error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
-	args := make([]any, 0, 3)
-	args = append(args, Atom(account))
+
+	const cmd = "GETACCOUNTSTAT"
 	if key != "" {
-		args = append(args, "KEY", key)
+		res, err = cli.Query(cmd, Atom(account), "KEY", key)
+	} else {
+		res, err = cli.Query(cmd, Atom(account))
 	}
-	return cli.Query("GETACCOUNTSTAT", args...)
+	return
 }
 
 // GetDomainStat возвращает статистику домена.
-func (cli *Cli) GetDomainStat(domain string, key string) (any, error) {
+func (cli *Cli) GetDomainStat(domain string, key string) (res any, err error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain name is required")
 	}
 
 	const cmd = "GETDOMAINSTAT"
-
 	if key != "" {
-		return cli.Query(cmd, Atom(domain), "KEY", key)
+		res, err = cli.Query(cmd, Atom(domain), "KEY", key)
 	} else {
-		return cli.Query(cmd, Atom(domain))
+		res, err = cli.Query(cmd, Atom(domain))
 	}
+	return
 }
 
 // ResetAccountStat сбрасывает статистику аккаунта.
@@ -40,11 +42,10 @@ func (cli *Cli) ResetAccountStat(account string, key string) (err error) {
 	}
 
 	const cmd = "RESETACCOUNTSTAT"
-
 	if key != "" {
-		_, err = cli.Query(cmd, Atom(account), "KEY", key)
+		err = cli.QueryNV(cmd, Atom(account), "KEY", key)
 	} else {
-		_, err = cli.Query(cmd, Atom(account))
+		err = cli.QueryNV(cmd, Atom(account))
 	}
 	return
 }
@@ -56,11 +57,10 @@ func (cli *Cli) ResetDomainStat(domain string, key string) (err error) {
 	}
 
 	const cmd = "RESETDOMAINSTAT"
-
 	if key != "" {
-		_, err = cli.Query(cmd, Atom(domain), "KEY", key)
+		err = cli.QueryNV(cmd, Atom(domain), "KEY", key)
 	} else {
-		_, err = cli.Query(cmd, Atom(domain))
+		err = cli.QueryNV(cmd, Atom(domain))
 	}
 	return
 }

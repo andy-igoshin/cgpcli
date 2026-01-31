@@ -9,55 +9,46 @@ func (cli *Cli) CreateForwarder(forwarder, target string) error {
 	if forwarder == "" || target == "" {
 		return fmt.Errorf("forwarder name and target address are required")
 	}
-	_, err := cli.Query("CREATEFORWARDER", forwarder, "TO", target)
-	return err
+	return cli.QueryNV("CREATEFORWARDER", forwarder, "TO", target)
 }
 
 func (cli *Cli) DeleteForwarder(forwarder string) error {
 	if forwarder == "" {
 		return fmt.Errorf("forwarder name is required")
 	}
-	_, err := cli.Query("DELETEFORWARDER", forwarder)
-	return err
+	return cli.QueryNV("DELETEFORWARDER", forwarder)
 }
 
 func (cli *Cli) FindForwarders(domain, target string) ([]string, error) {
 	if domain == "" || target == "" {
 		return nil, fmt.Errorf("domain and target address are required")
 	}
-	res, err := cli.Query("FINDFORWARDERS", domain, "TO", target)
+
+	const cmd = "FINDFORWARDERS"
+	res, err := cli.Query(cmd, domain, "TO", target)
 	if err != nil {
 		return nil, err
 	}
-	return toStringSlice("FINDFORWARDERS", res)
+	return toStringSlice(cmd, res)
 }
 
 func (cli *Cli) GetForwarder(forwarder string) (string, error) {
 	if forwarder == "" {
 		return "", fmt.Errorf("forwarder name is required")
 	}
-	res, err := cli.Query("GETFORWARDER", forwarder)
-	if err != nil {
-		return "", err
-	}
-	return toString("GETFORWARDER", res)
+	return cli.getString("GETFORWARDER", forwarder)
 }
 
 func (cli *Cli) ListForwarders(domain string) ([]string, error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain name is required")
 	}
-	res, err := cli.Query("LISTFORWARDERS", domain)
-	if err != nil {
-		return nil, err
-	}
-	return toStringSlice("LISTFORWARDERS", res)
+	return cli.getSliceString("LISTFORWARDERS", domain)
 }
 
 func (cli *Cli) RenameForwarder(oldName, newName string) error {
 	if oldName == "" || newName == "" {
-		return fmt.Errorf("both old and new forwarder names are required")
+		return fmt.Errorf("old name and new name are required")
 	}
-	_, err := cli.Query("RENAMEFORWARDER", oldName, "INTO", newName)
-	return err
+	return cli.QueryNV("RENAMEFORWARDER", oldName, "INTO", newName)
 }

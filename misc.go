@@ -32,13 +32,14 @@ const (
 )
 
 // DumpAllObjects пишет список всех объектов данных.
-func (cli *Cli) DumpAllObjects(file bool) error {
+func (cli *Cli) DumpAllObjects(file bool) (err error) {
+	const cmd = "DUMPALLOBJECTS"
 	if file {
-		_, err := cli.Query("DUMPALLOBJECTS", "FILE")
-		return err
+		err = cli.QueryNV(cmd, "FILE")
+	} else {
+		err = cli.QueryNV(cmd)
 	}
-	_, err := cli.Query("DUMPALLOBJECTS")
-	return err
+	return
 }
 
 // Echo возвращает переданный объект без изменений.
@@ -60,13 +61,14 @@ func (cli *Cli) GetCurrentController() (net.IP, error) {
 
 // GetCurrentTime возвращает текущее внутреннее время сервера.
 func (cli *Cli) GetCurrentTime() (time.Time, error) {
-	res, err := cli.Query("GETCURRENTTIME")
+	const cmd = "GETCURRENTTIME"
+	res, err := cli.Query(cmd)
 	if err != nil {
 		return time.Time{}, err
 	}
 	t, ok := res.(time.Time)
 	if !ok {
-		return time.Time{}, fmt.Errorf("GETCURRENTTIME: expected time.Time, got %T", res)
+		return time.Time{}, fmt.Errorf("%s: expected time.Time, got %T", cmd, res)
 	}
 	return t, nil
 }
@@ -76,13 +78,14 @@ func (cli *Cli) GetMessageQueueInfo(module, queue string) (map[string]any, error
 	if module == "" || queue == "" {
 		return nil, fmt.Errorf("module and queue are required")
 	}
-	res, err := cli.Query("GETMESSAGEQUEUEINFO", module, "QUEUE", queue)
+	const cmd = "GETMESSAGEQUEUEINFO"
+	res, err := cli.Query(cmd, module, "QUEUE", queue)
 	if err != nil {
 		return nil, err
 	}
 	m, ok := res.(map[string]any)
 	if !ok {
-		return nil, fmt.Errorf("GETMESSAGEQUEUEINFO: expected map, got %T", res)
+		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
 	}
 	return m, nil
 }
@@ -134,37 +137,35 @@ func (cli *Cli) ListCLICommands() ([]string, error) {
 
 // Noop — пустая команда, всегда успешна.
 func (cli *Cli) Noop() error {
-	_, err := cli.Query("NOOP")
-	return err
+	return cli.QueryNV("NOOP")
 }
 
 // ReconnectClusterAdmin форсирует переподключение административных соединений кластера.
 func (cli *Cli) ReconnectClusterAdmin() error {
-	_, err := cli.Query("RECONNECTCLUSTERADMIN")
-	return err
+	return cli.QueryNV("RECONNECTCLUSTERADMIN")
 }
 
 // RejectQueueMessage отклоняет сообщение из очереди.
-func (cli *Cli) RejectQueueMessage(id int64, report string) error {
+func (cli *Cli) RejectQueueMessage(id int64, report string) (err error) {
 	if report != "" {
-		_, err := cli.Query("REJECTQUEUEMESSAGE", id, "REPORT", report)
-		return err
+		err = cli.QueryNV("REJECTQUEUEMESSAGE", id, "REPORT", report)
+	} else {
+		err = cli.QueryNV("REJECTQUEUEMESSAGE", id)
 	}
-	_, err := cli.Query("REJECTQUEUEMESSAGE", id)
-	return err
+	return
 }
 
 // RejectQueueMessages отклоняет все сообщения отправителя из очереди.
-func (cli *Cli) RejectQueueMessages(sender, report string) error {
+func (cli *Cli) RejectQueueMessages(sender, report string) (err error) {
 	if sender == "" {
 		return fmt.Errorf("sender is required")
 	}
 	if report != "" {
-		_, err := cli.Query("REJECTQUEUEMESSAGES", "SENDER", sender, "REPORT", report)
-		return err
+		err = cli.QueryNV("REJECTQUEUEMESSAGES", "SENDER", sender, "REPORT", report)
+	} else {
+		err = cli.QueryNV("REJECTQUEUEMESSAGES", "SENDER", sender)
 	}
-	_, err := cli.Query("REJECTQUEUEMESSAGES", "SENDER", sender)
-	return err
+	return
 }
 
 // ReleaseSMTPQueue освобождает SMTP очередь.
@@ -172,8 +173,7 @@ func (cli *Cli) ReleaseSMTPQueue(queue string) error {
 	if queue == "" {
 		return fmt.Errorf("queue name is required")
 	}
-	_, err := cli.Query("RELEASESMTPQUEUE", queue)
-	return err
+	return cli.QueryNV("RELEASESMTPQUEUE", queue)
 }
 
 // ReportFailedLoginAddress увеличивает счетчик неудачных попыток входа для IP-адреса.
@@ -181,8 +181,7 @@ func (cli *Cli) ReportFailedLoginAddress(ip net.IP) error {
 	if ip == nil {
 		return fmt.Errorf("IP address is required")
 	}
-	_, err := cli.Query("REPORTFAILEDLOGINADDRESS", ip.String())
-	return err
+	return cli.QueryNV("REPORTFAILEDLOGINADDRESS", ip.String())
 }
 
 // SetLogAll включает или выключает режим "Log Everything".
@@ -191,57 +190,17 @@ func (cli *Cli) SetLogAll(on bool) error {
 	if on {
 		val = "ON"
 	}
-	_, err := cli.Query("SETLOGALL", val)
-	return err
+	return cli.QueryNV("SETLOGALL", val)
 }
 
 // SetTempBlacklistedIPs заменяет текущий список временно заблокированных адресов.
-func (cli *Cli) SetTempBlacklistedIPs(ips []net.IP) error {
-	if len(ips) == 0 {
-		_, err := cli.Query("SETTEMPBLACKLISTEDIPS", "")
-		return err
-	}
-
-	var sb strings.Builder
-	// CGP ожидает список в формате [ip1],[ip2]
-	for i, ip := range ips {
-		if ip == nil {
-			continue
-		}
-		if i > 0 {
-			sb.WriteByte(',')
-		}
-		sb.WriteByte('[')
-		sb.WriteString(ip.String())
-		sb.WriteByte(']')
-	}
-
-	_, err := cli.Query("SETTEMPBLACKLISTEDIPS", sb.String())
-	return err
+func (cli *Cli) SetTempBlacklistedIPs(ips []net.IP) (err error) {
+	return cli.QueryNV("SETTEMPBLACKLISTEDIPS", toIPsString(ips))
 }
 
-// SetTempUnblockableIPs аналогично.
-func (cli *Cli) SetTempUnblockableIPs(ips []net.IP) error {
-	if len(ips) == 0 {
-		_, err := cli.Query("SETTEMPUNBLOCKABLEIPS", "")
-		return err
-	}
-
-	var sb strings.Builder
-	for i, ip := range ips {
-		if ip == nil {
-			continue
-		}
-		if i > 0 {
-			sb.WriteByte(',')
-		}
-		sb.WriteByte('[')
-		sb.WriteString(ip.String())
-		sb.WriteByte(']')
-	}
-
-	_, err := cli.Query("SETTEMPUNBLOCKABLEIPS", sb.String())
-	return err
+// SetTempUnblockableIPs заменяет текущий список временно не блокируемых адресов.
+func (cli *Cli) SetTempUnblockableIPs(ips []net.IP) (err error) {
+	return cli.QueryNV("SETTEMPUNBLOCKABLEIPS", toIPsString(ips))
 }
 
 // SetTrace включает или выключает трассировку указанного модуля.
@@ -253,34 +212,33 @@ func (cli *Cli) SetTrace(facility TraceFacility, on bool) error {
 	if on {
 		val = "ON"
 	}
-	_, err := cli.Query("SETTRACE", string(facility), val)
-	return err
+	return cli.QueryNV("SETTRACE", string(facility), val)
 }
 
 // TempBlacklistIP добавляет адрес в список или удаляет его.
-func (cli *Cli) TempBlacklistIP(ip net.IP, timeout time.Duration) error {
+func (cli *Cli) TempBlacklistIP(ip net.IP, timeout time.Duration) (err error) {
 	if ip == nil {
 		return fmt.Errorf("IP address is required")
 	}
 	if timeout <= 0 {
-		_, err := cli.Query("TEMPBLACKLISTIP", ip.String(), "DELETE")
-		return err
+		err = cli.QueryNV("TEMPBLACKLISTIP", ip.String(), "DELETE")
+	} else {
+		err = cli.QueryNV("TEMPBLACKLISTIP", ip.String(), "TIMEOUT", int(timeout.Seconds()))
 	}
-	_, err := cli.Query("TEMPBLACKLISTIP", ip.String(), "TIMEOUT", int(timeout.Seconds()))
-	return err
+	return
 }
 
 // TempUnblockIP добавляет адрес в список исключений или удаляет его.
-func (cli *Cli) TempUnblockIP(ip net.IP, timeout time.Duration) error {
+func (cli *Cli) TempUnblockIP(ip net.IP, timeout time.Duration) (err error) {
 	if ip == nil {
 		return fmt.Errorf("IP address is required")
 	}
 	if timeout <= 0 {
-		_, err := cli.Query("TEMPUNBLOCKIP", ip.String(), "DELETE")
-		return err
+		err = cli.QueryNV("TEMPUNBLOCKIP", ip.String(), "DELETE")
+	} else {
+		err = cli.QueryNV("TEMPUNBLOCKIP", ip.String(), "TIMEOUT", int(timeout.Seconds()))
 	}
-	_, err := cli.Query("TEMPUNBLOCKIP", ip.String(), "TIMEOUT", int(timeout.Seconds()))
-	return err
+	return
 }
 
 // TestLoop запускает цикл тестирования производительности CPU.
@@ -294,6 +252,24 @@ func (cli *Cli) TestLoop(seconds int) (int, error) {
 
 // WriteLog пишет запись в системный лог сервера.
 func (cli *Cli) WriteLog(level int, record string) error {
-	_, err := cli.Query("WRITELOG", level, record)
-	return err
+	return cli.QueryNV("WRITELOG", level, record)
+}
+
+func toIPsString(ips []net.IP) string {
+	if len(ips) > 0 {
+		var sb strings.Builder
+		for i, ip := range ips {
+			if ip == nil {
+				continue
+			}
+			if i > 0 {
+				sb.WriteByte(',')
+			}
+			sb.WriteByte('[')
+			sb.WriteString(ip.String())
+			sb.WriteByte(']')
+		}
+		return sb.String()
+	}
+	return ""
 }

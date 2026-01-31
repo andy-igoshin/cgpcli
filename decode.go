@@ -433,7 +433,26 @@ func parseCGPSize(s string) any {
 	return s
 }
 
-func parseSingleIP(v any) any {
+func parseIPSA(s string) []net.IP {
+	if s == "" {
+		return []net.IP{}
+	}
+	s = strings.NewReplacer("[", "", "]", "").Replace(s)
+	parts := strings.Split(s, ",")
+	res := make([]net.IP, 0, len(parts))
+	for _, p := range parts {
+		trimmed := strings.TrimSpace(p)
+		if trimmed == "" {
+			continue
+		}
+		if ip := net.ParseIP(trimmed); ip != nil {
+			res = append(res, ip)
+		}
+	}
+	return res
+}
+
+func parseIPSingle(v any) any {
 	s, ok := v.(string)
 	if !ok || s == "" {
 		return nil

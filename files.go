@@ -20,16 +20,24 @@ type StorageFileContent struct {
 }
 
 func (cli *Cli) DeleteStorageFile(account, file, authAccount string) (err error) {
+	if account == "" || file == "" {
+		return fmt.Errorf("account name and file name are required")
+	}
+
 	const cmd = "DELETESTORAGEFILE"
 	if authAccount != "" {
-		_, err = cli.Query(cmd, Atom(account), "FILE", file, "AUTH", authAccount)
+		err = cli.QueryNV(cmd, Atom(account), "FILE", file, "AUTH", authAccount)
 	} else {
-		_, err = cli.Query(cmd, Atom(account), "FILE", file)
+		err = cli.QueryNV(cmd, Atom(account), "FILE", file)
 	}
-	return err
+	return
 }
 
 func (cli *Cli) GetFileSubscription(account string) ([]string, error) {
+	if account == "" {
+		return nil, fmt.Errorf("account name is required")
+	}
+
 	const cmd = "GETFILESUBSCRIPTION"
 	res, err := cli.Query(cmd, Atom(account))
 	if err != nil {
@@ -39,6 +47,10 @@ func (cli *Cli) GetFileSubscription(account string) ([]string, error) {
 }
 
 func (cli *Cli) GetStorageFileInfo(account, path, authAccount string) (*StorageFileInfo, error) {
+	if account == "" {
+		return nil, fmt.Errorf("account name is required")
+	}
+
 	const cmd = "GETSTORAGEFILEINFO"
 	args := make([]any, 0, 5)
 	args = append(args, Atom(account))
@@ -66,6 +78,10 @@ func (cli *Cli) GetStorageFileInfo(account, path, authAccount string) (*StorageF
 }
 
 func (cli *Cli) ListStorageFiles(account, path, authAccount string) (map[string]any, error) {
+	if account == "" {
+		return nil, fmt.Errorf("account name is required")
+	}
+
 	const cmd = "LISTSTORAGEFILES"
 	args := make([]any, 0, 5)
 	args = append(args, Atom(account))
@@ -88,6 +104,10 @@ func (cli *Cli) ListStorageFiles(account, path, authAccount string) (map[string]
 }
 
 func (cli *Cli) ReadStorageFile(account, file string, offset, size int64, authAccount string) (*StorageFileContent, error) {
+	if account == "" || file == "" {
+		return nil, fmt.Errorf("account name and file name are required")
+	}
+
 	const cmd = "READSTORAGEFILE"
 	args := make([]any, 0, 9)
 	args = append(args, Atom(account), "FILE", file)
@@ -108,7 +128,6 @@ func (cli *Cli) ReadStorageFile(account, file string, offset, size int64, authAc
 		return nil, err
 	}
 
-	// Ожидаем массив: [datablock, timestamp, currentSize]
 	arr, ok := res.([]any)
 	if !ok || len(arr) < 3 {
 		return nil, fmt.Errorf("%s: expected array, got %T", cmd, res)
@@ -130,6 +149,10 @@ func (cli *Cli) ReadStorageFile(account, file string, offset, size int64, authAc
 }
 
 func (cli *Cli) ReadStorageFileAttr(account, file string, attrs []string, authAccount string) ([]any, error) {
+	if account == "" || file == "" {
+		return nil, fmt.Errorf("account name and file name are required")
+	}
+
 	const cmd = "READSTORAGEFILEATTR"
 	args := make([]any, 0, 6)
 	args = append(args, Atom(account), "FILE", file)
@@ -152,32 +175,46 @@ func (cli *Cli) ReadStorageFileAttr(account, file string, attrs []string, authAc
 	return arr, nil
 }
 
-func (cli *Cli) RenameStorageFile(account, oldFile, newFile, authAccount string) (err error) {
+func (cli *Cli) RenameStorageFile(account, oldName, newName, authAccount string) (err error) {
+	if account == "" || oldName == "" || newName == "" {
+		return fmt.Errorf("account name, old and new file names are required")
+	}
+
 	const cmd = "RENAMESTORAGEFILE"
 	if authAccount != "" {
-		_, err = cli.Query(cmd, Atom(account), "FILE", oldFile, "INTO", newFile, "AUTH", authAccount)
+		err = cli.QueryNV(cmd, Atom(account), "FILE", oldName, "INTO", newName, "AUTH", authAccount)
 	} else {
-		_, err = cli.Query(cmd, Atom(account), "FILE", oldFile, "INTO", newFile)
+		err = cli.QueryNV(cmd, Atom(account), "FILE", oldName, "INTO", newName)
 	}
-	return err
+	return
 }
 
 func (cli *Cli) SetFileSubscription(account string, subs []string) error {
-	_, err := cli.Query("SETFILESUBSCRIPTION", Atom(account), subs)
-	return err
+	if account == "" || subs == nil {
+		return fmt.Errorf("account name and subscription are required")
+	}
+	return cli.QueryNV("SETFILESUBSCRIPTION", Atom(account), subs)
 }
 
 func (cli *Cli) UpdateStorageFileAttr(account, file string, attrs []any, authAccount string) (err error) {
+	if account == "" || file == "" || attrs == nil {
+		return fmt.Errorf("account name, file name and attributes are required")
+	}
+
 	const cmd = "UPDATESTORAGEFILEATTR"
 	if authAccount != "" {
-		_, err = cli.Query(cmd, Atom(account), "FILE", file, attrs, "AUTH", authAccount)
+		err = cli.QueryNV(cmd, Atom(account), "FILE", file, attrs, "AUTH", authAccount)
 	} else {
-		_, err = cli.Query(cmd, Atom(account), "FILE", file, attrs)
+		err = cli.QueryNV(cmd, Atom(account), "FILE", file, attrs)
 	}
-	return err
+	return
 }
 
-func (cli *Cli) WriteStorageFile(account, file string, offset any, data []byte, authAccount string) (err error) {
+func (cli *Cli) WriteStorageFile(account, file string, offset any, data []byte, authAccount string) error {
+	if account == "" || file == "" || data == nil {
+		return fmt.Errorf("account name, file name and file data are required")
+	}
+
 	args := make([]any, 0, 9)
 	args = append(args, Atom(account), "FILE", file)
 
@@ -189,13 +226,9 @@ func (cli *Cli) WriteStorageFile(account, file string, offset any, data []byte, 
 			args = append(args, "OFFSET", v)
 		}
 	}
-
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
-
 	args = append(args, "DATA", data)
-
-	_, err = cli.Query("WRITESTORAGEFILE", args...)
-	return err
+	return cli.QueryNV("WRITESTORAGEFILE", args...)
 }

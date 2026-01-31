@@ -12,17 +12,17 @@ type GroupResult struct {
 }
 
 // CreateGroup создает новую группу.
-func (cli *Cli) CreateGroup(group string, settings map[string]any) error {
+func (cli *Cli) CreateGroup(group string, settings map[string]any) (err error) {
 	if group == "" {
 		return fmt.Errorf("group name is required")
 	}
-	args := make([]any, 0, 2)
-	args = append(args, group)
+	const cmd = "CREATEGROUP"
 	if settings != nil {
-		args = append(args, settings)
+		err = cli.QueryNV(cmd, group, settings)
+	} else {
+		err = cli.QueryNV(cmd, group)
 	}
-	_, err := cli.Query("CREATEGROUP", args...)
-	return err
+	return
 }
 
 // DeleteGroup удаляет группу.
@@ -30,8 +30,7 @@ func (cli *Cli) DeleteGroup(group string) error {
 	if group == "" {
 		return fmt.Errorf("group name is required")
 	}
-	_, err := cli.Query("DELETEGROUP", group)
-	return err
+	return cli.QueryNV("DELETEGROUP", group)
 }
 
 // GetGroup возвращает настройки группы и список её участников (Members).
@@ -39,6 +38,7 @@ func (cli *Cli) GetGroup(group string) (*GroupResult, error) {
 	if group == "" {
 		return nil, fmt.Errorf("group name is required")
 	}
+
 	res, err := cli.Query("GETGROUP", group)
 	if err != nil {
 		return nil, err
@@ -70,11 +70,12 @@ func (cli *Cli) GetGroup(group string) (*GroupResult, error) {
 // IsGroupExists проверяет, существует ли группа.
 func (cli *Cli) IsGroupExists(group string) (bool, error) {
 	if group == "" {
-		return false, nil
+		return false, fmt.Errorf("group name is required")
 	}
-	_, err := cli.Query("GETGROUP", group)
+
+	err := cli.QueryNV("GETGROUP", group)
 	if err != nil {
-		return false, nil
+		return false, err
 	}
 	return true, nil
 }
@@ -100,10 +101,9 @@ func (cli *Cli) ListGroups(domain string) ([]string, error) {
 // RenameGroup переименовывает группу или переносит её в другой домен.
 func (cli *Cli) RenameGroup(oldName, newName string) error {
 	if oldName == "" || newName == "" {
-		return fmt.Errorf("both old and new group names are required")
+		return fmt.Errorf("old and new group names are required")
 	}
-	_, err := cli.Query("RENAMEGROUP", oldName, "INTO", newName)
-	return err
+	return cli.QueryNV("RENAMEGROUP", oldName, "INTO", newName)
 }
 
 // SetGroup заменяет все настройки и список участников группы.
@@ -127,6 +127,5 @@ func (cli *Cli) SetGroup(group string, settings map[string]any, members []string
 		fullData["Members"] = anyMembers
 	}
 
-	_, err := cli.Query("SETGROUP", group, fullData)
-	return err
+	return cli.QueryNV("SETGROUP", group, fullData)
 }

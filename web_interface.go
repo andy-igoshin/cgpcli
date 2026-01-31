@@ -6,7 +6,11 @@ import (
 )
 
 // BlessSession завершает второй этап двухфакторной аутентификации (2FA).
-func (cli *Cli) BlessSession(sessionID string, secret, account string) (err error) {
+func (cli *Cli) BlessSession(sessionID string, secret, account string) error {
+	if sessionID == "" {
+		return fmt.Errorf("sessionID is required")
+	}
+
 	args := make([]any, 0, 5)
 	args = append(args, sessionID)
 	if secret != "" {
@@ -15,34 +19,30 @@ func (cli *Cli) BlessSession(sessionID string, secret, account string) (err erro
 	if account != "" {
 		args = append(args, "AUTH", account)
 	}
-	_, err = cli.Query("BLESSSESSION", args...)
-	return
+	return cli.QueryNV("BLESSSESSION", args...)
 }
 
 // CreateLiteSession создает новую LITE-сессию.
-func (cli *Cli) CreateLiteSession(addr, origAddr string) (string, error) {
+func (cli *Cli) CreateLiteSession(addr, origAddr string) (s string, err error) {
+	if addr == "" {
+		return "", fmt.Errorf("addr is required")
+	}
+
 	const cmd = "CREATELITESESSION"
-	var res any
-	var err error
-
 	if origAddr != "" {
-		res, err = cli.Query(cmd, "ADDRESS", addr, "FOR", origAddr)
+		s, err = cli.getString(cmd, "ADDRESS", addr, "FOR", origAddr)
 	} else {
-		res, err = cli.Query(cmd, "ADDRESS", addr)
+		s, err = cli.getString(cmd, "ADDRESS", addr)
 	}
-
-	if err != nil {
-		return "", err
-	}
-	s, ok := res.(string)
-	if !ok {
-		return "", fmt.Errorf("%s: expected string, got %T", cmd, res)
-	}
-	return s, nil
+	return
 }
 
 // CreateWebUserSession создает сессию WebUser для указанного аккаунта.
 func (cli *Cli) CreateWebUserSession(account, addr, origAddr, skin string) (string, error) {
+	if account == "" || addr == "" {
+		return "", fmt.Errorf("account name and addr are required")
+	}
+
 	const cmd = "CREATEWEBUSERSESSION"
 	args := make([]any, 0, 7)
 	args = append(args, account, "ADDRESS", addr)
@@ -52,42 +52,30 @@ func (cli *Cli) CreateWebUserSession(account, addr, origAddr, skin string) (stri
 	if skin != "" {
 		args = append(args, "SKIN", skin)
 	}
-
-	res, err := cli.Query(cmd, args...)
-	if err != nil {
-		return "", err
-	}
-	s, ok := res.(string)
-	if !ok {
-		return "", fmt.Errorf("%s: expected string, got %T", cmd, res)
-	}
-	return s, nil
+	return cli.getString(cmd, args...)
 }
 
 // CreateXimssSession создает сессию XIMSS для указанного аккаунта.
-func (cli *Cli) CreateXimssSession(account, addr, origAddr string) (string, error) {
+func (cli *Cli) CreateXimssSession(account, addr, origAddr string) (s string, err error) {
+	if account == "" || addr == "" {
+		return "", fmt.Errorf("account name and addr are required")
+	}
+
 	const cmd = "CREATEXIMSSSESSION"
-	var res any
-	var err error
-
 	if origAddr != "" {
-		res, err = cli.Query(cmd, account, "ADDRESS", addr, "FOR", origAddr)
+		s, err = cli.getString(cmd, account, "ADDRESS", addr, "FOR", origAddr)
 	} else {
-		res, err = cli.Query(cmd, account, "ADDRESS", addr)
+		s, err = cli.getString(cmd, account, "ADDRESS", addr)
 	}
-
-	if err != nil {
-		return "", err
-	}
-	s, ok := res.(string)
-	if !ok {
-		return "", fmt.Errorf("%s: expected string, got %T", cmd, res)
-	}
-	return s, nil
+	return
 }
 
 // FindAccountSession ищет существующую сессию аккаунта по заданным критериям.
-func (cli *Cli) FindAccountSession(account, addr, origAddr, protocol, transport, client string) (string, error) {
+func (cli *Cli) FindAccountSession(account, addr, origAddr, protocol, transport, client string) (s string, err error) {
+	if account == "" {
+		return "", fmt.Errorf("account name is required")
+	}
+
 	const cmd = "FINDACCOUNTSESSION"
 	args := make([]any, 0, 11)
 	args = append(args, account)
@@ -106,28 +94,23 @@ func (cli *Cli) FindAccountSession(account, addr, origAddr, protocol, transport,
 	if client != "" {
 		args = append(args, "CLIENT", client)
 	}
-
-	res, err := cli.Query(cmd, args...)
-	if err != nil {
-		return "", err
-	}
-	s, ok := res.(string)
-	if !ok {
-		return "", fmt.Errorf("%s: expected string, got %T", cmd, res)
-	}
-	return s, nil
+	return cli.getString(cmd, args...)
 }
 
 // GetSession возвращает данные сессии в виде словаря.
 func (cli *Cli) GetSession(sessionID, domain string) (map[string]any, error) {
+	if sessionID == "" {
+		return nil, fmt.Errorf("sessionID is required")
+	}
+
 	const cmd = "GETSESSION"
 	var res any
 	var err error
 
-	if domain == "" {
-		res, err = cli.Query(cmd, sessionID)
-	} else {
+	if domain != "" {
 		res, err = cli.Query(cmd, sessionID, "DOMAIN", domain)
+	} else {
+		res, err = cli.Query(cmd, sessionID)
 	}
 
 	if err != nil {
@@ -143,16 +126,24 @@ func (cli *Cli) GetSession(sessionID, domain string) (map[string]any, error) {
 
 // KillSession принудительно завершает сессию.
 func (cli *Cli) KillSession(sessionID, domain string) (err error) {
-	if domain == "" {
-		_, err = cli.Query("KILLSESSION", sessionID)
+	if sessionID == "" {
+		return fmt.Errorf("sessionID is required")
+	}
+
+	if domain != "" {
+		err = cli.QueryNV("KILLSESSION", sessionID, "DOMAIN", domain)
 	} else {
-		_, err = cli.Query("KILLSESSION", sessionID, "DOMAIN", domain)
+		err = cli.QueryNV("KILLSESSION", sessionID)
 	}
 	return
 }
 
 // ListAccountSessions возвращает список ID всех существующих сессий для аккаунта.
 func (cli *Cli) ListAccountSessions(account, addr, origAddr, protocol, transport, client string) ([]string, error) {
+	if account == "" {
+		return nil, fmt.Errorf("account name is required")
+	}
+
 	const cmd = "LISTACCOUNTSESSIONS"
 	args := make([]any, 0, 11)
 	args = append(args, account)
@@ -183,7 +174,6 @@ func (cli *Cli) ListAccountSessions(account, addr, origAddr, protocol, transport
 func (cli *Cli) ListLiteSessions(addr, origAddr string) ([]string, error) {
 	const cmd = "LISTLITESESSIONS"
 	args := make([]any, 0, 4)
-
 	if addr != "" {
 		args = append(args, "ADDRESS", addr)
 		if origAddr != "" {
@@ -200,14 +190,17 @@ func (cli *Cli) ListLiteSessions(addr, origAddr string) ([]string, error) {
 
 // StoreSessionFile сохраняет файл из сессионного набора в File Storage.
 // offset: может быть позицией (>=0) или константами OffsetBeg, OffsetEnd, OffsetNew.
-func (cli *Cli) StoreSessionFile(sessionID, domain, file, uploadID string, offset SessionOffset) (err error) {
+func (cli *Cli) StoreSessionFile(sessionID, domain, file, uploadID string, offset SessionOffset) error {
+	if sessionID == "" || file == "" || uploadID == "" {
+		return fmt.Errorf("sessionID, file name and uploadID are required")
+	}
+
 	args := make([]any, 0, 11)
 	args = append(args, sessionID)
 	if domain != "" {
 		args = append(args, "DOMAIN", domain)
 	}
 	args = append(args, "FILE", file)
-
 	if offset != 0 {
 		args = append(args, "OFFSET")
 		switch offset {
@@ -221,18 +214,16 @@ func (cli *Cli) StoreSessionFile(sessionID, domain, file, uploadID string, offse
 			args = append(args, int(offset))
 		}
 	}
-
 	args = append(args, "UPLOADID", uploadID)
-	_, err = cli.Query("STORESESSIONFILE", args...)
-	return
+	return cli.QueryNV("STORESESSIONFILE", args...)
 }
 
 // UpdateSession изменяет кастомные параметры сессии.
 func (cli *Cli) UpdateSession(sessionID, domain string, data map[string]any) (err error) {
-	if domain == "" {
-		_, err = cli.Query("UPDATESESSION", sessionID, data)
+	if domain != "" {
+		err = cli.QueryNV("UPDATESESSION", sessionID, "DOMAIN", domain, data)
 	} else {
-		_, err = cli.Query("UPDATESESSION", sessionID, "DOMAIN", domain, data)
+		err = cli.QueryNV("UPDATESESSION", sessionID, data)
 	}
 	return
 }

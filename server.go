@@ -164,9 +164,8 @@ func (cli *Cli) GetSMTPSendProfiles() (map[string]any, error) {
 func (cli *Cli) GetWhiteHoleIPs() (IPList, error) { return cli.getIPListTyped("GETWHITEHOLEIPS") }
 func (cli *Cli) ListModules() ([]string, error)   { return cli.getSliceString("LISTMODULES", "") }
 
-func (cli *Cli) RefreshOSData() (err error) {
-	_, err = cli.Query("REFRESHOSDATA")
-	return
+func (cli *Cli) RefreshOSData() error {
+	return cli.QueryNV("REFRESHOSDATA")
 }
 
 func (cli *Cli) Route(address string, mode string) ([]string, error) {
@@ -239,8 +238,7 @@ func (cli *Cli) SetClusterRouterSettings(s map[string]any) error {
 }
 
 func (cli *Cli) SetClusterRouterTable(t string) error {
-	_, err := cli.Query("SETCLUSTERROUTERTABLE", toCGPText(t))
-	return err
+	return cli.QueryNV("SETCLUSTERROUTERTABLE", toCGPText(t))
 }
 
 func (cli *Cli) SetClusterSettings(s map[string]any) error {
@@ -282,9 +280,8 @@ func (cli *Cli) SetRouterSettings(s map[string]any) error {
 	return cli.setMapAny("SETROUTERSETTINGS", "", s)
 }
 
-func (cli *Cli) SetRouterTable(table RouterList) (err error) {
-	_, err = cli.Query("SETROUTERTABLE", table.MarshalCGP())
-	return
+func (cli *Cli) SetRouterTable(table RouterList) error {
+	return cli.QueryNV("SETROUTERTABLE", table.MarshalCGP())
 }
 
 func (cli *Cli) SetServerIntercept(s map[string]any) error {
@@ -325,8 +322,6 @@ func (cli *Cli) UpdateServerSettings(s map[string]any) error {
 	return cli.setMapAny("UPDATESERVERSETTINGS", "", s)
 }
 
-// --- Приватные хелперы ---
-
 func (cli *Cli) getBannedGeneric(cmd string) (*BannedLines, error) {
 	m, err := cli.getMapAny(cmd, "")
 	if err != nil {
@@ -352,7 +347,7 @@ func (cli *Cli) getIPList(cmd string) (string, error) {
 }
 
 func (cli *Cli) getIPListTyped(cmd string) (IPList, error) {
-	raw, err := cli.getIPList(cmd) // Вызывает старый хелпер, возвращающий string
+	raw, err := cli.getIPList(cmd)
 	if err != nil {
 		return nil, err
 	}
@@ -371,8 +366,7 @@ func (cli *Cli) setBannedGeneric(cmd string, lines *BannedLines) error {
 }
 
 func (cli *Cli) setIPList(cmd, list string) error {
-	_, err := cli.Query(cmd, toCGPText(list))
-	return err
+	return cli.QueryNV(cmd, toCGPText(list))
 }
 
 func (cli *Cli) setIPListTyped(cmd string, list IPList) error {

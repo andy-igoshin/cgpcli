@@ -8,17 +8,17 @@ import (
 )
 
 // CreateDirectoryDomain создает новый домен на базе справочника.
-func (cli *Cli) CreateDirectoryDomain(domain string, settings map[string]any) error {
+func (cli *Cli) CreateDirectoryDomain(domain string, settings map[string]any) (err error) {
 	if domain == "" {
 		return fmt.Errorf("domain is required")
 	}
-	args := make([]any, 0, 2)
-	args = append(args, domain)
+	const cmd = "CREATEDIRECTORYDOMAIN"
 	if settings != nil {
-		args = append(args, settings)
+		err = cli.QueryNV(cmd, domain, settings)
+	} else {
+		err = cli.QueryNV(cmd, domain)
 	}
-	_, err := cli.Query("CREATEDIRECTORYDOMAIN", args...)
-	return err
+	return
 }
 
 // CreateDomain создает новый домен.
@@ -26,7 +26,7 @@ func (cli *Cli) CreateDomain(domain string, shared bool, storage string, setting
 	if domain == "" {
 		return fmt.Errorf("domain is required")
 	}
-	args := make([]any, 0, 6)
+	args := make([]any, 0, 5)
 	args = append(args, domain)
 	if shared {
 		args = append(args, "SHARED")
@@ -37,36 +37,35 @@ func (cli *Cli) CreateDomain(domain string, shared bool, storage string, setting
 	if settings != nil {
 		args = append(args, settings)
 	}
-	_, err := cli.Query("CREATEDOMAIN", args...)
-	return err
+	return cli.QueryNV("CREATEDOMAIN", args...)
 }
 
 // CreateDomainStorage создает точку монтирования хранилища.
-func (cli *Cli) CreateDomainStorage(storage string, shared bool) error {
+func (cli *Cli) CreateDomainStorage(storage string, shared bool) (err error) {
 	if storage == "" {
 		return fmt.Errorf("storage path is required")
 	}
-	args := make([]any, 0, 3)
+	const cmd = "CREATEDOMAINSTORAGE"
 	if shared {
-		args = append(args, "SHARED")
+		err = cli.QueryNV(cmd, "SHARED", "PATH", storage)
+	} else {
+		err = cli.QueryNV(cmd, "PATH", storage)
 	}
-	args = append(args, "PATH", storage)
-	_, err := cli.Query("CREATEDOMAINSTORAGE", args...)
-	return err
+	return
 }
 
 // DeleteDomain удаляет домен.
-func (cli *Cli) DeleteDomain(domain string, force bool) error {
+func (cli *Cli) DeleteDomain(domain string, force bool) (err error) {
 	if domain == "" {
 		return fmt.Errorf("domain is required")
 	}
-	args := make([]any, 0, 2)
-	args = append(args, domain)
+	const cmd = "DELETEDOMAIN"
 	if force {
-		args = append(args, "FORCE")
+		err = cli.QueryNV(cmd, domain, "FORCE")
+	} else {
+		err = cli.QueryNV(cmd, domain)
 	}
-	_, err := cli.Query("DELETEDOMAIN", args...)
-	return err
+	return
 }
 
 // GetClusterAccountDefaults возвращает настройки аккаунтов кластера по умолчанию.
@@ -127,11 +126,15 @@ func (cli *Cli) ListClusterTelnums(f string, l int) (map[string]string, error) {
 // ListDomainStorage возвращает список путей хранилища.
 func (cli *Cli) ListDomainStorage(shared bool) ([]string, error) {
 	const cmd = "LISTDOMAINSTORAGE"
-	args := make([]any, 0, 2)
+	var res any
+	var err error
+
 	if shared {
-		args = append(args, "SHARED")
+		res, err = cli.Query(cmd, "SHARED")
+	} else {
+		res, err = cli.Query(cmd)
 	}
-	res, err := cli.Query(cmd, args...)
+
 	if err != nil {
 		return nil, err
 	}
@@ -148,35 +151,26 @@ func (cli *Cli) ListServerTelnums(f string, l int) (map[string]string, error) {
 
 // MainDomainName возвращает имя основного домена.
 func (cli *Cli) MainDomainName() (string, error) {
-	res, err := cli.Query("MAINDOMAINNAME")
-	if err != nil {
-		return "", err
-	}
-	s, ok := res.(string)
-	if !ok {
-		return "", fmt.Errorf("MAINDOMAINNAME: expected string, got %T", res)
-	}
-	return s, nil
+	return cli.getString("MAINDOMAINNAME")
 }
 
 // ReloadDirectoryDomains перезагружает домены из справочника.
 func (cli *Cli) ReloadDirectoryDomains() error {
-	_, err := cli.Query("RELOADDIRECTORYDOMAINS")
-	return err
+	return cli.QueryNV("RELOADDIRECTORYDOMAINS")
 }
 
 // RenameDomain переименовывает домен.
-func (cli *Cli) RenameDomain(oldName, newName string, storage string) error {
+func (cli *Cli) RenameDomain(oldName, newName string, storage string) (err error) {
 	if oldName == "" || newName == "" {
 		return fmt.Errorf("old and new names are required")
 	}
-	args := make([]any, 0, 5)
-	args = append(args, oldName, "INTO", newName)
+	const cmd = "RENAMEDOMAIN"
 	if storage != "" {
-		args = append(args, "PATH", storage)
+		err = cli.QueryNV(cmd, oldName, "INTO", newName, "PATH", storage)
+	} else {
+		err = cli.QueryNV(cmd, oldName, "INTO", newName)
 	}
-	_, err := cli.Query("RENAMEDOMAIN", args...)
-	return err
+	return
 }
 
 // SetClusterAccountDefaults устанавливает настройки аккаунтов кластера.
@@ -259,8 +253,6 @@ func (cli *Cli) UpdateServerAccountPrefs(s map[string]any) error {
 	return cli.setMapAny("UPDATESERVERACCOUNTPREFS", "", s)
 }
 
-// --- Private Methods ---
-
 func (cli *Cli) getTrustedCerts(cmd string) ([]string, error) {
 	res, err := cli.getMapAny(cmd, "")
 	if err != nil {
@@ -321,6 +313,5 @@ func (cli *Cli) setTrustedCerts(cmd string, certs []string) error {
 			prepared = append(prepared, DataBlock(clean))
 		}
 	}
-	_, err := cli.Query(cmd, map[string]any{"TrustedCertificates": prepared})
-	return err
+	return cli.QueryNV(cmd, map[string]any{"TrustedCertificates": prepared})
 }

@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// CreateMailbox создает новый почтовый ящик.
+// CreateMailbox создает папку.
 func (cli *Cli) CreateMailbox(account, mailbox, class, authAccount string) error {
 	if account == "" || mailbox == "" {
 		return fmt.Errorf("account and mailbox names are required")
@@ -19,13 +19,11 @@ func (cli *Cli) CreateMailbox(account, mailbox, class, authAccount string) error
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
-
-	_, err := cli.Query("CREATEMAILBOX", args...)
-	return err
+	return cli.QueryNV("CREATEMAILBOX", args...)
 }
 
-// DeleteMailbox удаляет почтовый ящик (опционально рекурсивно).
-func (cli *Cli) DeleteMailbox(account, mailbox string, recursive bool, authAccount string) error {
+// DeleteMailbox удаляет папку или папки.
+func (cli *Cli) DeleteMailbox(account, mailbox string, recursive bool, authAccount string) (err error) {
 	if account == "" || mailbox == "" {
 		return fmt.Errorf("account and mailbox names are required")
 	}
@@ -34,131 +32,96 @@ func (cli *Cli) DeleteMailbox(account, mailbox string, recursive bool, authAccou
 	if recursive {
 		keyword = "MAILBOXES"
 	}
-
-	args := make([]any, 0, 5)
-	args = append(args, Atom(account), keyword, mailbox)
 	if authAccount != "" {
-		args = append(args, "AUTH", authAccount)
+		err = cli.QueryNV("DELETEMAILBOX", Atom(account), keyword, mailbox, "AUTH", authAccount)
+	} else {
+		err = cli.QueryNV("DELETEMAILBOX", Atom(account), keyword, mailbox)
 	}
-
-	_, err := cli.Query("DELETEMAILBOX", args...)
-	return err
+	return
 }
 
-// GetMailboxACL возвращает список прав доступа (ACL) к ящику.
+// GetMailboxACL возвращает список прав доступа (ACL) к папке.
 func (cli *Cli) GetMailboxACL(account, mailbox, authAccount string) (map[string]string, error) {
 	if account == "" || mailbox == "" {
 		return nil, fmt.Errorf("account and mailbox names are required")
 	}
 
 	const cmd = "GETMAILBOXACL"
-	args := make([]any, 0, 5)
-	args = append(args, Atom(account), "MAILBOX", mailbox)
+	var res any
+	var err error
 	if authAccount != "" {
-		args = append(args, "AUTH", authAccount)
+		res, err = cli.Query(cmd, Atom(account), "MAILBOX", mailbox, "AUTH", authAccount)
+	} else {
+		res, err = cli.Query(cmd, Atom(account), "MAILBOX", mailbox)
 	}
 
-	res, err := cli.Query(cmd, args...)
 	if err != nil {
 		return nil, err
 	}
 
-	dict, ok := res.(map[string]any)
+	m, ok := res.(map[string]any)
 	if !ok {
 		return map[string]string{}, nil
 	}
-
-	acl := make(map[string]string, len(dict))
-	for k, v := range dict {
-		s, err := toString(cmd, v)
-		if err != nil {
-			return nil, err
-		}
-		acl[k] = s
-	}
-	return acl, nil
+	return toStringMap(cmd, m)
 }
 
-// GetMailboxAliases возвращает карту алиасов ящиков для аккаунта.
+// GetMailboxAliases возвращает map алиасов папок.
 func (cli *Cli) GetMailboxAliases(account string) (map[string]string, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
-
-	res, err := cli.Query("GETMAILBOXALIASES", Atom(account))
+	const cmd = "GETMAILBOXALIASES"
+	m, err := cli.getMapAny(cmd, account)
 	if err != nil {
 		return nil, err
 	}
-
-	dict, ok := res.(map[string]any)
-	if !ok {
-		return map[string]string{}, nil
-	}
-
-	aliases := make(map[string]string, len(dict))
-	for k, v := range dict {
-		s, err := toString("GETMAILBOXALIASES", v)
-		if err != nil {
-			return nil, err
-		}
-		aliases[k] = s
-	}
-	return aliases, nil
+	return toStringMap(cmd, m)
 }
 
-// GetMailboxInfo возвращает техническую информацию о ящике (размер, кол-во писем и т.д.).
+// GetMailboxInfo возвращает информацию о папке (размер, количество писем и т.д.).
 func (cli *Cli) GetMailboxInfo(account, mailbox, authAccount string) (map[string]any, error) {
 	if account == "" || mailbox == "" {
 		return nil, fmt.Errorf("account and mailbox names are required")
 	}
-
-	args := make([]any, 0, 5)
-	args = append(args, Atom(account), "MAILBOX", mailbox)
+	const cmd = "GETMAILBOXINFO"
+	var res any
+	var err error
 	if authAccount != "" {
-		args = append(args, "AUTH", authAccount)
+		res, err = cli.Query(cmd, Atom(account), "MAILBOX", mailbox, "AUTH", authAccount)
+	} else {
+		res, err = cli.Query(cmd, Atom(account), "MAILBOX", mailbox)
 	}
 
-	res, err := cli.Query("GETMAILBOXINFO", args...)
 	if err != nil {
 		return nil, err
 	}
 
-	dict, ok := res.(map[string]any)
+	m, ok := res.(map[string]any)
 	if !ok {
 		return map[string]any{}, nil
 	}
-	return dict, nil
+
+	return m, nil
 }
 
-// GetMailboxRights возвращает итоговые (эффективные) права конкретного пользователя.
+// GetMailboxRights возвращает эффективные права доступа к папке.
 func (cli *Cli) GetMailboxRights(account, mailbox, authAccount string) (string, error) {
 	if account == "" || mailbox == "" || authAccount == "" {
 		return "", fmt.Errorf("account, mailbox and authAccount names are required")
 	}
-
-	res, err := cli.Query("GETMAILBOXRIGHTS", Atom(account), "MAILBOX", mailbox, "AUTH", authAccount)
-	if err != nil {
-		return "", err
-	}
-
-	return toString("GETMAILBOXRIGHTS", res)
+	return cli.getString("GETMAILBOXRIGHTS", Atom(account), "MAILBOX", mailbox, "AUTH", authAccount)
 }
 
-// GetMailboxSubscription возвращает список ящиков, на которые подписан пользователь.
+// GetMailboxSubscription возвращает список папок, на которые подписан аккаунт.
 func (cli *Cli) GetMailboxSubscription(account string) ([]string, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
-
-	res, err := cli.Query("GETMAILBOXSUBSCRIPTION", Atom(account))
-	if err != nil {
-		return nil, err
-	}
-
-	return toStringSlice("GETMAILBOXSUBSCRIPTION", res)
+	return cli.getSliceString("GETMAILBOXSUBSCRIPTION", account)
 }
 
-// ListMailboxes возвращает дерево ящиков аккаунта с метаданными.
+// ListMailboxes возвращает дерево папок аккаунта с метаданными.
 func (cli *Cli) ListMailboxes(account, filter, authAccount string) (map[string]any, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -178,82 +141,74 @@ func (cli *Cli) ListMailboxes(account, filter, authAccount string) (map[string]a
 		return nil, err
 	}
 
-	dict, ok := res.(map[string]any)
+	m, ok := res.(map[string]any)
 	if !ok {
 		return map[string]any{}, nil
 	}
-	return dict, nil
+	return m, nil
 }
 
 // RenameMailbox переименовывает ящик (опционально включая вложенные).
-func (cli *Cli) RenameMailbox(account, oldName, newName string, recursive bool, authAccount string) error {
+func (cli *Cli) RenameMailbox(account, oldName, newName string, recursive bool, authAccount string) (err error) {
 	if account == "" || oldName == "" || newName == "" {
 		return fmt.Errorf("account, old and new names are required")
 	}
 
+	const cmd = "RENAMEMAILBOX"
 	keyword := "MAILBOX"
 	if recursive {
 		keyword = "MAILBOXES"
 	}
-
-	args := make([]any, 0, 7)
-	args = append(args, Atom(account), keyword, oldName, "INTO", newName)
 	if authAccount != "" {
-		args = append(args, "AUTH", authAccount)
+		err = cli.QueryNV(cmd, Atom(account), keyword, oldName, "INTO", newName, "AUTH", authAccount)
+	} else {
+		err = cli.QueryNV(cmd, Atom(account), keyword, oldName, "INTO", newName)
 	}
-
-	_, err := cli.Query("RENAMEMAILBOX", args...)
-	return err
+	return
 }
 
 // SetMailboxACL модифицирует права доступа (поддерживает префиксы + и -).
-func (cli *Cli) SetMailboxACL(account, mailbox, authAccount string, newACL map[string]string) error {
-	if account == "" || mailbox == "" || len(newACL) == 0 {
-		return fmt.Errorf("account, mailbox and non-empty newACL are required")
+func (cli *Cli) SetMailboxACL(account, mailbox, authAccount string, acl map[string]string) (err error) {
+	if account == "" || mailbox == "" || len(acl) == 0 {
+		return fmt.Errorf("account, mailbox and non-empty acl are required")
 	}
 
-	args := make([]any, 0, 7)
-	args = append(args, Atom(account), "MAILBOX", mailbox)
+	const cmd = "SETMAILBOXACL"
 	if authAccount != "" {
-		args = append(args, "AUTH", authAccount)
+		err = cli.QueryNV(cmd, Atom(account), "MAILBOX", mailbox, "AUTH", authAccount, acl)
+	} else {
+		err = cli.QueryNV(cmd, Atom(account), "MAILBOX", mailbox, acl)
 	}
-	args = append(args, newACL)
-
-	_, err := cli.Query("SETMAILBOXACL", args...)
-	return err
+	return
 }
 
 // SetMailboxAliases полностью перезаписывает список алиасов ящиков.
-func (cli *Cli) SetMailboxAliases(account string, newAliases map[string]string) error {
+func (cli *Cli) SetMailboxAliases(account string, aliases map[string]string) error {
 	if account == "" {
 		return fmt.Errorf("account name is required")
 	}
-	_, err := cli.Query("SETMAILBOXALIASES", Atom(account), newAliases)
-	return err
+	return cli.QueryNV("SETMAILBOXALIASES", Atom(account), aliases)
 }
 
 // SetMailboxClass изменяет класс ящика (например, на IPF.Appointment).
-func (cli *Cli) SetMailboxClass(account, mailbox, newClass, authAccount string) error {
-	if account == "" || mailbox == "" || newClass == "" {
-		return fmt.Errorf("account, mailbox and newClass are required")
+func (cli *Cli) SetMailboxClass(account, mailbox, class, authAccount string) (err error) {
+	if account == "" || mailbox == "" || class == "" {
+		return fmt.Errorf("account, mailbox and class are required")
 	}
 
-	args := make([]any, 0, 7)
-	args = append(args, Atom(account), "MAILBOX", mailbox)
+	const cmd = "SETMAILBOXCLASS"
 	if authAccount != "" {
-		args = append(args, "AUTH", authAccount)
+		err = cli.QueryNV(cmd, Atom(account), "MAILBOX", mailbox, "AUTH", authAccount, "CLASS", class)
+	} else {
+		err = cli.QueryNV(cmd, Atom(account), "MAILBOX", mailbox, "CLASS", class)
 	}
-	args = append(args, "CLASS", newClass)
-
-	_, err := cli.Query("SETMAILBOXCLASS", args...)
-	return err
+	return
 }
 
 // SetMailboxSubscription полностью перезаписывает список подписок пользователя.
-func (cli *Cli) SetMailboxSubscription(account string, newSub []string) error {
+func (cli *Cli) SetMailboxSubscription(account string, subs []string) error {
 	if account == "" {
 		return fmt.Errorf("account name is required")
 	}
-	_, err := cli.Query("SETMAILBOXSUBSCRIPTION", Atom(account), newSub)
-	return err
+	return cli.QueryNV("SETMAILBOXSUBSCRIPTION", Atom(account), subs)
 }

@@ -6,12 +6,11 @@ import (
 )
 
 // KillNode принудительно завершает выполнение PBX-задачи.
-func (cli *Cli) KillNode(taskID string) (err error) {
+func (cli *Cli) KillNode(taskID string) error {
 	if taskID == "" {
 		return fmt.Errorf("taskID is required")
 	}
-	_, err = cli.Query("KILLNODE", taskID)
-	return
+	return cli.QueryNV("KILLNODE", taskID)
 }
 
 // ReadNodeStatus возвращает текущий статус приложения для указанной задачи.
@@ -29,9 +28,9 @@ func (cli *Cli) SendTaskEvent(taskID, event string, param any) (err error) {
 	}
 	const cmd = "SENDTASKEVENT"
 	if param != nil {
-		_, err = cli.Query(cmd, taskID, "EVENT", event, "PARAM", param)
+		err = cli.QueryNV(cmd, taskID, "EVENT", event, "PARAM", param)
 	} else {
-		_, err = cli.Query(cmd, taskID, "EVENT", event)
+		err = cli.QueryNV(cmd, taskID, "EVENT", event)
 	}
 	return
 }
@@ -51,14 +50,5 @@ func (cli *Cli) StartPBXTask(account, program, entry string, param any) (string,
 		args = append(args, "PARAM", param)
 	}
 
-	res, err := cli.Query("STARTPBXTASK", args...)
-	if err != nil {
-		return "", err
-	}
-
-	taskID, ok := res.(string)
-	if !ok {
-		return "", fmt.Errorf("STARTPBXTASK: expected string response (taskID), got %T", res)
-	}
-	return taskID, nil
+	return cli.getString("STARTPBXTASK", args...)
 }

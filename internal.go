@@ -30,7 +30,6 @@ func (cli *Cli) getMapAny(cmd string, subject string) (map[string]any, error) {
 	return m, nil
 }
 
-// getSliceAny — строгое получение списка ([]any) от сервера.
 func (cli *Cli) getSliceAny(cmd string, subject string) ([]any, error) {
 	var res any
 	var err error
@@ -71,26 +70,8 @@ func (cli *Cli) getSliceString(cmd string, subject string) ([]string, error) {
 	return res, nil
 }
 
-func (cli *Cli) getString(cmd string, args ...string) (string, error) {
-	var res any
-	var err error
-
-	switch len(args) {
-	case 0:
-		res, err = cli.Query(cmd)
-	case 1:
-		res, err = cli.Query(cmd, args[0])
-	case 2:
-		res, err = cli.Query(cmd, args[0], args[1])
-	default:
-		// Конвертируем []string в []any только здесь
-		params := make([]any, len(args))
-		for i, v := range args {
-			params[i] = v
-		}
-		res, err = cli.Query(cmd, params...)
-	}
-
+func (cli *Cli) getString(cmd string, args ...any) (string, error) {
+	res, err := cli.Query(cmd, args...)
 	if err != nil {
 		return "", err
 	}
@@ -103,18 +84,17 @@ func (cli *Cli) getString(cmd string, args ...string) (string, error) {
 }
 
 // setMapAny — строгая отправка словаря данных (SET, UPDATE, MODIFY).
-func (cli *Cli) setMapAny(cmd string, subject string, data map[string]any) error {
+func (cli *Cli) setMapAny(cmd string, subject string, data map[string]any) (err error) {
 	if data == nil {
 		return fmt.Errorf("%s: data map is nil", cmd)
 	}
 
-	var err error
 	if subject != "" {
-		_, err = cli.Query(cmd, Atom(subject), data)
+		err = cli.QueryNV(cmd, Atom(subject), data)
 	} else {
-		_, err = cli.Query(cmd, data)
+		err = cli.QueryNV(cmd, data)
 	}
-	return err
+	return
 }
 
 // toAnySlice — безопасное приведение к слайсу для вложенных данных (Rules).
