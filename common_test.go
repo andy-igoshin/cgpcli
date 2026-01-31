@@ -6,6 +6,21 @@ import (
 	"testing"
 )
 
+// getTestCli базовый файл тестов.
+func getTestCli(t *testing.T) *Cli {
+	cgpuser := os.Getenv("CGPUSER")
+	cgppass := os.Getenv("CGPPASS")
+	if cgpuser == "" || cgppass == "" {
+		t.Skip("CGPUSER or CGPPASS not set, skipping integration test")
+	}
+	// Используем APOP для безопасности в тестах
+	cli, err := New("127.0.0.1", cgpuser, cgppass, APOP, false)
+	if err != nil {
+		t.Fatalf("Connection failed: %v", err)
+	}
+	return cli
+}
+
 func TestNew_host_fail(t *testing.T) {
 	cgpuser := os.Getenv("CGPUSER")
 	cgppass := os.Getenv("CGPPASS")
