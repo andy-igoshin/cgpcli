@@ -7,8 +7,8 @@ import (
 )
 
 func TestMailboxes(t *testing.T) {
-        cli := getTestCli(t)
-        defer cli.Logout()
+	cli := getTestCli(t)
+	defer cli.Logout()
 
 	// Используем существующий тестовый домен
 	testAcc := "testuser1@test.domain.name"

@@ -7,8 +7,8 @@ import (
 )
 
 func TestIntegration_Directory_AccessRights(t *testing.T) {
-        cli := getTestCli(t)
-        defer cli.Logout()
+	cli := getTestCli(t)
+	defer cli.Logout()
 
 	t.Run("Verify Structure and Expert Parsing", func(t *testing.T) {
 		rights, err := cli.GetDirectoryAccessRights(false)
@@ -47,8 +47,8 @@ func TestIntegration_Directory_AccessRights(t *testing.T) {
 }
 
 func TestIntegration_Directory_Units(t *testing.T) {
-        cli := getTestCli(t)
-        defer cli.Logout()
+	cli := getTestCli(t)
+	defer cli.Logout()
 
 	// Используем уникальное имя для каждого запуска теста,
 	// чтобы избежать "хвостов" от предыдущих падений.

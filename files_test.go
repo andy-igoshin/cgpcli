@@ -8,8 +8,8 @@ import (
 )
 
 func TestIntegration_StorageFiles(t *testing.T) {
-        cli := getTestCli(t)
-        defer cli.Logout()
+	cli := getTestCli(t)
+	defer cli.Logout()
 
 	// Используем технический аккаунт песочницы (например, postmaster)
 	account := "postmaster"

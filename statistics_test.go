@@ -5,8 +5,8 @@ import (
 )
 
 func TestStatistics(t *testing.T) {
-        cli := getTestCli(t)
-        defer cli.Logout()
+	cli := getTestCli(t)
+	defer cli.Logout()
 
 	// Используем текущий аккаунт для тестов
 	testAcc := "*"

@@ -6,8 +6,8 @@ import (
 )
 
 func TestWebSkins_Integration(t *testing.T) {
-        cli := getTestCli(t)
-        defer cli.Logout()
+	cli := getTestCli(t)
+	defer cli.Logout()
 
 	const (
 		testDomain  = "test.domain.name"

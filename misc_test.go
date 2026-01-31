@@ -7,8 +7,8 @@ import (
 )
 
 func TestMiscellaneousLive(t *testing.T) {
-        cli := getTestCli(t)
-        defer cli.Logout()
+	cli := getTestCli(t)
+	defer cli.Logout()
 
 	// --- Информационные команды ---
 	t.Run("SystemInfo", func(t *testing.T) {

@@ -5,8 +5,8 @@ import (
 )
 
 func TestPBXControl_Integration(t *testing.T) {
-        cli := getTestCli(t)
-        defer cli.Logout()
+	cli := getTestCli(t)
+	defer cli.Logout()
 
 	const (
 		testAccount = "postmaster"

@@ -5,8 +5,8 @@ import (
 )
 
 func TestDomainAdministration(t *testing.T) {
-        cli := getTestCli(t)
-        defer cli.Logout()
+	cli := getTestCli(t)
+	defer cli.Logout()
 
 	// Используем существующий домен или главный
 	targetDomain := "test.domain.name"
@@ -144,8 +144,8 @@ func TestDomainAdministration(t *testing.T) {
 }
 
 func TestDomainAliasesTypeJuggling(t *testing.T) {
-        cli := getTestCli(t)
-        defer cli.Logout()
+	cli := getTestCli(t)
+	defer cli.Logout()
 
 	tempDomain := "type-test.local"
 	// 1. Создаем домен для теста (если его нет)

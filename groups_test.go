@@ -7,8 +7,8 @@ import (
 )
 
 func TestGroups(t *testing.T) {
-        cli := getTestCli(t)
-        defer cli.Logout()
+	cli := getTestCli(t)
+	defer cli.Logout()
 
 	domain := "test.domain.name"
 	// Уникальное имя группы для каждого запуска

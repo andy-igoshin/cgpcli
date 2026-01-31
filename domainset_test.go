@@ -20,8 +20,8 @@ func cleanPEM(pem string) string {
 }
 
 func TestDomainSetAdministration(t *testing.T) {
-        cli := getTestCli(t)
-        defer cli.Logout()
+	cli := getTestCli(t)
+	defer cli.Logout()
 
 	// --- Списки и инфо ---
 	t.Run("BasicLists", func(t *testing.T) {
@@ -75,8 +75,8 @@ func TestDomainSetAdministration(t *testing.T) {
 }
 
 func TestTrustedCertsLive(t *testing.T) {
-        cli := getTestCli(t)
-        defer cli.Logout()
+	cli := getTestCli(t)
+	defer cli.Logout()
 
 	testCert := `-----BEGIN CERTIFICATE-----
 MIIDlTCCAn2gAwIBAgIUeRPaboVA3C6FPU1Jw1Lz31UnpkIwDQYJKoZIhvcNAQEL
