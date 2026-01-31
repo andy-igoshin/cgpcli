@@ -1,7 +1,6 @@
 package cgpcli
 
 import (
-	"os"
 	"reflect"
 	"testing"
 )

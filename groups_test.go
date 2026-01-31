@@ -2,25 +2,13 @@ package cgpcli
 
 import (
 	"fmt"
-	"os"
 	"testing"
 	"time"
 )
 
 func TestGroups(t *testing.T) {
-	host := os.Getenv("CGPHOST")
-	user := os.Getenv("CGPUSER")
-	pass := os.Getenv("CGPPASS")
-
-	if host == "" || user == "" || pass == "" {
-		t.Skip("CGPHOST, CGPUSER or CGPPASS not set")
-	}
-
-	cli, err := New(host, user, pass, APOP, false)
-	if err != nil {
-		t.Fatalf("Failed to connect: %v", err)
-	}
-	defer cli.Logout()
+        cli := getTestCli(t)
+        defer cli.Logout()
 
 	domain := "test.domain.name"
 	// Уникальное имя группы для каждого запуска

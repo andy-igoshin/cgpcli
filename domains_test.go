@@ -1,23 +1,12 @@
 package cgpcli
 
 import (
-	"os"
 	"testing"
 )
 
 func TestDomainAdministration(t *testing.T) {
-	host := os.Getenv("CGPHOST")
-	user := os.Getenv("CGPUSER")
-	pass := os.Getenv("CGPPASS")
-	if host == "" {
-		t.Skip("Sandbox environment (CGPHOST) not configured")
-	}
-
-	cli, err := New(host, user, pass, APOP, false)
-	if err != nil {
-		t.Fatalf("Connect failed: %v", err)
-	}
-	defer cli.Logout()
+        cli := getTestCli(t)
+        defer cli.Logout()
 
 	// Используем существующий домен или главный
 	targetDomain := "test.domain.name"
@@ -155,15 +144,8 @@ func TestDomainAdministration(t *testing.T) {
 }
 
 func TestDomainAliasesTypeJuggling(t *testing.T) {
-	host := os.Getenv("CGPHOST")
-	user := os.Getenv("CGPUSER")
-	pass := os.Getenv("CGPPASS")
-	if host == "" {
-		t.Skip("Sandbox environment not configured")
-	}
-
-	cli, _ := New(host, user, pass, APOP, false)
-	defer cli.Logout()
+        cli := getTestCli(t)
+        defer cli.Logout()
 
 	tempDomain := "type-test.local"
 	// 1. Создаем домен для теста (если его нет)

@@ -2,7 +2,6 @@ package cgpcli
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -21,18 +20,8 @@ func cleanPEM(pem string) string {
 }
 
 func TestDomainSetAdministration(t *testing.T) {
-	host := os.Getenv("CGPHOST")
-	user := os.Getenv("CGPUSER")
-	pass := os.Getenv("CGPPASS")
-	if host == "" {
-		t.Skip("Sandbox environment (CGPHOST) not configured")
-	}
-
-	cli, err := New(host, user, pass, APOP, false)
-	if err != nil {
-		t.Fatalf("Connect failed: %v", err)
-	}
-	defer cli.Logout()
+        cli := getTestCli(t)
+        defer cli.Logout()
 
 	// --- Списки и инфо ---
 	t.Run("BasicLists", func(t *testing.T) {
@@ -86,16 +75,8 @@ func TestDomainSetAdministration(t *testing.T) {
 }
 
 func TestTrustedCertsLive(t *testing.T) {
-	host := os.Getenv("CGPHOST")
-	if host == "" {
-		t.Skip("Sandbox environment (CGPHOST) not configured")
-	}
-
-	cli, err := New(host, os.Getenv("CGPUSER"), os.Getenv("CGPPASS"), APOP, false)
-	if err != nil {
-		t.Fatalf("Connect failed: %v", err)
-	}
-	defer cli.Logout()
+        cli := getTestCli(t)
+        defer cli.Logout()
 
 	testCert := `-----BEGIN CERTIFICATE-----
 MIIDlTCCAn2gAwIBAgIUeRPaboVA3C6FPU1Jw1Lz31UnpkIwDQYJKoZIhvcNAQEL

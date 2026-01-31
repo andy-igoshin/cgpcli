@@ -1,23 +1,12 @@
 package cgpcli
 
 import (
-	"os"
 	"testing"
 )
 
 func TestStatistics(t *testing.T) {
-	// Инициализация из окружения
-	cgpuser := os.Getenv("CGPUSER")
-	cgppass := os.Getenv("CGPPASS")
-	if cgpuser == "" || cgppass == "" {
-		t.Skip("CGPUSER or CGPPASS not set")
-	}
-
-	cli, err := New("127.0.0.1", cgpuser, cgppass, APOP, false)
-	if err != nil {
-		t.Fatalf("Failed to connect: %v", err)
-	}
-	defer cli.Logout()
+        cli := getTestCli(t)
+        defer cli.Logout()
 
 	// Используем текущий аккаунт для тестов
 	testAcc := "*"

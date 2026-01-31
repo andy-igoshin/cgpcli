@@ -1,24 +1,12 @@
 package cgpcli
 
 import (
-	"os"
 	"testing"
 )
 
 func TestMailingLists_Integration(t *testing.T) {
-	host := os.Getenv("CGPHOST")
-	user := os.Getenv("CGPUSER")
-	pass := os.Getenv("CGPPASS")
-
-	if host == "" {
-		t.Skip("Sandbox environment (CGPHOST) not configured")
-	}
-
-	cli, err := New(host, user, pass, APOP, false)
-	if err != nil {
-		t.Fatalf("Connect failed: %v", err)
-	}
-	defer cli.Logout()
+        cli := getTestCli(t)
+        defer cli.Logout()
 
 	const (
 		testDomain = "test.domain.name"

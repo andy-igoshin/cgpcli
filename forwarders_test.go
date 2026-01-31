@@ -2,25 +2,13 @@ package cgpcli
 
 import (
 	"fmt"
-	"os"
 	"testing"
 	"time"
 )
 
 func TestForwarders(t *testing.T) {
-	host := os.Getenv("CGPHOST")
-	user := os.Getenv("CGPUSER")
-	pass := os.Getenv("CGPPASS")
-
-	if host == "" || user == "" || pass == "" {
-		t.Skip("CGP credentials not set")
-	}
-
-	cli, err := New(host, user, pass, APOP, false)
-	if err != nil {
-		t.Fatalf("Connect failed: %v", err)
-	}
-	defer cli.Logout()
+        cli := getTestCli(t)
+        defer cli.Logout()
 
 	domain := "test.domain.name"
 	ts := time.Now().Unix()

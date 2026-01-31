@@ -2,24 +2,13 @@ package cgpcli
 
 import (
 	"net"
-	"os"
 	"testing"
 	"time"
 )
 
 func TestMiscellaneousLive(t *testing.T) {
-	host := os.Getenv("CGPHOST")
-	user := os.Getenv("CGPUSER")
-	pass := os.Getenv("CGPPASS")
-	if host == "" {
-		t.Skip("Sandbox environment (CGPHOST) not configured")
-	}
-
-	cli, err := New(host, user, pass, APOP, false)
-	if err != nil {
-		t.Fatalf("Connect failed: %v", err)
-	}
-	defer cli.Logout()
+        cli := getTestCli(t)
+        defer cli.Logout()
 
 	// --- Информационные команды ---
 	t.Run("SystemInfo", func(t *testing.T) {

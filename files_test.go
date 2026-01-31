@@ -3,20 +3,16 @@ package cgpcli
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 )
 
 func TestIntegration_StorageFiles(t *testing.T) {
-	cli := setupSandbox(t)
-	defer cli.Logout()
+        cli := getTestCli(t)
+        defer cli.Logout()
 
 	// Используем технический аккаунт песочницы (например, postmaster)
-	account := os.Getenv("CGPUSER")
-	if account == "" {
-		account = "postmaster"
-	}
+	account := "postmaster"
 
 	// Уникальное имя файла для изоляции
 	fileName := fmt.Sprintf("test_file_%d.bin", time.Now().UnixNano()%10000)

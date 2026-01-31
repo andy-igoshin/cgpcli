@@ -2,27 +2,19 @@ package cgpcli
 
 import (
 	"fmt"
-	"os"
 	"testing"
 	"time"
 )
 
 func TestAccountRights(t *testing.T) {
-	host := os.Getenv("CGPHOST")
-	user := os.Getenv("CGPUSER")
-	pass := os.Getenv("CGPPASS")
-
-	cli, err := New(host, user, pass, APOP, false)
-	if err != nil {
-		t.Fatalf("Connect failed: %v", err)
-	}
-	defer cli.Logout()
+        cli := getTestCli(t)
+        defer cli.Logout()
 
 	// Создаем временного "админа" для теста
 	domain := "test.domain.name"
 	testAcc := fmt.Sprintf("test-admin-%d@%s", time.Now().Unix(), domain)
 
-	err = cli.CreateAccount(testAcc, nil, MultiMailbox, "", false)
+	err := cli.CreateAccount(testAcc, nil, MultiMailbox, "", false)
 	if err != nil {
 		t.Fatalf("Failed to create test account: %v", err)
 	}
