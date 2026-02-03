@@ -142,9 +142,9 @@ func (cli *Cli) ListSubscribers(list, filter string, limit int) ([]string, error
 	args = append(args, list)
 	if filter != "" {
 		args = append(args, "FILTER", filter)
-	}
-	if limit > 0 {
-		args = append(args, limit)
+		if limit > 0 {
+			args = append(args, limit)
+		}
 	}
 	res, err := cli.Query(cmd, args...)
 	if err != nil {
@@ -178,9 +178,9 @@ func (cli *Cli) ReadSubscribers(list, filter string, limit int) ([]SubscriberInf
 	args = append(args, list)
 	if filter != "" {
 		args = append(args, "FILTER", filter)
-	}
-	if limit > 0 {
-		args = append(args, limit)
+		if limit > 0 {
+			args = append(args, limit)
+		}
 	}
 
 	res, err := cli.Query("READSUBSCRIBERS", args...)
@@ -218,11 +218,17 @@ func (cli *Cli) RenameList(list, newName string) error {
 }
 
 // SetPostingMode устанавливает режим модерации/прав публикации для подписчика.
-func (cli *Cli) SetPostingMode(list, subscriber string, mode any) error {
+func (cli *Cli) SetPostingMode(list, subscriber string, mode any) (err error) {
 	if list == "" || subscriber == "" {
 		return fmt.Errorf("list name and subscriber address are required")
 	}
-	return cli.QueryNV("SETPOSTINGMODE", list, "FOR", subscriber, mode)
+
+	if mode != nil {
+		err = cli.QueryNV("SETPOSTINGMODE", list, "FOR", subscriber, mode)
+	} else {
+		err = cli.QueryNV("SETPOSTINGMODE", list, "FOR", subscriber)
+	}
+	return
 }
 
 // UpdateList модифицирует настройки списка. Текст с \n автоматически конвертируется в \e.
