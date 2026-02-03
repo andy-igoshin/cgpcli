@@ -7,7 +7,6 @@ import (
 	"crypto/tls"
 	"encoding/hex"
 	"fmt"
-	"io"
 	"net"
 	"os"
 	"time"
@@ -79,23 +78,25 @@ func (cli *Cli) IsSuccess() bool {
 	return (cli.respCode == CodeOk || cli.respCode == CodeOkInline)
 }
 
-func (cli *Cli) Logout() (err error) {
-
-	if cli.conn != nil {
-		cli.writer.Write(cmdQUIT)
-		if err = cli.writer.Flush(); err != nil {
-			cli.close()
-			return
-		}
-		err = cli.parseResponse()
-		if err != nil && err != io.EOF {
-			cli.close()
-			return
-		}
-		cli.close()
+func (cli *Cli) Close() (err error) {
+	if cli.conn == nil {
+		return nil
 	}
 
+	cli.writer.Write(cmdQUIT)
+	if err = cli.writer.Flush(); err != nil {
+		cli.close()
+		return
+	}
+
+	_ = cli.parseResponse()
+
+	cli.close()
 	return
+}
+
+func (cli *Cli) Logout() error {
+	return cli.Close()
 }
 
 func New(host, login, password string, secure Secure, tls bool) (cli *Cli, err error) {
