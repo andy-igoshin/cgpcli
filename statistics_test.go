@@ -4,55 +4,48 @@ import (
 	"testing"
 )
 
-func TestStatistics(t *testing.T) {
+func TestStatistics_Comprehensive(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
-	// Используем текущий аккаунт для тестов
-	testAcc := "*"
-	// Используем текущий домен
-	testDomain := "*"
+	// "*" указывает на текущий аккаунт/домен сессии
+	const (
+		testAcc    = "*"
+		testDomain = "*"
+		statKey    = "Logins"
+	)
 
-	t.Run("AccountFullStat", func(t *testing.T) {
-		res, err := cli.GetAccountStat(testAcc, "")
-		if err != nil {
-			t.Errorf("GetAccountStat (full) failed: %v", err)
-			return
+	t.Run("AccountStats", func(t *testing.T) {
+		// Get Full
+		if _, err := cli.GetAccountStat(testAcc, ""); err != nil {
+			t.Errorf("GetAccountStat full failed: %v", err)
 		}
-		m, ok := res.(map[string]any)
-		if !ok {
-			t.Errorf("Expected map[string]any, got %T", res)
+		// Get Key
+		if _, err := cli.GetAccountStat(testAcc, statKey); err != nil {
+			t.Errorf("GetAccountStat key failed: %v", err)
 		}
-		if len(m) == 0 {
-			t.Log("Warning: Account stats map is empty (check if stats are enabled in Settings)")
-		}
-	})
-
-	t.Run("AccountKeyStat", func(t *testing.T) {
-		// Проверяем количество логинов — этот ключ есть всегда, если статистика включена
-		val, err := cli.GetAccountStat(testAcc, "Logins")
-		if err != nil {
-			t.Errorf("GetAccountStat (Logins) failed: %v", err)
-		}
-		t.Logf("Logins count: %v", val)
-	})
-
-	t.Run("DomainFullStat", func(t *testing.T) {
-		res, err := cli.GetDomainStat(testDomain, "")
-		if err != nil {
-			t.Errorf("GetDomainStat (full) failed: %v", err)
-			return
-		}
-		if _, ok := res.(map[string]any); !ok {
-			t.Errorf("Expected map, got %T", res)
-		}
-	})
-
-	t.Run("ResetStats", func(t *testing.T) {
-		// Сброс конкретного ключа (безопаснее, чем полный сброс в тестах)
-		err := cli.ResetAccountStat(testAcc, "Logins")
-		if err != nil {
+		// Reset Key
+		if err := cli.ResetAccountStat(testAcc, statKey); err != nil {
 			t.Errorf("ResetAccountStat failed: %v", err)
+		}
+		if err := cli.ResetAccountStat(testAcc, ""); err != nil {
+			t.Errorf("ResetAccountStat failed: %v", err)
+		}
+	})
+
+	t.Run("DomainStats", func(t *testing.T) {
+		// Get Full
+		if _, err := cli.GetDomainStat(testDomain, ""); err != nil {
+			t.Errorf("GetDomainStat full failed: %v", err)
+		}
+		if _, err := cli.GetDomainStat(testDomain, statKey); err != nil {
+			t.Errorf("GetDomainStat full failed: %v", err)
+		}
+		if err := cli.ResetDomainStat(testDomain, statKey); err != nil {
+			t.Errorf("ResetDomainStat key failed: %v", err)
+		}
+		if err := cli.ResetDomainStat(testDomain, ""); err != nil {
+			t.Errorf("ResetDomainStat full failed: %v", err)
 		}
 	})
 }

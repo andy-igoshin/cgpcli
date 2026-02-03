@@ -6,7 +6,7 @@ import (
 
 func TestDomainAdministration(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
 	// Используем существующий домен или главный
 	targetDomain := "test.domain.name"
@@ -145,7 +145,7 @@ func TestDomainAdministration(t *testing.T) {
 
 func TestDomainAliasesTypeJuggling(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
 	tempDomain := "type-test.local"
 	// 1. Создаем домен для теста (если его нет)
@@ -189,4 +189,105 @@ func TestDomainAliasesTypeJuggling(t *testing.T) {
 
 	// Удаляем тестовый домен
 	_, _ = cli.Query("DELETEDOMAIN", tempDomain)
+}
+
+func TestDomainAdministration_Extra(t *testing.T) {
+	cli := getTestCli(t)
+	defer cli.Close()
+
+	targetDomain := "test.domain.name"
+
+	t.Run("EffectiveAndExists", func(t *testing.T) {
+		// IsDomainExists
+		exists, err := cli.IsDomainExists(targetDomain)
+		if err != nil || !exists {
+			t.Errorf("IsDomainExists failed: exists=%v, err=%v", exists, err)
+		}
+
+		// GetDomainEffectiveSettings
+		eff, err := cli.GetDomainEffectiveSettings(targetDomain)
+		if err != nil {
+			t.Fatalf("GetDomainEffectiveSettings failed: %v", err)
+		}
+		if len(eff) == 0 {
+			t.Error("Effective settings map is empty")
+		}
+	})
+
+	t.Run("Rules", func(t *testing.T) {
+		// Mail Rules
+		origMail, err := cli.GetDomainMailRules(targetDomain)
+		if err != nil {
+			t.Fatalf("GetDomainMailRules failed: %v", err)
+		}
+		// Пытаемся установить (можно тот же список)
+		if err := cli.SetDomainMailRules(targetDomain, origMail); err != nil {
+			t.Errorf("SetDomainMailRules failed: %v", err)
+		}
+
+		// Signal Rules
+		origSignal, err := cli.GetDomainSignalRules(targetDomain)
+		if err != nil {
+			t.Fatalf("GetDomainSignalRules failed: %v", err)
+		}
+		if err := cli.SetDomainSignalRules(targetDomain, origSignal); err != nil {
+			t.Errorf("SetDomainSignalRules failed: %v", err)
+		}
+	})
+
+	t.Run("DefaultPrefsAndTemplates", func(t *testing.T) {
+		// Работа с Account Default Prefs
+		prefs, err := cli.GetAccountDefaultPrefs(targetDomain)
+		if err != nil {
+			t.Fatalf("GetAccountDefaultPrefs failed: %v", err)
+		}
+
+		// Update (добавляем/меняем язык по умолчанию)
+		update := map[string]any{"Language": "English"}
+		if err := cli.UpdateAccountDefaultPrefs(targetDomain, update); err != nil {
+			t.Errorf("UpdateAccountDefaultPrefs failed: %v", err)
+		}
+
+		// Set (возвращаем старые)
+		if err := cli.SetAccountDefaultPrefs(targetDomain, prefs); err != nil {
+			t.Errorf("SetAccountDefaultPrefs failed: %v", err)
+		}
+
+		// Аналогично для AccountDefaults (Settings)
+		defaults, _ := cli.GetAccountDefaults(targetDomain)
+		if err := cli.UpdateAccountDefaults(targetDomain, map[string]any{"MaxStorage": "100M"}); err != nil {
+			t.Logf("UpdateAccountDefaults info: %v", err)
+		}
+		_ = cli.SetAccountDefaults(targetDomain, defaults)
+
+		// И для Template
+		tpl, _ := cli.GetAccountTemplate(targetDomain)
+		if err := cli.UpdateAccountTemplate(targetDomain, map[string]any{"RealName": "Template"}); err != nil {
+			t.Logf("UpdateAccountTemplate info: %v", err)
+		}
+		_ = cli.SetAccountTemplate(targetDomain, tpl)
+	})
+
+	t.Run("Telnums", func(t *testing.T) {
+		// ListDomainTelnums
+		nums, err := cli.ListDomainTelnums(targetDomain, "", 10)
+		if err != nil {
+			// Метод может вернуть ошибку, если в домене вообще нет telnums/PBX
+			t.Logf("ListDomainTelnums info: %v", err)
+		} else {
+			t.Logf("Domain telnums found: %d", len(nums))
+		}
+	})
+
+	t.Run("DomainSettings_DirectSet", func(t *testing.T) {
+		// Мы уже тестировали Update, теперь проверим полный Set
+		settings, err := cli.GetDomainSettings(targetDomain)
+		if err != nil {
+			t.Fatalf("GetDomainSettings failed: %v", err)
+		}
+		// Пробуем перезаписать (безопасно, так как данные те же)
+		if err := cli.SetDomainSettings(targetDomain, settings); err != nil {
+			t.Errorf("SetDomainSettings failed: %v", err)
+		}
+	})
 }

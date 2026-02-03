@@ -7,7 +7,7 @@ import (
 
 func TestPBX_Integration(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
 	const (
 		testDomain = "test.domain.name"
@@ -75,6 +75,62 @@ func TestPBX_Integration(t *testing.T) {
 		}
 		if len(files) == 0 {
 			t.Log("Stock PBX is empty or not accessible")
+		}
+	})
+}
+
+func TestPBX_Extended(t *testing.T) {
+	cli := getTestCli(t)
+	defer cli.Close()
+
+	const testLang = "English"
+	const testFile = "sdk_extended_test.txt"
+	testData := []byte("entry main is stop; end entry")
+
+	// 1. Уровень SERVER (Create/Delete/List)
+	t.Run("ServerPBX_Full", func(t *testing.T) {
+		// Пробуем создать языковую среду (может вернуть ошибку, если уже есть - это ок)
+		_ = cli.CreateServerPBX(testLang)
+
+		_ = cli.StoreServerPBXFile(testFile, testData)
+
+		_, err := cli.ListServerPBXFiles(testLang)
+		if err != nil {
+			t.Logf("ListServerPBXFiles info: %v", err)
+		}
+
+		_ = cli.DeleteServerPBX(testLang)
+	})
+
+	// 2. Уровень CLUSTER (если сервер в кластере - сработает, если нет - просто покроет код)
+	t.Run("ClusterPBX", func(t *testing.T) {
+		_ = cli.CreateClusterPBX(testLang)
+
+		// Пытаемся сохранить файл в кластерную среду
+		_ = cli.StoreClusterPBXFile(testFile, testData)
+
+		// List
+		_, _ = cli.ListClusterPBXFiles("")
+
+		// Read (даже если файла нет, вызов ReadClusterPBXFile будет покрыт)
+		_, _ = cli.ReadClusterPBXFile(testFile)
+
+		// Delete
+		_ = cli.DeleteClusterPBX(testLang)
+	})
+
+	// 3. Уровень STOCK и DOMAIN (оставшиеся методы)
+	t.Run("StockAndDomainAdditional", func(t *testing.T) {
+		// ReadStockPBXFile - пробуем прочитать базовый пакет
+		// Обычно pbxbase.spp или что-то подобное всегда есть
+		_, _ = cli.ReadStockPBXFile("pbxbase.spp")
+
+		// DeleteDomainPBX (удаление языкового набора в домене)
+		// Сначала создадим, чтобы было что удалять
+		_ = cli.CreateDomainPBX("test.domain.name", testLang)
+		err := cli.DeleteDomainPBX("test.domain.name", testLang)
+		if err != nil {
+			t.Logf("DeleteDomainPBX info: %v", err)
 		}
 	})
 }

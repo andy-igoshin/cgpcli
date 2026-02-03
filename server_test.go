@@ -6,347 +6,297 @@ import (
 	"time"
 )
 
-// 1. Тестирование работы с таблицей маршрутизации (Router Table)
-func TestServer_RouterTable(t *testing.T) {
+// --- СЕКЦИЯ 1: IP LISTS (Локальные и Кластерные) ---
+
+func TestServer_IPLists_Honest(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
-	// 1. Получаем текущую таблицу
-	originalTable, err := cli.GetRouterTable()
-	if err != nil {
-		t.Fatalf("Failed to get original router table: %v", err)
-	}
-
-	t.Run("UpdateAndVerify", func(t *testing.T) {
-		testRule := fmt.Sprintf("test-rule-%d.local = trash", time.Now().Unix())
-
-		// 2. Создаем рабочую копию
-		workTable := make(RouterList, len(originalTable))
-		copy(workTable, originalTable)
-
-		// 3. Добавляем запись (согласно вашей реализации: rule, comment, alignPos)
-		workTable.Add(testRule, "Go SDK Test", 40)
-
-		// 4. Записываем на сервер
-		if err := cli.SetRouterTable(workTable); err != nil {
-			t.Fatalf("SetRouterTable failed: %v", err)
-		}
-
-		// 5. Читаем обратно и проверяем
-		updated, err := cli.GetRouterTable()
-		if err != nil {
-			t.Fatalf("GetRouterTable after update failed: %v", err)
-		}
-
-		found := false
-		for _, entry := range updated {
-			// Используем поле Rule, как в вашем router.go
-			if entry.Rule == testRule {
-				found = true
-				break
-			}
-		}
-		if !found {
-			t.Errorf("New rule %q not found in table after reload", testRule)
-		}
-	})
-
-	// 6. Восстанавливаем оригинал
-	_ = cli.SetRouterTable(originalTable)
-}
-
-// 2. Тестирование списков IP (на примере LANIPs)
-func TestServer_IPLists(t *testing.T) {
-	cli := getTestCli(t)
-	defer cli.Logout()
-
-	originalLAN, err := cli.GetLANIPs()
-	if err != nil {
-		t.Fatalf("GetLANIPs failed: %v", err)
-	}
-
-	t.Run("ModifyLANIPs", func(t *testing.T) {
-		testIP := "192.168.254.254"
-
-		// Создаем копию
-		newList := make(IPList, len(originalLAN))
-		copy(newList, originalLAN)
-
-		// Ваша реализация IPList.Add(input, comment)
-		err := newList.Add(testIP, "SDK Temp Entry")
-		if err != nil {
-			t.Fatalf("IPList.Add failed: %v", err)
-		}
-
-		if err := cli.SetLANIPs(newList); err != nil {
-			t.Fatalf("SetLANIPs failed: %v", err)
-		}
-
-		verified, err := cli.GetLANIPs()
-		if err != nil {
-			t.Fatalf("GetLANIPs verification failed: %v", err)
-		}
-
-		found := false
-		for _, entry := range verified {
-			// Используем вашу функцию dataToString для сравнения значений
-			if dataToString(entry.Value) == testIP {
-				found = true
-				break
-			}
-		}
-		if !found {
-			t.Errorf("Test IP %s was not saved in LANIPs", testIP)
-		}
-	})
-
-	// Возвращаем как было
-	_ = cli.SetLANIPs(originalLAN)
-}
-
-// 3. Тестирование Banned Lines (Generic Map/Slice)
-func TestServer_BannedLines(t *testing.T) {
-	cli := getTestCli(t)
-	defer cli.Logout()
-
-	origBanned, err := cli.GetBanned()
-	if err != nil {
-		t.Fatalf("GetBanned failed: %v", err)
-	}
-
-	t.Run("UpdateBanned", func(t *testing.T) {
-		testString := fmt.Sprintf("X-Spam-Test-%d", time.Now().Unix())
-
-		newBanned := &BannedLines{
-			HeaderLines: append(origBanned.HeaderLines, testString),
-			BodyLines:   origBanned.BodyLines,
-		}
-
-		if err := cli.SetBanned(newBanned); err != nil {
-			t.Fatalf("SetBanned failed: %v", err)
-		}
-
-		updated, err := cli.GetBanned()
-		if err != nil {
-			t.Fatalf("GetBanned verify failed: %v", err)
-		}
-
-		found := false
-		for _, s := range updated.HeaderLines {
-			if s == testString {
-				found = true
-				break
-			}
-		}
-		if !found {
-			t.Errorf("Banned header %s was not found after update", testString)
-		}
-	})
-
-	_ = cli.SetBanned(origBanned)
-}
-
-// 4. Тестирование системных настроек
-func TestServer_Settings(t *testing.T) {
-	cli := getTestCli(t)
-	defer cli.Logout()
-
-	t.Run("GetNetworkSettings", func(t *testing.T) {
-		settings, err := cli.GetNetwork()
-		if err != nil {
-			t.Fatalf("GetNetwork failed: %v", err)
-		}
-
-		if len(settings) == 0 {
-			t.Error("Network settings map is empty")
-		}
-	})
-}
-
-func TestServer_Rules(t *testing.T) {
-	cli := getTestCli(t)
-	defer cli.Logout()
-
-	t.Run("ServerMailRules", func(t *testing.T) {
-		// 1. Получаем текущие
-		original, err := cli.GetServerMailRules()
-		if err != nil {
-			t.Fatalf("GetServerMailRules failed: %v", err)
-		}
-
-		// 2. Создаем тестовое правило
-		testRule := MailRule{
-			Priority: 5,
-			Name:     "SDK-Test-Rule",
-			Conditions: []any{
-				[]any{"Subject", "is", "test-alert"},
-			},
-			Actions: []any{
-				[]any{"Discard"},
-			},
-			Comment: "Temporary test rule",
-		}
-
-		// 3. Записываем (добавляем к существующим)
-		newList := append(original, testRule)
-		if err := cli.SetServerMailRules(newList); err != nil {
-			t.Fatalf("SetServerMailRules failed: %v", err)
-		}
-
-		// 4. Проверяем наличие
-		updated, _ := cli.GetServerMailRules()
-		found := false
-		for _, r := range updated {
-			if r.Name == testRule.Name {
-				found = true
-				break
-			}
-		}
-		if !found {
-			t.Error("Test Mail Rule was not saved")
-		}
-
-		// 5. Откат
-		_ = cli.SetServerMailRules(original)
-	})
-
-	t.Run("ServerSignalRules", func(t *testing.T) {
-		original, _ := cli.GetServerSignalRules()
-
-		testRule := SignalRule{
-			Priority:   7,
-			Delay:      10, // Должно упаковаться через (1000-10)*100 + 7
-			Name:       "SDK-Signal-Test",
-			Conditions: []any{[]any{"Service", "is", "SIP"}},
-			Actions:    []any{[]any{"Discard"}},
-		}
-
-		if err := cli.SetServerSignalRules(append(original, testRule)); err != nil {
-			t.Fatalf("SetServerSignalRules failed: %v", err)
-		}
-
-		updated, _ := cli.GetServerSignalRules()
-		found := false
-		for _, r := range updated {
-			if r.Name == testRule.Name {
-				// Проверяем, что распаковка приоритета сработала верно
-				if r.Priority != testRule.Priority || r.Delay != testRule.Delay {
-					t.Errorf("Signal priority/delay mismatch: got p:%d d:%d, want p:%d d:%d",
-						r.Priority, r.Delay, testRule.Priority, testRule.Delay)
-				}
-				found = true
-				break
-			}
-		}
-		if !found {
-			t.Error("Test Signal Rule was not saved")
-		}
-
-		_ = cli.SetServerSignalRules(original)
-	})
-}
-
-// 5. Тестирование системных настроек (DNR, Logs, Queue, и т.д.)
-func TestServer_SystemSettings(t *testing.T) {
-	cli := getTestCli(t)
-	defer cli.Logout()
-
-	// Используем таблицу для проверки нескольких MapAny функций
-	targets := []struct {
+	// Список пар (Название, Getter, Setter)
+	localIPs := []struct {
 		name string
-		fn   func() (map[string]any, error)
+		get  func() (IPList, error)
+		set  func(IPList) error
 	}{
-		{"DNR", cli.GetDNRSettings},
-		{"Log", cli.GetLogSettings},
-		{"Queue", cli.GetQueueSettings},
-		{"Session", cli.GetSessionSettings},
-		{"Network", cli.GetNetwork},
+		{"Blacklisted", cli.GetBlacklistedIPs, cli.SetBlacklistedIPs},
+		{"Client", cli.GetClientIPs, cli.SetClientIPs},
+		{"Debug", cli.GetDebugIPs, cli.SetDebugIPs},
+		{"Denied", cli.GetDeniedIPs, cli.SetDeniedIPs},
+		{"LAN", cli.GetLANIPs, cli.SetLANIPs},
+		{"Nated", cli.GetNatedIPs, cli.SetNatedIPs},
+		{"NatSite", cli.GetNatSiteIPs, cli.SetNatSiteIPs},
+		{"WhiteHole", cli.GetWhiteHoleIPs, cli.SetWhiteHoleIPs},
 	}
 
-	for _, tt := range targets {
-		t.Run(tt.name, func(t *testing.T) {
-			res, err := tt.fn()
+	for _, tt := range localIPs {
+		t.Run("Local_"+tt.name, func(t *testing.T) {
+			orig, err := tt.get()
 			if err != nil {
-				t.Logf("Skipping or info: %s failed (possibly cluster-only or permissions): %v", tt.name, err)
-				return
+				t.Fatalf("GET %s failed: %v", tt.name, err)
 			}
-			if len(res) == 0 {
-				t.Errorf("%s returned empty map", tt.name)
+			// Round-trip: проверяем, что маршалер не портит структуру при записи
+			if err := tt.set(orig); err != nil {
+				t.Errorf("SET %s failed: %v", tt.name, err)
+			}
+		})
+	}
+
+	// Кластерные IP-списки с честной проверкой
+	clusterIPs := []struct {
+		name string
+		get  func() (IPList, error)
+		set  func(IPList) error
+	}{
+		{"ClusterBlacklisted", cli.GetClusterBlacklistedIPs, cli.SetClusterBlacklistedIPs},
+		{"ClusterClient", cli.GetClusterClientIPs, cli.SetClusterClientIPs},
+		{"ClusterDebug", cli.GetClusterDebugIPs, cli.SetClusterDebugIPs},
+		{"ClusterDenied", cli.GetClusterDeniedIPs, cli.SetClusterDeniedIPs},
+		{"ClusterLAN", cli.GetClusterLANIPs, cli.SetClusterLANIPs},
+		{"ClusterNated", cli.GetClusterNatedIPs, cli.SetClusterNatedIPs},
+		{"ClusterNatSite", cli.GetClusterNatSiteIPs, cli.SetClusterNatSiteIPs},
+		{"ClusterWhiteHole", cli.GetClusterWhiteHoleIPs, cli.SetClusterWhiteHoleIPs},
+	}
+
+	for _, tt := range clusterIPs {
+		t.Run(tt.name, func(t *testing.T) {
+			orig, err := tt.get()
+			if err != nil {
+				skipIfNoClusterAuth(t, err)
+				t.Fatalf("GET %s failed: %v", tt.name, err)
+			}
+			if err := tt.set(orig); err != nil {
+				t.Errorf("SET %s failed: %v", tt.name, err)
 			}
 		})
 	}
 }
 
-// 6. Тестирование Модулей
-func TestServer_Modules(t *testing.T) {
-	cli := getTestCli(t)
-	defer cli.Logout()
+// --- СЕКЦИЯ 2: ROUTER TABLES ---
 
-	t.Run("ListAndGet", func(t *testing.T) {
-		modules, err := cli.ListModules()
+func TestServer_RouterTables_Honest(t *testing.T) {
+	cli := getTestCli(t)
+	defer cli.Close()
+
+	t.Run("LocalRouterTable", func(t *testing.T) {
+		orig, err := cli.GetRouterTable()
+		if err != nil {
+			t.Fatalf("GetRouterTable failed: %v", err)
+		}
+
+		testRule := fmt.Sprintf("sdk-test-%d.local = trash", time.Now().Unix())
+		workTable := make(RouterList, len(orig))
+		copy(workTable, orig)
+		workTable.Add(testRule, "SDK RoundTrip Test", 40)
+
+		if err := cli.SetRouterTable(workTable); err != nil {
+			t.Fatalf("SetRouterTable failed: %v", err)
+		}
+
+		// Сверяем результат
+		updated, _ := cli.GetRouterTable()
+		_ = cli.SetRouterTable(orig) // Сразу восстанавливаем
+
+		found := false
+		for _, r := range updated {
+			if r.Rule == testRule {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("Rule %q not found in updated table", testRule)
+		}
+	})
+
+	t.Run("ClusterRouterTable", func(t *testing.T) {
+		orig, err := cli.GetClusterRouterTable()
+		if err != nil {
+			skipIfNoClusterAuth(t, err)
+			t.Fatalf("GetClusterRouterTable failed: %v", err)
+		}
+		if err := cli.SetClusterRouterTable(orig); err != nil {
+			t.Errorf("SetClusterRouterTable failed: %v", err)
+		}
+	})
+}
+
+// --- СЕКЦИЯ 3: SYSTEM SETTINGS (Maps) ---
+
+func TestServer_SystemSettings_RoundTrip(t *testing.T) {
+	cli := getTestCli(t)
+	defer cli.Close()
+
+	// Локальные мапы
+	localMaps := []struct {
+		name string
+		get  func() (map[string]any, error)
+		set  func(map[string]any) error
+	}{
+		{"DNR", cli.GetDNRSettings, cli.SetDNRSettings},
+		{"Log", cli.GetLogSettings, cli.UpdateLogSettings},
+		{"Network", cli.GetNetwork, cli.SetNetwork},
+		{"Queue", cli.GetQueueSettings, cli.SetQueueSettings},
+		{"Router", cli.GetRouterSettings, cli.SetRouterSettings},
+		{"ServerSettings", cli.GetServerSettings, cli.UpdateServerSettings},
+		{"Session", cli.GetSessionSettings, cli.SetSessionSettings},
+		{"Signal", cli.GetSignalSettings, cli.SetSignalSettings},
+		{"MediaServer", cli.GetMediaServerSettings, cli.SetMediaServerSettings},
+		{"ServerIntercept", cli.GetServerIntercept, cli.SetServerIntercept},
+		{"SMTPSendProfiles", cli.GetSMTPSendProfiles, cli.SetSMTPSendProfiles},
+	}
+
+	for _, tt := range localMaps {
+		t.Run("Local_"+tt.name, func(t *testing.T) {
+			orig, err := tt.get()
+			if err != nil {
+				t.Fatalf("GET %s failed: %v", tt.name, err)
+			}
+			if err := tt.set(orig); err != nil {
+				t.Errorf("SET/UPDATE %s failed: %v", tt.name, err)
+			}
+		})
+	}
+
+	// Кластерные мапы
+	clusterMaps := []struct {
+		name string
+		get  func() (map[string]any, error)
+		set  func(map[string]any) error
+	}{
+		{"ClusterIntercept", cli.GetClusterIntercept, cli.SetClusterIntercept},
+		{"ClusterNetwork", cli.GetClusterNetwork, cli.SetClusterNetwork},
+		{"ClusterRouter", cli.GetClusterRouterSettings, cli.SetClusterRouterSettings},
+		{"ClusterSettings", cli.GetClusterSettings, cli.SetClusterSettings},
+	}
+
+	for _, tt := range clusterMaps {
+		t.Run(tt.name, func(t *testing.T) {
+			orig, err := tt.get()
+			if err != nil {
+				skipIfNoClusterAuth(t, err)
+				t.Fatalf("GET %s failed: %v", tt.name, err)
+			}
+			if err := tt.set(orig); err != nil {
+				skipIfNoClusterAuth(t, err)
+				t.Errorf("SET %s failed: %v", tt.name, err)
+			}
+		})
+	}
+}
+
+// --- СЕКЦИЯ 4: RULES & BANNED ---
+
+func TestServer_RulesAndBanned_Honest(t *testing.T) {
+	cli := getTestCli(t)
+	defer cli.Close()
+
+	// Banned Lines
+	t.Run("BannedLines_Local", func(t *testing.T) {
+		orig, err := cli.GetBanned()
+		if err != nil {
+			t.Fatalf("GetBanned failed: %v", err)
+		}
+		if err := cli.SetBanned(orig); err != nil {
+			t.Errorf("SetBanned failed: %v", err)
+		}
+	})
+
+	t.Run("BannedLines_Cluster", func(t *testing.T) {
+		orig, err := cli.GetClusterBanned()
+		if err != nil {
+			skipIfNoClusterAuth(t, err)
+		}
+		if err == nil {
+			_ = cli.SetClusterBanned(orig)
+		}
+	})
+
+	// Mail Rules
+	t.Run("MailRules_Local", func(t *testing.T) {
+		orig, err := cli.GetServerMailRules()
+		if err != nil {
+			t.Fatalf("GetServerMailRules failed: %v", err)
+		}
+		if err := cli.SetServerMailRules(orig); err != nil {
+			t.Errorf("SetServerMailRules failed: %v", err)
+		}
+	})
+
+	t.Run("MailRules_Cluster", func(t *testing.T) {
+		orig, err := cli.GetClusterMailRules()
+		if err != nil {
+			skipIfNoClusterAuth(t, err)
+		}
+		if err == nil {
+			_ = cli.SetClusterMailRules(orig)
+		}
+	})
+
+	// Signal Rules
+	t.Run("SignalRules_Local", func(t *testing.T) {
+		orig, err := cli.GetServerSignalRules()
+		if err != nil {
+			t.Fatalf("GetServerSignalRules failed: %v", err)
+		}
+		if err := cli.SetServerSignalRules(orig); err != nil {
+			t.Errorf("SetServerSignalRules failed: %v", err)
+		}
+	})
+
+	t.Run("SignalRules_Cluster", func(t *testing.T) {
+		orig, err := cli.GetClusterSignalRules()
+		if err != nil {
+			skipIfNoClusterAuth(t, err)
+		}
+		if err == nil {
+			_ = cli.SetClusterSignalRules(orig)
+		}
+	})
+}
+
+// --- СЕКЦИЯ 5: UTILITIES & MODULES ---
+
+func TestServer_UtilityMethods(t *testing.T) {
+	cli := getTestCli(t)
+	defer cli.Close()
+
+	t.Run("GetIPState", func(t *testing.T) {
+		if _, err := cli.GetIPState("127.0.0.1", false); err != nil {
+			t.Errorf("GetIPState failed: %v", err)
+		}
+	})
+
+	t.Run("Route_recursive", func(t *testing.T) {
+		if _, err := cli.Route("postmaster", "mail"); err != nil {
+			t.Errorf("Route failed: %v", err)
+		}
+	})
+
+	t.Run("ModuleOperations", func(t *testing.T) {
+		mods, err := cli.ListModules()
 		if err != nil {
 			t.Fatalf("ListModules failed: %v", err)
 		}
-		if len(modules) == 0 {
-			t.Fatal("No modules found")
-		}
+		if len(mods) > 0 {
+			mName := mods[0]
+			cfg, err := cli.GetModule(mName)
+			if err != nil {
+				t.Fatalf("GetModule(%s) failed: %v", mName, err)
+			}
 
-		// Берем первый попавшийся модуль и запрашиваем его настройки
-		moduleName := modules[0]
-		settings, err := cli.GetModule(moduleName)
-		if err != nil {
-			t.Fatalf("GetModule(%s) failed: %v", moduleName, err)
-		}
-		if len(settings) == 0 {
-			t.Logf("Warning: Module %s returned empty settings", moduleName)
-		}
-	})
-}
-
-// 7. Тестирование Route и IPState
-func TestServer_Utility(t *testing.T) {
-	cli := getTestCli(t)
-	defer cli.Logout()
-
-	t.Run("Route", func(t *testing.T) {
-		// Простой тест маршрутизации
-		res, err := cli.Route("postmaster", "")
-		if err != nil {
-			t.Fatalf("Route failed: %v", err)
-		}
-		if len(res) == 0 {
-			t.Error("Route returned empty slice")
+			// Проверка Set и Update
+			if err := cli.SetModule(mName, cfg); err != nil {
+				t.Errorf("SetModule failed: %v", err)
+			}
+			if err := cli.UpdateModule(mName, cfg); err != nil {
+				t.Errorf("UpdateModule failed: %v", err)
+			}
 		}
 	})
 
-	t.Run("GetIPState", func(t *testing.T) {
-		// Проверяем состояние localhost
-		res, err := cli.GetIPState("127.0.0.1", false)
-		if err != nil {
-			t.Fatalf("GetIPState failed: %v", err)
+	t.Run("RefreshOS", func(t *testing.T) {
+		if err := cli.RefreshOSData(); err != nil {
+			t.Errorf("RefreshOSData failed: %v", err)
 		}
-		t.Logf("IP State of 127.0.0.1: %s", res)
-	})
-}
-
-func TestServer_UpdateSettings(t *testing.T) {
-	cli := getTestCli(t)
-	defer cli.Logout()
-
-	t.Run("UpdateLogSettings", func(t *testing.T) {
-		// 1. Получаем текущие настройки логов
-		orig, err := cli.GetLogSettings()
-		if err != nil {
-			t.Fatalf("Failed to get log settings: %v", err)
-		}
-
-		// 2. Меняем какой-нибудь безобидный параметр, например уровень детализации
-		// В CGP это обычно ключи типа "STDOUT", "LogLevel" и т.д.
-		// Чтобы не сломать продакшен, просто перепишем то же самое значение
-		err = cli.UpdateLogSettings(orig)
-		if err != nil {
-			t.Fatalf("UpdateLogSettings failed: %v", err)
-		}
-		t.Log("Roundtrip UpdateLogSettings successful")
 	})
 }

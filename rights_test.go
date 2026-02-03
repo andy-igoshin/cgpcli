@@ -8,7 +8,7 @@ import (
 
 func TestAccountRights(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
 	// Создаем временного "админа" для теста
 	domain := "test.domain.name"

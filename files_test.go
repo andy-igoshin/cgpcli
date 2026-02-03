@@ -9,7 +9,7 @@ import (
 
 func TestIntegration_StorageFiles(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
 	// Используем технический аккаунт песочницы (например, postmaster)
 	account := "postmaster"
@@ -79,6 +79,77 @@ func TestIntegration_StorageFiles(t *testing.T) {
 		files, _ := cli.ListStorageFiles(account, "", "")
 		if _, ok := files[newName]; ok {
 			t.Error("File still exists after deletion")
+		}
+	})
+}
+
+func TestIntegration_StorageFiles_Extended(t *testing.T) {
+	cli := getTestCli(t)
+	defer cli.Close()
+
+	account := "testuser1@test.domain.name"
+	fileName := "attr_test_file.txt"
+	content := []byte("Attribute and Subscription Test Content")
+
+	// Предварительно создаем файл для тестов атрибутов
+	_ = cli.WriteStorageFile(account, fileName, nil, content, "")
+	defer cli.DeleteStorageFile(account, fileName, "")
+
+	t.Run("FileAttributes", func(t *testing.T) {
+		// 1. Читаем атрибуты (пустой список attrs — читает все базовые)
+		attrs, err := cli.ReadStorageFileAttr(account, fileName, nil, "")
+		if err != nil {
+			t.Fatalf("ReadStorageFileAttr failed: %v", err)
+		}
+		t.Logf("Initial file attributes: %v", attrs)
+
+		// 2. Обновляем атрибут.
+		// В CGP для файлов можно пробовать менять 'ModTime' или кастомные флаги,
+		// но самый безопасный способ проверить вызов - отправить пустой или базовый набор.
+		// В CLI атрибуты передаются как массив any [name, value, name, value...]
+		updateAttrs := []any{"Keywords", "GoTest"}
+		if err := cli.UpdateStorageFileAttr(account, fileName, updateAttrs, ""); err != nil {
+			// Некоторые хранилища могут не поддерживать кастомные атрибуты,
+			// если будет ошибка - это тоже покрытие метода.
+			t.Logf("UpdateStorageFileAttr (Keywords) info: %v", err)
+		}
+
+		// Повторное чтение для проверки
+		_, _ = cli.ReadStorageFileAttr(account, fileName, []string{"Keywords"}, "")
+	})
+
+	t.Run("FileSubscriptions", func(t *testing.T) {
+		// 1. Получаем текущие подписки
+		original, err := cli.GetFileSubscription(account)
+		if err != nil {
+			t.Fatalf("GetFileSubscription failed: %v", err)
+		}
+
+		// 2. Устанавливаем тестовую подписку (на чужую папку или вымышленную)
+		testSubs := append(original, "~otheruser/public")
+		if err := cli.SetFileSubscription(account, testSubs); err != nil {
+			t.Fatalf("SetFileSubscription failed: %v", err)
+		}
+
+		// 3. Проверяем
+		updated, err := cli.GetFileSubscription(account)
+		if err != nil {
+			t.Fatalf("Verification GetFileSubscription failed: %v", err)
+		}
+
+		found := false
+		for _, s := range updated {
+			if s == "~otheruser/public" {
+				found = true
+				break
+			}
+		}
+
+		// 4. Возвращаем как было
+		_ = cli.SetFileSubscription(account, original)
+
+		if !found {
+			t.Error("Test subscription was not saved")
 		}
 	})
 }

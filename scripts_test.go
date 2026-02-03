@@ -6,7 +6,7 @@ import (
 
 func TestRunScript_Integration(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
 	const (
 		account = "testuser1@test.domain.name"

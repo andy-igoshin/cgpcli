@@ -2,13 +2,14 @@ package cgpcli
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 )
 
 func TestGroups(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
 	domain := "test.domain.name"
 	// Уникальное имя группы для каждого запуска
@@ -62,5 +63,38 @@ func TestGroups(t *testing.T) {
 		if ex {
 			t.Error("Group should be deleted")
 		}
+	})
+
+	t.Run("Listing", func(t *testing.T) {
+		// 1. Создаем временную группу для гарантии наличия хотя бы одной
+		tmpName := fmt.Sprintf("list-test-%d@%s", time.Now().UnixNano()%1000, domain)
+		_ = cli.CreateGroup(tmpName, nil)
+		defer cli.DeleteGroup(tmpName)
+
+		// 2. Вызываем ListGroups для домена
+		list, err := cli.ListGroups(domain)
+		if err != nil {
+			t.Fatalf("ListGroups failed: %v", err)
+		}
+
+		if len(list) == 0 {
+			t.Error("ListGroups returned empty slice, expected at least one group")
+		}
+
+		// 3. Проверяем, что наша группа есть в списке (сервер возвращает только короткие имена)
+		shortName := strings.Split(tmpName, "@")[0]
+		found := false
+		for _, g := range list {
+			if g == shortName {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("Group %s not found in domain list: %v", shortName, list)
+		}
+
+		// 4. Вызов без домена (список всех групп сервера, если прав достаточно)
+		_, _ = cli.ListGroups("")
 	})
 }

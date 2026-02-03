@@ -6,7 +6,7 @@ import (
 
 func TestMailingLists_Integration(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
 	const (
 		testDomain = "test.domain.name"
@@ -97,4 +97,97 @@ func TestMapToSubscriber_Unit(t *testing.T) {
 	if res.TimeSubscribed.Year() != 2026 {
 		t.Errorf("TimeSubscribed parsing failed: %v", res.TimeSubscribed)
 	}
+}
+
+func TestMailingLists_Extended(t *testing.T) {
+	cli := getTestCli(t)
+	defer cli.Close()
+
+	const (
+		domain   = "test.domain.name"
+		owner    = "testuser1@test.domain.name"
+		listAddr = "ext-test-list@test.domain.name"
+		newName  = "renamed-sdk-list"
+		testSub  = "testuser2@test.domain.name"
+	)
+
+	// Гарантируем чистоту перед тестом
+	_ = cli.DeleteList(listAddr)
+	_ = cli.DeleteList(newName + "@" + domain)
+
+	t.Run("ListOperations_And_Renaming", func(t *testing.T) {
+		// 1. Создание и переименование
+		if err := cli.CreateList(listAddr, owner); err != nil {
+			t.Fatalf("Create failed: %v", err)
+		}
+
+		if err := cli.RenameList(listAddr, newName); err != nil {
+			t.Errorf("RenameList failed: %v", err)
+		}
+
+		finalAddr := newName + "@" + domain
+		defer cli.DeleteList(finalAddr)
+
+		// 2. Листинги уровней (GetAccountLists, GetDomainLists, ListLists)
+		// Проверяем списки аккаунта
+		accLists, err := cli.GetAccountLists(owner)
+		if err != nil {
+			t.Errorf("GetAccountLists failed: %v", err)
+		}
+		t.Logf("Account lists: %v", accLists)
+
+		// Проверяем списки домена
+		domLists, err := cli.GetDomainLists(domain)
+		if err != nil {
+			t.Errorf("GetDomainLists failed: %v", err)
+		}
+		if _, ok := domLists[newName]; !ok {
+			t.Errorf("Renamed list %s not found in GetDomainLists", newName)
+		}
+
+		// Проверяем ListLists
+		allLists, err := cli.ListLists(domain)
+		if err != nil {
+			t.Errorf("ListLists failed: %v", err)
+		}
+		t.Logf("All lists in domain: %v", allLists)
+
+		// 3. Подписчики и режимы (ListSubscribers, ReadSubscribers, SetPostingMode)
+		_ = cli.List(finalAddr, "feed", testSub, true, false)
+
+		subs, err := cli.ListSubscribers(finalAddr, "", 0)
+		if err != nil {
+			t.Errorf("ListSubscribers failed: %v", err)
+		}
+		if len(subs) == 0 {
+			t.Error("ListSubscribers returned 0 subscribers")
+		}
+
+		fullSubs, err := cli.ReadSubscribers(finalAddr, "", 10)
+		if err != nil {
+			t.Errorf("ReadSubscribers failed: %v", err)
+		}
+		if len(fullSubs) == 0 {
+			t.Error("ReadSubscribers returned 0 info structures")
+		}
+
+		// Установка режима публикации
+		if err := cli.SetPostingMode(finalAddr, testSub, "MODERATEALL"); err != nil {
+			t.Errorf("SetPostingMode failed with MODERATEALL: %v", err)
+		}
+
+		// Или число (модерировать первые 5 сообщений)
+		if err := cli.SetPostingMode(finalAddr, testSub, 5); err != nil {
+			t.Errorf("SetPostingMode failed with numeric limit: %v", err)
+		}
+
+		// 4. Обработка баунсов (ProcessBounce)
+		// Это имитация ошибки доставки для проверки работы метода
+		if err := cli.ProcessBounce(finalAddr, testSub, false); err != nil {
+			t.Errorf("ProcessBounce (soft) failed: %v", err)
+		}
+		if err := cli.ProcessBounce(finalAddr, testSub, true); err != nil {
+			t.Errorf("ProcessBounce (fatal) failed: %v", err)
+		}
+	})
 }

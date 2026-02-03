@@ -8,7 +8,7 @@ import (
 
 func TestForwarders(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
 	domain := "test.domain.name"
 	ts := time.Now().Unix()

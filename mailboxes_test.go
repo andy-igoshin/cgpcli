@@ -8,7 +8,7 @@ import (
 
 func TestMailboxes(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
 	// Используем существующий тестовый домен
 	testAcc := "testuser1@test.domain.name"
@@ -101,6 +101,44 @@ func TestMailboxes(t *testing.T) {
 		// Очистка алиасов (полная перезапись пустым словарем)
 		_ = cli.SetMailboxAliases(testAcc, map[string]string{})
 	})
+
+	t.Run("ACLAndListing", func(t *testing.T) {
+		mbox := "ACLTestFolder"
+		_ = cli.CreateMailbox(testAcc, mbox, "", "")
+		defer cli.DeleteMailbox(testAcc, mbox, false, "")
+
+		// 1. Устанавливаем ACL
+		targetACL := map[string]string{
+			"anyone":     "l",
+			"postmaster": "lrswipdka",
+		}
+		if err := cli.SetMailboxACL(testAcc, mbox, "", targetACL); err != nil {
+			t.Fatalf("SetMailboxACL failed: %v", err)
+		}
+
+		// 2. Проверяем GetMailboxACL (тот самый непокрытый метод)
+		acl, err := cli.GetMailboxACL(testAcc, mbox, "")
+		if err != nil {
+			t.Fatalf("GetMailboxACL failed: %v", err)
+		}
+
+		if acl["anyone"] != "l" {
+			t.Errorf("ACL mismatch for 'anyone': expected 'l', got '%s'", acl["anyone"])
+		}
+		if !strings.Contains(acl["postmaster"], "s") {
+			t.Errorf("ACL for postmaster missing 's' right: %s", acl["postmaster"])
+		}
+
+		// 3. Вызываем ListMailboxes для покрытия
+		// Этот вызов закроет оставшиеся ветки в ListMailboxes (с фильтром)
+		list, err := cli.ListMailboxes(testAcc, mbox, "")
+		if err != nil {
+			t.Errorf("ListMailboxes with filter failed: %v", err)
+		}
+		if _, ok := list[mbox]; !ok && len(list) > 0 {
+			t.Logf("Note: %s not found in filtered list, but call was successful", mbox)
+		}
+	})
 }
 
 func TestMailboxesRO(t *testing.T) {
@@ -114,7 +152,7 @@ func TestMailboxesRO(t *testing.T) {
 	if err != nil {
 		t.Fatalf("RO Connect failed: %v", err)
 	}
-	defer cli.Logout()
+	defer cli.Close()
 
 	target := os.Getenv("USER_RO")
 

@@ -2,7 +2,6 @@ package cgpcli
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -11,7 +10,7 @@ import (
 // 1. Тестирование жизненного цикла аккаунта (создание, атрибуты, удаление)
 func TestAccountLifecycle(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
 	testAcc := fmt.Sprintf("life-%d@test.domain.name", time.Now().Unix())
 
@@ -42,6 +41,14 @@ func TestAccountLifecycle(t *testing.T) {
 		t.Logf("ServiceLevel: %v", val)
 	})
 
+	t.Run("OneInfo", func(t *testing.T) {
+		val, err := cli.GetAccountOneInfo(testAcc, "Created")
+		if err != nil {
+			t.Errorf("GetAccountOneInfo failed: %v", err)
+		}
+		t.Logf("Created: %v", val)
+	})
+
 	t.Run("Cleanup", func(t *testing.T) {
 		if err := cli.DeleteAccount(testAcc); err != nil {
 			t.Errorf("DeleteAccount failed: %v", err)
@@ -52,7 +59,7 @@ func TestAccountLifecycle(t *testing.T) {
 // 2. Тестирование алиасов и тел. номеров
 func TestAccountCollections(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
 	testAcc := fmt.Sprintf("coll-%d@test.domain.name", time.Now().Unix())
 	_ = cli.CreateAccount(testAcc, nil, TypeDefault, "", false)
@@ -104,7 +111,7 @@ func TestAccountCollections(t *testing.T) {
 // 3. Тестирование паролей (Verify и PlainPassword)
 func TestAccountPasswords(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
 	testAcc := fmt.Sprintf("pw-%d@test.domain.name", time.Now().Unix())
 	testPass := "Secret123!"
@@ -131,7 +138,7 @@ func TestAccountPasswords(t *testing.T) {
 // 4. Тестирование правил (Mail Rules)
 func TestAccountMailRules(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
 	testAcc := fmt.Sprintf("rules-%d@test.domain.name", time.Now().Unix())
 	_ = cli.CreateAccount(testAcc, nil, TypeDefault, "", false)
@@ -171,8 +178,9 @@ func TestAccountMailRules(t *testing.T) {
 // 5. Тестирование статуса, локации и сессий
 func TestAccountStatus(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
-	user := os.Getenv("CGPUSER")
+	defer cli.Close()
+
+	user := "postmaster"
 
 	t.Run("Location", func(t *testing.T) {
 		loc, err := cli.GetAccountLocation(user)
@@ -204,7 +212,7 @@ func TestAccountStatus(t *testing.T) {
 // 6. Тестирование переименования
 func TestAccountRename(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
 	oldName := fmt.Sprintf("old-%d@test.domain.name", time.Now().Unix())
 	newName := fmt.Sprintf("new-%d@test.domain.name", time.Now().Unix())
@@ -229,7 +237,7 @@ func TestAccountRename(t *testing.T) {
 // 7. Тестирование ACL
 func TestAccountACL(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
 	testAcc := fmt.Sprintf("acl-%d@test.domain.name", time.Now().Unix())
 	_ = cli.CreateAccount(testAcc, nil, TypeDefault, "", false)
@@ -253,7 +261,7 @@ func TestAccountACL(t *testing.T) {
 
 func TestAccountAccessModesInheritance(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
 	testAcc := fmt.Sprintf("modes-inh-%d@test.domain.name", time.Now().Unix())
 	// Создаем чистый аккаунт
@@ -328,7 +336,7 @@ func TestAccountAccessModesInheritance(t *testing.T) {
 
 func TestUpdateAccountInfo(t *testing.T) {
 	cli := getTestCli(t)
-	defer cli.Logout()
+	defer cli.Close()
 
 	testAcc := fmt.Sprintf("info-%d@test.domain.name", time.Now().Unix())
 	_ = cli.CreateAccount(testAcc, nil, TypeDefault, "", false)
@@ -373,17 +381,8 @@ func TestUpdateAccountInfo(t *testing.T) {
 }
 
 func TestAccountSignalRulesLogic(t *testing.T) {
-	cgpuser := os.Getenv("CGPUSER")
-	cgppass := os.Getenv("CGPPASS")
-	if cgpuser == "" || cgppass == "" {
-		t.Skip("CGPUSER or CGPPASS not set")
-	}
-
-	cli, err := New("127.0.0.1", cgpuser, cgppass, APOP, false)
-	if err != nil {
-		t.Fatalf("Failed to connect: %v", err)
-	}
-	defer cli.Logout()
+	cli := getTestCli(t)
+	defer cli.Close()
 
 	testAcc := "*"
 
@@ -519,6 +518,165 @@ func TestAccountInfoComplexParsing(t *testing.T) {
 			t.Errorf("MailboxDeleted should be map, got %T", info["MailboxDeleted"])
 		} else if len(del) != 2 {
 			t.Errorf("MailboxDeleted length mismatch: want 2, got %d", len(del))
+		}
+	})
+}
+
+func TestAccountExtraSettings(t *testing.T) {
+	cli := getTestCli(t)
+	defer cli.Close()
+
+	testAcc := fmt.Sprintf("extra-%d@test.domain.name", time.Now().Unix())
+	_ = cli.CreateAccount(testAcc, nil, TypeDefault, "", false)
+	defer cli.DeleteAccount(testAcc)
+
+	// 1. Тестируем RIMAP / RPOP / RSIP (они идентичны по структуре)
+	t.Run("RemoteSyncs", func(t *testing.T) {
+		data := map[string]any{
+			"Record1": map[string]any{"Server": "imap.test.com", "User": "test"},
+		}
+
+		// RIMAP
+		if err := cli.SetAccountRIMAPs(testAcc, data); err != nil {
+			t.Errorf("SetAccountRIMAPs failed: %v", err)
+		}
+		_, err := cli.GetAccountRIMAPs(testAcc)
+		if err != nil {
+			t.Errorf("GetAccountRIMAPs failed: %v", err)
+		}
+
+		// RPOP
+		if err := cli.SetAccountRPOPs(testAcc, data); err != nil {
+			t.Errorf("SetAccountRPOPs failed: %v", err)
+		}
+		_, err = cli.GetAccountRPOPs(testAcc)
+		if err != nil {
+			t.Errorf("GetAccountRPOPs failed: %v", err)
+		}
+
+		// RSIP
+		if err := cli.SetAccountRSIPs(testAcc, data); err != nil {
+			t.Errorf("SetAccountRSIPs failed: %v", err)
+		}
+		_, err = cli.GetAccountRSIPs(testAcc)
+		if err != nil {
+			t.Errorf("GetAccountRSIPs failed: %v", err)
+		}
+	})
+
+	// 2. Тестируем специфичные геттеры
+	t.Run("SpecificGetters", func(t *testing.T) {
+		// GetAccountACLRights
+		_, err := cli.GetAccountACLRights(testAcc, "postmaster")
+		if err != nil && !strings.Contains(err.Error(), "not found") {
+			t.Errorf("GetAccountACLRights failed: %v", err)
+		}
+
+		// GetAccountEffectivePrefs
+		_, err = cli.GetAccountEffectivePrefs(testAcc)
+		if err != nil {
+			t.Errorf("GetAccountEffectivePrefs failed: %v", err)
+		}
+
+		// GetAccountPresence
+		_, err = cli.GetAccountPresence(testAcc)
+		if err != nil {
+			t.Errorf("GetAccountPresence failed: %v", err)
+		}
+
+		// GetAccountRights (Системные права)
+		_, err = cli.GetAccountRights(testAcc)
+		if err != nil {
+			t.Errorf("GetAccountRights failed: %v", err)
+		}
+	})
+
+	// 3. Тестируем сигнальные правила (удаление)
+	t.Run("DeleteSignalRule", func(t *testing.T) {
+		// Сначала создадим правило, чтобы было что удалять
+		rule := SignalRule{Name: "DeleteMe", Priority: 1}
+		_ = cli.UpdateAccountSignalRule(testAcc, rule)
+
+		if err := cli.DeleteAccountSignalRule(testAcc, "DeleteMe"); err != nil {
+			t.Errorf("DeleteAccountSignalRule failed: %v", err)
+		}
+	})
+}
+
+func TestAccountFinalStub(t *testing.T) {
+	cli := getTestCli(t)
+	defer cli.Close()
+
+	testAcc := fmt.Sprintf("final-%d@test.domain.name", time.Now().Unix())
+	_ = cli.CreateAccount(testAcc, nil, TypeDefault, "", false)
+	defer cli.DeleteAccount(testAcc)
+
+	t.Run("PrefsAndSettings", func(t *testing.T) {
+		prefs := map[string]any{"Language": "English"}
+		// SetAccountPrefs
+		if err := cli.SetAccountPrefs(testAcc, prefs); err != nil {
+			t.Errorf("SetAccountPrefs failed: %v", err)
+		}
+		// UpdateAccountPrefs
+		if err := cli.UpdateAccountPrefs(testAcc, map[string]any{"Timezone": "UTC"}); err != nil {
+			t.Errorf("UpdateAccountPrefs failed: %v", err)
+		}
+		// GetAccountPrefs
+		if _, err := cli.GetAccountPrefs(testAcc); err != nil {
+			t.Errorf("GetAccountPrefs failed: %v", err)
+		}
+		// SetAccountSettings
+		if err := cli.SetAccountSettings(testAcc, map[string]any{"ServiceLevel": 10}); err != nil {
+			t.Errorf("SetAccountSettings failed: %v", err)
+		}
+		// UpdateAccountSettings
+		if err := cli.UpdateAccountSettings(testAcc, map[string]any{"CanChangePassword": true}); err != nil {
+			t.Errorf("UpdateAccountSettings failed: %v", err)
+		}
+	})
+
+	t.Run("RulesAndTypes", func(t *testing.T) {
+		// SetAccountMailRules (массовая установка)
+		rules := []MailRule{{Name: "BulkRule", Priority: 5}}
+		if err := cli.SetAccountMailRules(testAcc, rules); err != nil {
+			t.Errorf("SetAccountMailRules failed: %v", err)
+		}
+		// SetAccountType
+		if err := cli.SetAccountType(testAcc, MultiMailbox); err != nil {
+			t.Errorf("SetAccountType failed: %v", err)
+		}
+	})
+
+	t.Run("SecurityAndIdentity", func(t *testing.T) {
+		// Сначала установим пароль, чтобы GetAccountPlainPassword имел шанс сработать
+		tempPass := "TestPass123"
+		_ = cli.SetAccountPassword(testAcc, tempPass, "", "", false)
+		// GetAccountPlainPassword
+		_, err := cli.GetAccountPlainPassword(testAcc, "")
+		if err != nil && !strings.Contains(err.Error(), "not found") {
+			t.Errorf("GetAccountPlainPassword failed: %v", err)
+		}
+		// VerifyAccountIdentity (проверяем себя же)
+		ok, err := cli.VerifyAccountIdentity(testAcc, testAcc)
+		if err != nil || !ok {
+			t.Errorf("VerifyAccountIdentity failed: ok=%v, err=%v", ok, err)
+		}
+	})
+
+	t.Run("TelnumsAndTasks", func(t *testing.T) {
+		// SetAccountTelnums
+		if err := cli.SetAccountTelnums(testAcc, []string{"101", "102"}); err != nil {
+			t.Errorf("SetAccountTelnums failed: %v", err)
+		}
+
+		// UpdateScheduledTask
+		// Просто вызываем метод для покрытия кода.
+		// Т.к. CGP может возвращать OK даже для несуществующих ID в задачах,
+		// мы просто фиксируем факт отсутствия паники/ошибок маршалинга.
+		task := map[string]any{"id": "nonexistent", "Enabled": false}
+		err := cli.UpdateScheduledTask(testAcc, task)
+		if err != nil {
+			t.Logf("UpdateScheduledTask returned info: %v", err)
 		}
 	})
 }
