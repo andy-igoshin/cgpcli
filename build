@@ -27,7 +27,7 @@ elif [ "$1" == "sandbox-test" ]; then
     echo "--- Running tests on sandbox ---"
     ssh "${REMOTE_HOST}" "cd ${REMOTE_PATH} && ./build test"
 
-elif [ "$1" == "sandbox-test-once" ]; then
+elif [ "$1" == "sandbox-test-one" ]; then
 
     . .env
 
