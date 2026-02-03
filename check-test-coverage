@@ -1,0 +1,70 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use utf8;
+
+binmode(STDOUT, ':utf8');
+binmode(STDERR, ':utf8');
+
+# Список файлов для анализа
+my @files = grep { $_ !~ /_test\.go$/ } <*.go>;
+
+print "--- Анализ упоминаний методов в тестах (Deep Scan) ---\n";
+
+foreach my $file (@files) {
+    my $test_file = $file =~ s/\.go$/_test.go/r;
+    
+    unless (-e $test_file) {
+        print "![MISSING] Файл тестов для $file не найден\n";
+        next;
+    }
+
+    # 1. Собираем методы структуры Cli из основного файла
+    # Ищем: func (cli *Cli) MethodName(...)
+    my %methods;
+    open my $fh, '<:utf8', $file or next;
+    while (<$fh>) {
+        if (/func\s+\(\w+\s+\*Cli\)\s+([A-Z]\w+)\(/) {
+            $methods{$1} = { line => $., found => 0 };
+        }
+    }
+    close $fh;
+
+    next unless keys %methods;
+
+    # 2. Читаем весь тестовый файл в одну строку для глобального поиска
+    open my $tfh, '<:utf8', $test_file or next;
+    my $test_content = do { local $/; <$tfh> };
+    close $tfh;
+
+    # 3. Ищем упоминания методов. 
+    # Паттерн: вызов через ресивер, например cli.UpdateAccount или c.UpdateAccount
+    # Но так как мы ищем просто покрытие, проверим наличие "MethodName("
+    foreach my $m (keys %methods) {
+        # Ищем паттерн: .MethodName(
+        if ($test_content =~ /\.$m[\(\},]/ ) {
+            $methods{$m}->{found} = 1;
+        }
+    }
+
+    # 4. Вывод результатов
+    print "\nФайл: $file (проверка в $test_file)\n";
+    my $missing_count = 0;
+    my $total = 0;
+
+    foreach my $m (sort { $methods{$a}->{line} <=> $methods{$b}->{line} } keys %methods) {
+        $total++;
+        if (!$methods{$m}->{found}) {
+            printf "  [ ] %-30s (line %d)\n", $m, $methods{$m}->{line};
+            $missing_count++;
+        }
+    }
+
+    if ($missing_count == 0) {
+        print "  [+] Покрытие 100% (все $total методов вызываются в тестах).\n";
+    } else {
+        printf "  [!] Не покрыто: %d из %d методов.\n", $missing_count, $total;
+    }
+}
+
+print "\n--- Скан завершен ---\n";
