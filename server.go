@@ -36,10 +36,6 @@ func (cli *Cli) GetClusterDeniedIPs() (IPList, error) {
 	return cli.getIPListTyped("GETCLUSTERDENIEDIPS")
 }
 
-func (cli *Cli) GetClusterDNRSettings() (map[string]any, error) {
-	return cli.getMapAny("GETCLUSTERDNRSETTINGS", "")
-}
-
 func (cli *Cli) GetClusterIntercept() (map[string]any, error) {
 	return cli.getMapAny("GETCLUSTERINTERCEPT", "")
 }
@@ -172,7 +168,7 @@ func (cli *Cli) Route(address string, mode string) ([]string, error) {
 	var res any
 	var err error
 	if mode != "" {
-		res, err = cli.Query("ROUTE", address, Atom(mode))
+		res, err = cli.Query("ROUTE", address, mode)
 	} else {
 		res, err = cli.Query("ROUTE", address)
 	}
@@ -206,10 +202,6 @@ func (cli *Cli) SetClusterDebugIPs(l IPList) error {
 }
 func (cli *Cli) SetClusterDeniedIPs(l IPList) error {
 	return cli.setIPListTyped("SETCLUSTERDENIEDIPS", l)
-}
-
-func (cli *Cli) SetClusterDNRSettings(s map[string]any) error {
-	return cli.setMapAny("SETCLUSTERDNRSETTINGS", "", s)
 }
 
 func (cli *Cli) SetClusterIntercept(s map[string]any) error {
