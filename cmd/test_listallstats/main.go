@@ -23,7 +23,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect: %v", err)
 	}
-	defer cli.Logout()
+	defer cli.Close()
 
 	fmt.Println("Connected to 127.0.0.1. Enumerating OIDs...")
 	fmt.Println(strings.Repeat("-", 40))

@@ -23,7 +23,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect: %v", err)
 	}
-	defer cli.Logout()
+	defer cli.Close()
 
 	fmt.Println("--- Testing LISTDOMAINOBJECTS with Enum Flags ---")
 

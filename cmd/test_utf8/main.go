@@ -23,9 +23,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect: %v", err)
 	}
-	defer cli.Logout()
+	defer cli.Close()
 
-	targetAccount := "testuser1@test.domain.name" // замените на ваш боевой/тестовый
+	targetAccount := "testuser1@test.domain.name"
 	russianName := "Иван Иванов"
 
 	fmt.Printf("Updating RealName for %s to: %s\n", targetAccount, russianName)

@@ -12,7 +12,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Connect error: %v", err)
 	}
-	defer cli.Logout()
+	defer cli.Close()
 
 	targetAcc := "testuser1@test.domain.name"
 

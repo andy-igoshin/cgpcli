@@ -13,7 +13,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Connect error: %v", err)
 	}
-	defer cli.Logout()
+	defer cli.Close()
 
 	fmt.Println("--- Directory Units ---")
 	units, err := cli.ListDirectoryUnits(false)

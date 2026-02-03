@@ -46,7 +46,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to %s: %v", host, err)
 	}
-	defer cli.Logout()
+	defer cli.Close()
 
 	fmt.Printf("--- Inspecting: %s ---\n", target)
 

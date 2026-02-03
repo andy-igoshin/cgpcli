@@ -19,7 +19,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect: %v", err)
 	}
-	defer cli.Logout()
+	defer cli.Close()
 
 	// 1. Создаем два алерта: обычный и полностью цифровой
 	alertsToTest := []string{
