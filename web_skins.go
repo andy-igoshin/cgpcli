@@ -97,7 +97,7 @@ func (cli *Cli) ListDomainSkinFiles(domain, skin string) (map[string]any, error)
 
 // ListDomainSkins возвращает список имен кастомных скинов домена.
 func (cli *Cli) ListDomainSkins(domain string) ([]string, error) {
-	return cli.getSliceString("LISTDOMAINSKINS", "")
+	return cli.getSliceString("LISTDOMAINSKINS", domain)
 }
 
 // ListServerSkinFiles возвращает словарь с атрибутами файлов в серверном скине.
@@ -116,7 +116,7 @@ func (cli *Cli) ListServerSkins() ([]string, error) {
 // ListStockSkinFiles возвращает список файлов встроенного (stock) скина.
 func (cli *Cli) ListStockSkinFiles(skin string) (map[string]any, error) {
 	if skin == "" {
-		return nil, fmt.Errorf("skin name is required")
+		skin = `""`
 	}
 	return cli.getMapAny("LISTSTOCKSKINFILES", skin)
 }
