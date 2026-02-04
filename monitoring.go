@@ -45,7 +45,6 @@ func (cli *Cli) GetStatElement(objectID string) (any, error) {
 	return cli.Query("GETSTATELEMENT", objectID)
 }
 
-
 // ListAllStats собирает все доступные имена элементов статистики в один слайс.
 func (cli *Cli) ListAllStats() ([]string, error) {
 	stats := make([]string, 0, statsCapacity)
