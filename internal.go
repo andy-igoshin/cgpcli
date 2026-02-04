@@ -20,6 +20,7 @@ func (cli *Cli) getMapAny(cmd string, args ...any) (map[string]any, error) {
 	return m, nil
 }
 
+// getMapString — получение словаря (map[string]string) от сервера.
 func (cli *Cli) getMapString(cmd string, args ...any) (map[string]string, error) {
 	res, err := cli.getMapAny(cmd, args...)
 	if err != nil {
@@ -28,7 +29,7 @@ func (cli *Cli) getMapString(cmd string, args ...any) (map[string]string, error)
 	return toStringMap(cmd, res)
 }
 
-// getSliceAny — получение произвольного слайса ([]any) от сервера.
+// getSliceAny — получение слайса ([]any) от сервера.
 func (cli *Cli) getSliceAny(cmd string, args ...any) ([]any, error) {
 	res, err := cli.Query(cmd, args...)
 	if err != nil {
@@ -46,7 +47,7 @@ func (cli *Cli) getSliceAny(cmd string, args ...any) ([]any, error) {
 	return s, nil
 }
 
-// getSliceString — получение списка строк.
+// getSliceString — получение слайса ([]string) от сервера.
 func (cli *Cli) getSliceString(cmd string, args ...any) ([]string, error) {
 	raw, err := cli.getSliceAny(cmd, args...)
 	if err != nil {
@@ -64,6 +65,7 @@ func (cli *Cli) getSliceString(cmd string, args ...any) ([]string, error) {
 	return res, nil
 }
 
+// getString — получение строки (string) от сервера.
 func (cli *Cli) getString(cmd string, args ...any) (string, error) {
 	res, err := cli.Query(cmd, args...)
 	if err != nil {
@@ -77,7 +79,7 @@ func (cli *Cli) getString(cmd string, args ...any) (string, error) {
 	return s, nil
 }
 
-// setMapAny — строгая отправка словаря данных (SET, UPDATE, MODIFY).
+// setMapAny — отправка словаря на сервер.
 func (cli *Cli) setMapAny(cmd string, subject string, data map[string]any) (err error) {
 	if data == nil {
 		return fmt.Errorf("%s: data map is nil", cmd)
@@ -91,7 +93,7 @@ func (cli *Cli) setMapAny(cmd string, subject string, data map[string]any) (err 
 	return
 }
 
-// toAnySlice — безопасное приведение к слайсу для вложенных данных (Rules).
+// toAnySlice — приведение к слайсу []any.
 func toAnySlice(v any) []any {
 	if s, ok := v.([]any); ok {
 		return s
@@ -107,7 +109,7 @@ func toGoText(s string) string {
 	return strings.ReplaceAll(s, `\e`, "\n")
 }
 
-// toInt — безопасное приведение к int для числовых параметров.
+// toInt — приведение различных числовых типов к int.
 func toInt(v any) int {
 	switch val := v.(type) {
 	case int:
@@ -121,7 +123,7 @@ func toInt(v any) int {
 	}
 }
 
-// toInt64 безопасно приводит различные числовые типы к int64.
+// toInt64 приведение различных числовых типов к int64.
 func toInt64(v any) int64 {
 	switch val := v.(type) {
 	case int64:
@@ -160,7 +162,7 @@ func toString(cmd string, v any) (string, error) {
 	}
 }
 
-// toStringMap — конвертирует map[string]any в map[string]string (для ListAccounts и др.).
+// toStringMap — конвертирует map[string]any в map[string]string.
 func toStringMap(cmd string, data map[string]any) (map[string]string, error) {
 	res := make(map[string]string, len(data))
 	for k, v := range data {
