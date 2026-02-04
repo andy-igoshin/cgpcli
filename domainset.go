@@ -70,22 +70,22 @@ func (cli *Cli) DeleteDomain(domain string, force bool) (err error) {
 
 // GetClusterAccountDefaults возвращает настройки аккаунтов кластера по умолчанию.
 func (cli *Cli) GetClusterAccountDefaults() (map[string]any, error) {
-	return cli.getMapAny("GETCLUSTERACCOUNTDEFAULTS", "")
+	return cli.getMapAny("GETCLUSTERACCOUNTDEFAULTS")
 }
 
 // GetClusterAccountPrefs возвращает предпочтения аккаунтов кластера по умолчанию.
 func (cli *Cli) GetClusterAccountPrefs() (map[string]any, error) {
-	return cli.getMapAny("GETCLUSTERACCOUNTPREFS", "")
+	return cli.getMapAny("GETCLUSTERACCOUNTPREFS")
 }
 
 // GetClusterDirectoryIntegration возвращает настройки интеграции справочника кластера.
 func (cli *Cli) GetClusterDirectoryIntegration() (map[string]any, error) {
-	return cli.getMapAny("GETCLUSTERDIRECTORYINTEGRATION", "")
+	return cli.getMapAny("GETCLUSTERDIRECTORYINTEGRATION")
 }
 
 // GetClusterDomainDefaults возвращает настройки доменов кластера по умолчанию.
 func (cli *Cli) GetClusterDomainDefaults() (map[string]any, error) {
-	return cli.getMapAny("GETCLUSTERDOMAINDEFAULTS", "")
+	return cli.getMapAny("GETCLUSTERDOMAINDEFAULTS")
 }
 
 // GetClusterTrustedCerts возвращает список доверенных сертификатов кластера.
@@ -95,22 +95,22 @@ func (cli *Cli) GetClusterTrustedCerts() ([]string, error) {
 
 // GetDirectoryIntegration возвращает настройки интеграции справочника сервера.
 func (cli *Cli) GetDirectoryIntegration() (map[string]any, error) {
-	return cli.getMapAny("GETDIRECTORYINTEGRATION", "")
+	return cli.getMapAny("GETDIRECTORYINTEGRATION")
 }
 
 // GetDomainDefaults возвращает настройки доменов сервера по умолчанию.
 func (cli *Cli) GetDomainDefaults() (map[string]any, error) {
-	return cli.getMapAny("GETDOMAINDEFAULTS", "")
+	return cli.getMapAny("GETDOMAINDEFAULTS")
 }
 
 // GetServerAccountDefaults возвращает настройки аккаунтов сервера по умолчанию.
 func (cli *Cli) GetServerAccountDefaults() (map[string]any, error) {
-	return cli.getMapAny("GETSERVERACCOUNTDEFAULTS", "")
+	return cli.getMapAny("GETSERVERACCOUNTDEFAULTS")
 }
 
 // GetServerAccountPrefs возвращает предпочтения аккаунтов сервера по умолчанию.
 func (cli *Cli) GetServerAccountPrefs() (map[string]any, error) {
-	return cli.getMapAny("GETSERVERACCOUNTPREFS", "")
+	return cli.getMapAny("GETSERVERACCOUNTPREFS")
 }
 
 // GetServerTrustedCerts возвращает список доверенных сертификатов сервера.
@@ -254,7 +254,7 @@ func (cli *Cli) UpdateServerAccountPrefs(s map[string]any) error {
 }
 
 func (cli *Cli) getTrustedCerts(cmd string) ([]string, error) {
-	res, err := cli.getMapAny(cmd, "")
+	res, err := cli.getMapAny(cmd)
 	if err != nil {
 		return nil, err
 	}

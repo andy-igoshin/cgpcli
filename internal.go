@@ -8,6 +8,7 @@ import (
 )
 
 // getMapAny — строгое получение словаря (map[string]any) от сервера.
+/*
 func (cli *Cli) getMapAny(cmd string, subject string) (map[string]any, error) {
 	var res any
 	var err error
@@ -27,6 +28,19 @@ func (cli *Cli) getMapAny(cmd string, subject string) (map[string]any, error) {
 		return nil, fmt.Errorf("%s: expected map[string]any, got %T", cmd, res)
 	}
 
+	return m, nil
+}
+*/
+
+func (cli *Cli) getMapAny(cmd string, args ...any) (map[string]any, error) {
+	res, err := cli.Query(cmd, args...)
+	if err != nil {
+		return nil, err
+	}
+	m, ok := res.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
+	}
 	return m, nil
 }
 

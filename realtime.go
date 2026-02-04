@@ -56,7 +56,7 @@ func (cli *Cli) DeleteServerPBX(language string) error {
 }
 
 func (cli *Cli) ListClusterPBXFiles(language string) (map[string]any, error) {
-	return cli.getMapAny("LISTCLUSTERPBXFILES", language)
+	return cli.getMapAny("LISTCLUSTERPBXFILES", Atom(language))
 }
 
 // ListDomainPBXFiles возвращает список файлов в среде RTA домена.
@@ -82,11 +82,11 @@ func (cli *Cli) ListDomainPBXFiles(domain, language string) (map[string]any, err
 }
 
 func (cli *Cli) ListServerPBXFiles(language string) (map[string]any, error) {
-	return cli.getMapAny("LISTSERVERPBXFILES", language)
+	return cli.getMapAny("LISTSERVERPBXFILES", Atom(language))
 }
 
 func (cli *Cli) ListStockPBXFiles(language string) (map[string]any, error) {
-	return cli.getMapAny("LISTSTOCKPBXFILES", language)
+	return cli.getMapAny("LISTSTOCKPBXFILES", Atom(language))
 }
 
 func (cli *Cli) ReadClusterPBXFile(file string) ([]byte, error) {

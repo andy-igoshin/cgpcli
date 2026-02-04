@@ -72,7 +72,7 @@ func (cli *Cli) GetMailboxAliases(account string) (map[string]string, error) {
 		return nil, fmt.Errorf("account name is required")
 	}
 	const cmd = "GETMAILBOXALIASES"
-	m, err := cli.getMapAny(cmd, account)
+	m, err := cli.getMapAny(cmd, Atom(account))
 	if err != nil {
 		return nil, err
 	}

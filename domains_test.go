@@ -236,6 +236,9 @@ func TestDomainAdministration_Extra(t *testing.T) {
 	})
 
 	t.Run("DefaultPrefsAndTemplates", func(t *testing.T) {
+cli.SetDebug(true)
+
+
 		// Работа с Account Default Prefs
 		prefs, err := cli.GetAccountDefaultPrefs(targetDomain)
 		if err != nil {

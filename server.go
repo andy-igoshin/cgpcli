@@ -37,7 +37,7 @@ func (cli *Cli) GetClusterDeniedIPs() (IPList, error) {
 }
 
 func (cli *Cli) GetClusterIntercept() (map[string]any, error) {
-	return cli.getMapAny("GETCLUSTERINTERCEPT", "")
+	return cli.getMapAny("GETCLUSTERINTERCEPT")
 }
 
 func (cli *Cli) GetClusterLANIPs() (IPList, error) { return cli.getIPListTyped("GETCLUSTERLANIPS") }
@@ -52,11 +52,11 @@ func (cli *Cli) GetClusterNatSiteIPs() (IPList, error) {
 }
 
 func (cli *Cli) GetClusterNetwork() (map[string]any, error) {
-	return cli.getMapAny("GETCLUSTERNETWORK", "")
+	return cli.getMapAny("GETCLUSTERNETWORK")
 }
 
 func (cli *Cli) GetClusterRouterSettings() (map[string]any, error) {
-	return cli.getMapAny("GETCLUSTERROUTERSETTINGS", "")
+	return cli.getMapAny("GETCLUSTERROUTERSETTINGS")
 }
 
 func (cli *Cli) GetClusterRouterTable() (string, error) {
@@ -64,7 +64,7 @@ func (cli *Cli) GetClusterRouterTable() (string, error) {
 }
 
 func (cli *Cli) GetClusterSettings() (map[string]any, error) {
-	return cli.getMapAny("GETCLUSTERSETTINGS", "")
+	return cli.getMapAny("GETCLUSTERSETTINGS")
 }
 
 func (cli *Cli) GetClusterSignalRules() ([]SignalRule, error) {
@@ -79,7 +79,7 @@ func (cli *Cli) GetDebugIPs() (IPList, error)  { return cli.getIPListTyped("GETD
 func (cli *Cli) GetDeniedIPs() (IPList, error) { return cli.getIPListTyped("GETDENIEDIPS") }
 
 func (cli *Cli) GetDNRSettings() (map[string]any, error) {
-	return cli.getMapAny("GETDNRSETTINGS", "")
+	return cli.getMapAny("GETDNRSETTINGS")
 }
 
 func (cli *Cli) GetIPState(ip string, temp bool) (string, error) {
@@ -91,10 +91,10 @@ func (cli *Cli) GetIPState(ip string, temp bool) (string, error) {
 
 func (cli *Cli) GetLANIPs() (IPList, error) { return cli.getIPListTyped("GETLANIPS") }
 
-func (cli *Cli) GetLogSettings() (map[string]any, error) { return cli.getMapAny("GETLOGSETTINGS", "") }
+func (cli *Cli) GetLogSettings() (map[string]any, error) { return cli.getMapAny("GETLOGSETTINGS") }
 
 func (cli *Cli) GetMediaServerSettings() (map[string]any, error) {
-	return cli.getMapAny("GETMEDIASERVERSETTINGS", "")
+	return cli.getMapAny("GETMEDIASERVERSETTINGS")
 }
 
 func (cli *Cli) GetModule(name string) (map[string]any, error) {
@@ -103,14 +103,14 @@ func (cli *Cli) GetModule(name string) (map[string]any, error) {
 
 func (cli *Cli) GetNatedIPs() (IPList, error)        { return cli.getIPListTyped("GETNATEDIPS") }
 func (cli *Cli) GetNatSiteIPs() (IPList, error)      { return cli.getIPListTyped("GETNATSITEIPS") }
-func (cli *Cli) GetNetwork() (map[string]any, error) { return cli.getMapAny("GETNETWORK", "") }
+func (cli *Cli) GetNetwork() (map[string]any, error) { return cli.getMapAny("GETNETWORK") }
 
 func (cli *Cli) GetQueueSettings() (map[string]any, error) {
-	return cli.getMapAny("GETQUEUESETTINGS", "")
+	return cli.getMapAny("GETQUEUESETTINGS")
 }
 
 func (cli *Cli) GetRouterSettings() (map[string]any, error) {
-	return cli.getMapAny("GETROUTERSETTINGS", "")
+	return cli.getMapAny("GETROUTERSETTINGS")
 }
 
 func (cli *Cli) GetRouterTable() (RouterList, error) {
@@ -130,7 +130,7 @@ func (cli *Cli) GetRouterTable() (RouterList, error) {
 }
 
 func (cli *Cli) GetServerIntercept() (map[string]any, error) {
-	return cli.getMapAny("GETSERVERINTERCEPT", "")
+	return cli.getMapAny("GETSERVERINTERCEPT")
 }
 
 func (cli *Cli) GetServerMailRules() ([]MailRule, error) {
@@ -138,7 +138,7 @@ func (cli *Cli) GetServerMailRules() ([]MailRule, error) {
 }
 
 func (cli *Cli) GetServerSettings() (map[string]any, error) {
-	return cli.getMapAny("GETSERVERSETTINGS", "")
+	return cli.getMapAny("GETSERVERSETTINGS")
 }
 
 func (cli *Cli) GetServerSignalRules() ([]SignalRule, error) {
@@ -146,15 +146,15 @@ func (cli *Cli) GetServerSignalRules() ([]SignalRule, error) {
 }
 
 func (cli *Cli) GetSessionSettings() (map[string]any, error) {
-	return cli.getMapAny("GETSESSIONSETTINGS", "")
+	return cli.getMapAny("GETSESSIONSETTINGS")
 }
 
 func (cli *Cli) GetSignalSettings() (map[string]any, error) {
-	return cli.getMapAny("GETSIGNALSETTINGS", "")
+	return cli.getMapAny("GETSIGNALSETTINGS")
 }
 
 func (cli *Cli) GetSMTPSendProfiles() (map[string]any, error) {
-	return cli.getMapAny("GETSMTPSENDPROFILES", "")
+	return cli.getMapAny("GETSMTPSENDPROFILES")
 }
 
 func (cli *Cli) GetWhiteHoleIPs() (IPList, error) { return cli.getIPListTyped("GETWHITEHOLEIPS") }
@@ -315,7 +315,7 @@ func (cli *Cli) UpdateServerSettings(s map[string]any) error {
 }
 
 func (cli *Cli) getBannedGeneric(cmd string) (*BannedLines, error) {
-	m, err := cli.getMapAny(cmd, "")
+	m, err := cli.getMapAny(cmd)
 	if err != nil {
 		return nil, err
 	}

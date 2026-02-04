@@ -115,9 +115,6 @@ func (cli *Cli) ListServerSkins() ([]string, error) {
 
 // ListStockSkinFiles возвращает список файлов встроенного (stock) скина.
 func (cli *Cli) ListStockSkinFiles(skin string) (map[string]any, error) {
-	if skin == "" {
-		skin = `""`
-	}
 	return cli.getMapAny("LISTSTOCKSKINFILES", skin)
 }
 

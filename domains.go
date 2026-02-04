@@ -44,24 +44,15 @@ func (cli *Cli) DeleteDirectoryRecords(domain string) (err error) {
 }
 
 func (cli *Cli) GetAccountDefaultPrefs(domain string) (map[string]any, error) {
-	if domain == "" {
-		return nil, fmt.Errorf("domain name is required")
-	}
-	return cli.getMapAny("GETACCOUNTDEFAULTPREFS", domain)
+	return cli.getMapAny("GETACCOUNTDEFAULTPREFS", Atom(domain))
 }
 
 func (cli *Cli) GetAccountDefaults(domain string) (map[string]any, error) {
-	if domain == "" {
-		return nil, fmt.Errorf("domain name is required")
-	}
-	return cli.getMapAny("GETACCOUNTDEFAULTS", domain)
+	return cli.getMapAny("GETACCOUNTDEFAULTS", Atom(domain))
 }
 
 func (cli *Cli) GetAccountTemplate(domain string) (map[string]any, error) {
-	if domain == "" {
-		return nil, fmt.Errorf("domain name is required")
-	}
-	return cli.getMapAny("GETACCOUNTTEMPLATE", domain)
+	return cli.getMapAny("GETACCOUNTTEMPLATE", Atom(domain))
 }
 
 func (cli *Cli) GetDomainAliases(domain string) ([]string, error) {
@@ -72,10 +63,7 @@ func (cli *Cli) GetDomainAliases(domain string) ([]string, error) {
 }
 
 func (cli *Cli) GetDomainEffectiveSettings(domain string) (map[string]any, error) {
-	if domain == "" {
-		return nil, fmt.Errorf("domain name is required")
-	}
-	return cli.getMapAny("GETDOMAINEFFECTIVESETTINGS", domain)
+	return cli.getMapAny("GETDOMAINEFFECTIVESETTINGS", Atom(domain))
 }
 
 func (cli *Cli) GetDomainLocation(domain string) (string, error) {
@@ -93,10 +81,7 @@ func (cli *Cli) GetDomainMailRules(domain string) ([]MailRule, error) {
 }
 
 func (cli *Cli) GetDomainSettings(domain string) (map[string]any, error) {
-	if domain == "" {
-		return nil, fmt.Errorf("domain name is required")
-	}
-	return cli.getMapAny("GETDOMAINSETTINGS", domain)
+	return cli.getMapAny("GETDOMAINSETTINGS", Atom(domain))
 }
 
 func (cli *Cli) GetDomainSignalRules(domain string) ([]SignalRule, error) {
@@ -136,7 +121,7 @@ func (cli *Cli) ListAccounts(domain string) (map[string]string, error) {
 		return nil, fmt.Errorf("domain name is required")
 	}
 	const cmd = "LISTACCOUNTS"
-	raw, err := cli.getMapAny(cmd, domain)
+	raw, err := cli.getMapAny(cmd, Atom(domain))
 	if err != nil {
 		return nil, err
 	}

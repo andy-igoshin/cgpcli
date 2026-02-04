@@ -10,7 +10,7 @@ func (cli *Cli) GetAccountAlerts(account string) (map[string]string, error) {
 		return nil, fmt.Errorf("account is required")
 	}
 	const cmd = "GETACCOUNTALERTS"
-	res, err := cli.getMapAny(cmd, account)
+	res, err := cli.getMapAny(cmd, Atom(account))
 	if err != nil {
 		return nil, err
 	}
@@ -19,7 +19,7 @@ func (cli *Cli) GetAccountAlerts(account string) (map[string]string, error) {
 
 func (cli *Cli) GetClusterAlerts() (map[string]string, error) {
 	const cmd = "GETCLUSTERALERTS"
-	res, err := cli.getMapAny(cmd, "")
+	res, err := cli.getMapAny(cmd)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (cli *Cli) GetClusterAlerts() (map[string]string, error) {
 
 func (cli *Cli) GetDomainAlerts(domain string) (map[string]string, error) {
 	const cmd = "GETDOMAINALERTS"
-	res, err := cli.getMapAny(cmd, domain)
+	res, err := cli.getMapAny(cmd, Atom(domain))
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (cli *Cli) GetDomainAlerts(domain string) (map[string]string, error) {
 
 func (cli *Cli) GetServerAlerts() (map[string]string, error) {
 	const cmd = "GETSERVERALERTS"
-	res, err := cli.getMapAny(cmd, "")
+	res, err := cli.getMapAny(cmd)
 	if err != nil {
 		return nil, err
 	}

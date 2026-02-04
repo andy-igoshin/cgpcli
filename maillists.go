@@ -59,7 +59,7 @@ func (cli *Cli) GetAccountLists(account string) (map[string]int, error) {
 
 // GetDomainLists возвращает map "имя списка рассылки -> количество подписчиков".
 func (cli *Cli) GetDomainLists(domain string) (map[string]int, error) {
-	m, err := cli.getMapAny("GETDOMAINLISTS", domain)
+	m, err := cli.getMapAny("GETDOMAINLISTS", Atom(domain))
 	if err != nil {
 		return nil, err
 	}

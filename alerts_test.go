@@ -84,6 +84,11 @@ func TestAlerts_FullLifecycle(t *testing.T) {
 				t.Errorf("RemoveDomainAlert failed: %v", err)
 			}
 		}
+
+		_, err = cli.GetDomainAlerts("")
+		if err != nil {
+			t.Fatalf("GetDomainAlerts failed: %v", err)
+		}
 	})
 
 	// ACCOUNT ALERTS

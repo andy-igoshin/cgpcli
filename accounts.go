@@ -174,7 +174,7 @@ func (cli *Cli) GetAccountEffectiveSettings(account string) (map[string]any, err
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
-	return cli.getMapAny("GETACCOUNTEFFECTIVESETTINGS", account)
+	return cli.getMapAny("GETACCOUNTEFFECTIVESETTINGS", Atom(account))
 }
 
 func (cli *Cli) GetAccountInfo(account string, keys []string) (map[string]any, error) {
@@ -300,7 +300,7 @@ func (cli *Cli) GetAccountSettings(account string) (map[string]any, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
-	return cli.getMapAny("GETACCOUNTSETTINGS", account)
+	return cli.getMapAny("GETACCOUNTSETTINGS", Atom(account))
 }
 
 func (cli *Cli) GetAccountSignalRules(account string) ([]SignalRule, error) {

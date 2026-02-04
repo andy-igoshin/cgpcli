@@ -43,7 +43,7 @@ func (cli *Cli) ListAccountNamedTasks(account string) (map[string]any, error) {
 
 // ListDomainNamedTasks возвращает список всех именованных задач в домене.
 func (cli *Cli) ListDomainNamedTasks(domain string) (map[string]any, error) {
-	return cli.getMapAny("LISTDOMAINNAMEDTASKS", domain)
+	return cli.getMapAny("LISTDOMAINNAMEDTASKS", Atom(domain))
 }
 
 // RenameNamedTask переименовывает задачу.
