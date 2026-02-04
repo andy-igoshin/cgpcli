@@ -7,31 +7,7 @@ import (
 	"time"
 )
 
-// getMapAny — строгое получение словаря (map[string]any) от сервера.
-/*
-func (cli *Cli) getMapAny(cmd string, subject string) (map[string]any, error) {
-	var res any
-	var err error
-
-	if subject != "" {
-		res, err = cli.Query(cmd, Atom(subject))
-	} else {
-		res, err = cli.Query(cmd)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	m, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected map[string]any, got %T", cmd, res)
-	}
-
-	return m, nil
-}
-*/
-
+// getMapAny — получение словаря (map[string]any) от сервера.
 func (cli *Cli) getMapAny(cmd string, args ...any) (map[string]any, error) {
 	res, err := cli.Query(cmd, args...)
 	if err != nil {
