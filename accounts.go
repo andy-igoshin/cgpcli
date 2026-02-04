@@ -103,18 +103,7 @@ func (cli *Cli) GetAccountACLRights(account, authAccount string) (string, error)
 	if account == "" || authAccount == "" {
 		return "", fmt.Errorf("target account and auth account names are required")
 	}
-
-	const cmd = "GETACCOUNTACLRIGHTS"
-
-	res, err := cli.Query(cmd, Atom(account), "AUTH", authAccount)
-	if err != nil {
-		return "", err
-	}
-	s, ok := res.(string)
-	if !ok {
-		return "", fmt.Errorf("%s: expected string, got %T", cmd, res)
-	}
-	return s, nil
+	return cli.getString("GETACCOUNTACLRIGHTS", Atom(account), "AUTH", authAccount)
 }
 
 func (cli *Cli) GetAccountAccessModes(account string) ([]string, error) {
@@ -208,29 +197,18 @@ func (cli *Cli) GetAccountOneSetting(account, key string) (any, error) {
 	return cli.Query("GETACCOUNTONESETTING", Atom(account), key)
 }
 
-func (cli *Cli) GetAccountPlainPassword(account string, method string) (string, error) {
+func (cli *Cli) GetAccountPlainPassword(account string, method string) (s string, err error) {
 	if account == "" {
 		return "", fmt.Errorf("account name is required")
 	}
 
 	const cmd = "GETACCOUNTPLAINPASSWORD"
-	var res any
-	var err error
-
 	if method == "SIP" || method == "RADIUS" {
-		res, err = cli.Query(cmd, account, "METHOD", method)
+		s, err = cli.getString(cmd, account, "METHOD", method)
 	} else {
-		res, err = cli.Query(cmd, account)
+		s, err = cli.getString(cmd, account)
 	}
-
-	if err != nil {
-		return "", err
-	}
-	s, ok := res.(string)
-	if !ok {
-		return "", fmt.Errorf("%s: expected string, got %T", cmd, res)
-	}
-	return s, nil
+	return
 }
 
 func (cli *Cli) GetAccountPrefs(account string) (map[string]any, error) {

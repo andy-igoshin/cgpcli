@@ -111,6 +111,11 @@ func TestWebSkins_Comprehensive(t *testing.T) {
 			t.Fatalf("Create named domain skin failed: %v", err)
 		}
 
+		_, err := cli.ListDomainSkins("")
+		if err != nil {
+			t.Errorf("ListDomainSkins failed: %v", err)
+		}
+
 		dSkins, err := cli.ListDomainSkins(testDomain)
 		if err != nil {
 			t.Errorf("ListDomainSkins failed: %v", err)

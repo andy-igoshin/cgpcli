@@ -21,20 +21,15 @@ func (cli *Cli) GetDialogInfo(dialogID int64) (map[string]any, error) {
 }
 
 // GetNextStatName возвращает имя следующего элемента статистики.
-func (cli *Cli) GetNextStatName(objectID string) (string, error) {
-	const cmd = "GETNEXTSTATNAME"
-	res, err := cli.Query(cmd, objectID)
+func (cli *Cli) GetNextStatName(objectID string) (s string, err error) {
+	s, err = cli.getString("GETNEXTSTATNAME", objectID)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			return "", io.EOF
 		}
 		return "", err
 	}
-	s, ok := res.(string)
-	if !ok {
-		return "", fmt.Errorf("%s: expected string, got %T", cmd, res)
-	}
-	return s, nil
+	return
 }
 
 // GetStatElement возвращает текущее значение элемента статистики (SNMP).

@@ -159,24 +159,19 @@ func (cli *Cli) GetSMTPSendProfiles() (map[string]any, error) {
 }
 
 func (cli *Cli) GetWhiteHoleIPs() (IPList, error) { return cli.getIPListTyped("GETWHITEHOLEIPS") }
-func (cli *Cli) ListModules() ([]string, error)   { return cli.getSliceString("LISTMODULES", "") }
+func (cli *Cli) ListModules() ([]string, error)   { return cli.getSliceString("LISTMODULES") }
 
 func (cli *Cli) RefreshOSData() error {
 	return cli.QueryNV("REFRESHOSDATA")
 }
 
-func (cli *Cli) Route(address string, mode string) ([]string, error) {
-	var res any
-	var err error
+func (cli *Cli) Route(address string, mode string) (res []string, err error) {
 	if mode != "" {
-		res, err = cli.Query("ROUTE", address, mode)
+		res, err = cli.getSliceString("ROUTE", address, mode)
 	} else {
-		res, err = cli.Query("ROUTE", address)
+		res, err = cli.getSliceString("ROUTE", address)
 	}
-	if err != nil {
-		return nil, err
-	}
-	return toStringSlice("ROUTE", res)
+	return
 }
 
 // SetBanned устанавливает серверные списки запрещенных строк.

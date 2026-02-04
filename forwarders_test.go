@@ -59,6 +59,11 @@ func TestForwarders(t *testing.T) {
 		}
 
 		// 5. List
+		_, err = cli.ListForwarders("")
+		if err != nil {
+			t.Errorf("List failed: %v", err)
+		}
+
 		list, err := cli.ListForwarders(domain)
 		if err != nil {
 			t.Errorf("List failed: %v", err)

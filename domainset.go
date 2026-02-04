@@ -124,25 +124,18 @@ func (cli *Cli) ListClusterTelnums(f string, l int) (map[string]string, error) {
 }
 
 // ListDomainStorage возвращает список путей хранилища.
-func (cli *Cli) ListDomainStorage(shared bool) ([]string, error) {
+func (cli *Cli) ListDomainStorage(shared bool) (res []string, err error) {
 	const cmd = "LISTDOMAINSTORAGE"
-	var res any
-	var err error
-
 	if shared {
-		res, err = cli.Query(cmd, "SHARED")
+		res, err = cli.getSliceString(cmd, "SHARED")
 	} else {
-		res, err = cli.Query(cmd)
+		res, err = cli.getSliceString(cmd)
 	}
-
-	if err != nil {
-		return nil, err
-	}
-	return toStringSlice(cmd, res)
+	return
 }
 
 // ListDomains возвращает список всех доменов.
-func (cli *Cli) ListDomains() ([]string, error) { return cli.getSliceString("LISTDOMAINS", "") }
+func (cli *Cli) ListDomains() ([]string, error) { return cli.getSliceString("LISTDOMAINS") }
 
 // ListServerTelnums возвращает телефонные номера сервера.
 func (cli *Cli) ListServerTelnums(f string, l int) (map[string]string, error) {

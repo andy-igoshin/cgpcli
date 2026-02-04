@@ -149,10 +149,10 @@ func (cli *Cli) StoreClusterPBXFile(file string, data []byte) (err error) {
 		return fmt.Errorf("file is required")
 	}
 	const cmd = "STORECLUSTERPBXFILE"
-	if data == nil {
-		err = cli.QueryNV(cmd, file, "DELETE")
-	} else {
+	if data != nil {
 		err = cli.QueryNV(cmd, file, "DATA", data)
+	} else {
+		err = cli.QueryNV(cmd, file, "DELETE")
 	}
 	return
 }
@@ -163,10 +163,10 @@ func (cli *Cli) StoreDomainPBXFile(domain, file string, data []byte) (err error)
 		return fmt.Errorf("domain and file are required")
 	}
 	const cmd = "STOREDOMAINPBXFILE"
-	if data == nil {
-		err = cli.QueryNV(cmd, domain, "FILE", file, "DELETE")
-	} else {
+	if data != nil {
 		err = cli.QueryNV(cmd, domain, "FILE", file, "DATA", data)
+	} else {
+		err = cli.QueryNV(cmd, domain, "FILE", file, "DELETE")
 	}
 	return
 }
@@ -176,10 +176,10 @@ func (cli *Cli) StoreServerPBXFile(file string, data []byte) (err error) {
 		return fmt.Errorf("file is required")
 	}
 	const cmd = "STORESERVERPBXFILE"
-	if data == nil {
-		err = cli.QueryNV(cmd, file, "DELETE")
-	} else {
+	if data != nil {
 		err = cli.QueryNV(cmd, file, "DATA", data)
+	} else {
+		err = cli.QueryNV(cmd, file, "DELETE")
 	}
 	return
 }

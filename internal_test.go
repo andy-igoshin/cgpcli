@@ -79,7 +79,7 @@ func TestInternalIntegration(t *testing.T) {
 	// 1. Сначала получаем список доменов, чтобы знать, к кому обращаться
 	var targetDomain string
 	t.Run("getSliceString_ListDomains", func(t *testing.T) {
-		domains, err := cli.getSliceString("LISTDOMAINS", "")
+		domains, err := cli.getSliceString("LISTDOMAINS")
 		if err != nil {
 			t.Fatalf("getSliceString failed: %v", err)
 		}

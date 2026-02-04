@@ -23,13 +23,7 @@ func (cli *Cli) FindForwarders(domain, target string) ([]string, error) {
 	if domain == "" || target == "" {
 		return nil, fmt.Errorf("domain and target address are required")
 	}
-
-	const cmd = "FINDFORWARDERS"
-	res, err := cli.Query(cmd, domain, "TO", target)
-	if err != nil {
-		return nil, err
-	}
-	return toStringSlice(cmd, res)
+	return cli.getSliceString("FINDFORWARDERS", domain, "TO", target)
 }
 
 func (cli *Cli) GetForwarder(forwarder string) (string, error) {
@@ -40,9 +34,6 @@ func (cli *Cli) GetForwarder(forwarder string) (string, error) {
 }
 
 func (cli *Cli) ListForwarders(domain string) ([]string, error) {
-	if domain == "" {
-		return nil, fmt.Errorf("domain name is required")
-	}
 	return cli.getSliceString("LISTFORWARDERS", domain)
 }
 

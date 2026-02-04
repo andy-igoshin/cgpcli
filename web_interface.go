@@ -71,12 +71,11 @@ func (cli *Cli) CreateXimssSession(account, addr, origAddr string) (s string, er
 }
 
 // FindAccountSession ищет существующую сессию аккаунта по заданным критериям.
-func (cli *Cli) FindAccountSession(account, addr, origAddr, protocol, transport, client string) (s string, err error) {
+func (cli *Cli) FindAccountSession(account, addr, origAddr, protocol, transport, client string) (string, error) {
 	if account == "" {
 		return "", fmt.Errorf("account name is required")
 	}
 
-	const cmd = "FINDACCOUNTSESSION"
 	args := make([]any, 0, 11)
 	args = append(args, account)
 	if addr != "" {
@@ -94,7 +93,7 @@ func (cli *Cli) FindAccountSession(account, addr, origAddr, protocol, transport,
 	if client != "" {
 		args = append(args, "CLIENT", client)
 	}
-	return cli.getString(cmd, args...)
+	return cli.getString("FINDACCOUNTSESSION", args...)
 }
 
 // GetSession возвращает данные сессии в виде словаря.
@@ -132,7 +131,6 @@ func (cli *Cli) ListAccountSessions(account, addr, origAddr, protocol, transport
 		return nil, fmt.Errorf("account name is required")
 	}
 
-	const cmd = "LISTACCOUNTSESSIONS"
 	args := make([]any, 0, 11)
 	args = append(args, account)
 	if addr != "" {
@@ -150,17 +148,11 @@ func (cli *Cli) ListAccountSessions(account, addr, origAddr, protocol, transport
 	if client != "" {
 		args = append(args, "CLIENT", client)
 	}
-
-	res, err := cli.Query(cmd, args...)
-	if err != nil {
-		return nil, err
-	}
-	return toStringSlice(cmd, res)
+	return cli.getSliceString("LISTACCOUNTSESSIONS", args...)
 }
 
 // ListLiteSessions возвращает список всех LITE-сессий.
 func (cli *Cli) ListLiteSessions(addr, origAddr string) ([]string, error) {
-	const cmd = "LISTLITESESSIONS"
 	args := make([]any, 0, 4)
 	if addr != "" {
 		args = append(args, "ADDRESS", addr)
@@ -168,12 +160,7 @@ func (cli *Cli) ListLiteSessions(addr, origAddr string) ([]string, error) {
 			args = append(args, "FOR", origAddr)
 		}
 	}
-
-	raw, err := cli.Query(cmd, args...)
-	if err != nil {
-		return nil, err
-	}
-	return toStringSlice(cmd, raw)
+	return cli.getSliceString("LISTLITESESSIONS", args...)
 }
 
 // StoreSessionFile сохраняет файл из сессионного набора в File Storage.

@@ -131,7 +131,6 @@ func (cli *Cli) ListSubscribers(list, filter string, limit int) ([]string, error
 		return nil, fmt.Errorf("list name is required")
 	}
 
-	const cmd = "LISTSUBSCRIBERS"
 	args := make([]any, 0, 4)
 	args = append(args, list)
 	if filter != "" {
@@ -140,11 +139,7 @@ func (cli *Cli) ListSubscribers(list, filter string, limit int) ([]string, error
 			args = append(args, limit)
 		}
 	}
-	res, err := cli.Query(cmd, args...)
-	if err != nil {
-		return nil, err
-	}
-	return toStringSlice(cmd, res)
+	return cli.getSliceString("LISTSUBSCRIBERS", args...)
 }
 
 // ProcessBounce инициирует процедуру обработки ошибки доставки (bounce) для адреса.
@@ -177,17 +172,15 @@ func (cli *Cli) ReadSubscribers(list, filter string, limit int) ([]SubscriberInf
 		}
 	}
 
-	res, err := cli.Query("READSUBSCRIBERS", args...)
+	res, err := cli.getSliceAny("READSUBSCRIBERS", args...)
 	if err != nil {
 		return nil, err
 	}
-
-	raw, ok := res.([]any)
-	if !ok || len(raw) < 2 {
+	if len(res) < 2 {
 		return nil, nil
 	}
 
-	ls, _ := raw[1].([]any)
+	ls, _ := res[1].([]any)
 
 	subs := make([]SubscriberInfo, 0, len(ls))
 	for _, v := range ls {

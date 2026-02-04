@@ -37,13 +37,7 @@ func (cli *Cli) GetFileSubscription(account string) ([]string, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
-
-	const cmd = "GETFILESUBSCRIPTION"
-	res, err := cli.Query(cmd, Atom(account))
-	if err != nil {
-		return nil, err
-	}
-	return toStringSlice(cmd, res)
+	return cli.getSliceString("GETFILESUBSCRIPTION", Atom(account))
 }
 
 func (cli *Cli) GetStorageFileInfo(account, path, authAccount string) (*StorageFileInfo, error) {
@@ -144,7 +138,6 @@ func (cli *Cli) ReadStorageFileAttr(account, file string, attrs []string, authAc
 		return nil, fmt.Errorf("account name and file name are required")
 	}
 
-	const cmd = "READSTORAGEFILEATTR"
 	args := make([]any, 0, 6)
 	args = append(args, Atom(account), "FILE", file)
 	if len(attrs) > 0 {
@@ -153,17 +146,7 @@ func (cli *Cli) ReadStorageFileAttr(account, file string, attrs []string, authAc
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
-
-	res, err := cli.Query(cmd, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	arr, ok := res.([]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected array, got %T", cmd, res)
-	}
-	return arr, nil
+	return cli.getSliceAny("READSTORAGEFILEATTR", args...)
 }
 
 func (cli *Cli) RenameStorageFile(account, oldName, newName, authAccount string) (err error) {

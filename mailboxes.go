@@ -101,7 +101,7 @@ func (cli *Cli) GetMailboxSubscription(account string) ([]string, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
-	return cli.getSliceString("GETMAILBOXSUBSCRIPTION", account)
+	return cli.getSliceString("GETMAILBOXSUBSCRIPTION", Atom(account))
 }
 
 // ListMailboxes возвращает дерево папок аккаунта с метаданными.

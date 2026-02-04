@@ -70,7 +70,7 @@ func (cli *Cli) ListClusterSkinFiles(skin string) (map[string]any, error) {
 
 // ListClusterSkins возвращает список имен кастомных кластерных скинов.
 func (cli *Cli) ListClusterSkins() ([]string, error) {
-	return cli.getSliceString("LISTCLUSTERSKINS", "")
+	return cli.getSliceString("LISTCLUSTERSKINS")
 }
 
 // ListDomainSkinFiles возвращает словарь с атрибутами файлов в скине домена.
@@ -99,7 +99,7 @@ func (cli *Cli) ListServerSkinFiles(skin string) (map[string]any, error) {
 
 // ListServerSkins возвращает список имен кастомных серверных скинов.
 func (cli *Cli) ListServerSkins() ([]string, error) {
-	return cli.getSliceString("LISTSERVERSKINS", "")
+	return cli.getSliceString("LISTSERVERSKINS")
 }
 
 // ListStockSkinFiles возвращает список файлов встроенного (stock) скина.
@@ -114,18 +114,17 @@ func (cli *Cli) ReadClusterSkinFile(skin, file string) ([]byte, time.Time, error
 	}
 
 	const cmd = "READCLUSTERSKINFILE"
-	res, err := cli.Query(cmd, skin, "FILE", file)
+	res, err := cli.getSliceAny(cmd, skin, "FILE", file)
 	if err != nil {
 		return nil, time.Time{}, err
 	}
 
-	arr, ok := res.([]any)
-	if !ok || len(arr) < 2 {
+	if len(res) < 2 {
 		return nil, time.Time{}, fmt.Errorf("%s: expected array, got %T", cmd, res)
 	}
 
-	data, ok1 := arr[0].([]byte)
-	ts, ok2 := arr[1].(time.Time)
+	data, ok1 := res[0].([]byte)
+	ts, ok2 := res[1].(time.Time)
 	if !ok1 || !ok2 {
 		return nil, time.Time{}, fmt.Errorf("%s: invalid data types in response", cmd)
 	}
@@ -140,26 +139,25 @@ func (cli *Cli) ReadDomainSkinFile(domain, skin, file string) ([]byte, time.Time
 	}
 
 	const cmd = "READDOMAINSKINFILE"
-	var res any
+	var res []any
 	var err error
 
 	if domain != "" {
-		res, err = cli.Query(cmd, domain, "SKIN", skin, "FILE", file)
+		res, err = cli.getSliceAny(cmd, domain, "SKIN", skin, "FILE", file)
 	} else {
-		res, err = cli.Query(cmd, skin, "FILE", file)
+		res, err = cli.getSliceAny(cmd, skin, "FILE", file)
 	}
 
 	if err != nil {
 		return nil, time.Time{}, err
 	}
 
-	arr, ok := res.([]any)
-	if !ok || len(arr) < 2 {
+	if len(res) < 2 {
 		return nil, time.Time{}, fmt.Errorf("%s: expected array [data, time], got %T", cmd, res)
 	}
 
-	data, ok1 := arr[0].([]byte)
-	ts, ok2 := arr[1].(time.Time)
+	data, ok1 := res[0].([]byte)
+	ts, ok2 := res[1].(time.Time)
 	if !ok1 || !ok2 {
 		return nil, time.Time{}, fmt.Errorf("%s: invalid data types in response", cmd)
 	}
@@ -174,18 +172,17 @@ func (cli *Cli) ReadServerSkinFile(skin, file string) ([]byte, time.Time, error)
 	}
 
 	const cmd = "READSERVERSKINFILE"
-	res, err := cli.Query(cmd, skin, "FILE", file)
+	res, err := cli.getSliceAny(cmd, skin, "FILE", file)
 	if err != nil {
 		return nil, time.Time{}, err
 	}
 
-	arr, ok := res.([]any)
-	if !ok || len(arr) < 2 {
+	if len(res) < 2 {
 		return nil, time.Time{}, fmt.Errorf("%s: expected array, got %T", cmd, res)
 	}
 
-	data, ok1 := arr[0].([]byte)
-	ts, ok2 := arr[1].(time.Time)
+	data, ok1 := res[0].([]byte)
+	ts, ok2 := res[1].(time.Time)
 	if !ok1 || !ok2 {
 		return nil, time.Time{}, fmt.Errorf("%s: invalid data types in response", cmd)
 	}
@@ -200,18 +197,17 @@ func (cli *Cli) ReadStockSkinFile(skin, file string) ([]byte, time.Time, error) 
 	}
 
 	const cmd = "READSTOCKSKINFILE"
-	res, err := cli.Query(cmd, skin, "FILE", file)
+	res, err := cli.getSliceAny(cmd, skin, "FILE", file)
 	if err != nil {
 		return nil, time.Time{}, err
 	}
 
-	arr, ok := res.([]any)
-	if !ok || len(arr) < 2 {
+	if len(res) < 2 {
 		return nil, time.Time{}, fmt.Errorf("%s: expected array, got %T", cmd, res)
 	}
 
-	data, ok1 := arr[0].([]byte)
-	ts, ok2 := arr[1].(time.Time)
+	data, ok1 := res[0].([]byte)
+	ts, ok2 := res[1].(time.Time)
 	if !ok1 || !ok2 {
 		return nil, time.Time{}, fmt.Errorf("%s: invalid data types in response", cmd)
 	}

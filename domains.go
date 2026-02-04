@@ -121,11 +121,11 @@ func (cli *Cli) ListAccounts(domain string) (map[string]string, error) {
 		return nil, fmt.Errorf("domain name is required")
 	}
 	const cmd = "LISTACCOUNTS"
-	raw, err := cli.getMapAny(cmd, Atom(domain))
+	res, err := cli.getMapAny(cmd, Atom(domain))
 	if err != nil {
 		return nil, err
 	}
-	return toStringMap(cmd, raw)
+	return toStringMap(cmd, res)
 }
 
 func (cli *Cli) ListAdminDomains(domain string) ([]string, error) {
@@ -285,25 +285,25 @@ func (cli *Cli) SuspendDomain(domain string) error {
 	return cli.QueryNV("SUSPENDDOMAIN", domain)
 }
 
-func (cli *Cli) UpdateAccountDefaultPrefs(domain string, s map[string]any) error {
+func (cli *Cli) UpdateAccountDefaultPrefs(domain string, settings map[string]any) error {
 	if domain == "" {
 		return fmt.Errorf("domain name is required")
 	}
-	return cli.setMapAny("UPDATEACCOUNTDEFAULTPREFS", domain, s)
+	return cli.setMapAny("UPDATEACCOUNTDEFAULTPREFS", domain, settings)
 }
 
-func (cli *Cli) UpdateAccountDefaults(domain string, s map[string]any) error {
+func (cli *Cli) UpdateAccountDefaults(domain string, settings map[string]any) error {
 	if domain == "" {
 		return fmt.Errorf("domain name is required")
 	}
-	return cli.setMapAny("UPDATEACCOUNTDEFAULTS", domain, s)
+	return cli.setMapAny("UPDATEACCOUNTDEFAULTS", domain, settings)
 }
 
-func (cli *Cli) UpdateAccountTemplate(domain string, s map[string]any) error {
+func (cli *Cli) UpdateAccountTemplate(domain string, settings map[string]any) error {
 	if domain == "" {
 		return fmt.Errorf("domain name is required")
 	}
-	return cli.setMapAny("UPDATEACCOUNTTEMPLATE", domain, s)
+	return cli.setMapAny("UPDATEACCOUNTTEMPLATE", domain, settings)
 }
 
 func (cli *Cli) UpdateDomainSettings(domain string, settings map[string]any) error {

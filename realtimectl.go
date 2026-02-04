@@ -49,6 +49,5 @@ func (cli *Cli) StartPBXTask(account, program, entry string, param any) (string,
 	if param != nil {
 		args = append(args, "PARAM", param)
 	}
-
 	return cli.getString("STARTPBXTASK", args...)
 }

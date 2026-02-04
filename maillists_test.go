@@ -146,6 +146,11 @@ func TestMailingLists_Extended(t *testing.T) {
 		}
 
 		// Проверяем ListLists
+		_, err = cli.ListLists("")
+		if err != nil {
+			t.Errorf("ListLists failed: %v", err)
+		}
+
 		allLists, err := cli.ListLists(domain)
 		if err != nil {
 			t.Errorf("ListLists failed: %v", err)

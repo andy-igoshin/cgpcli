@@ -77,20 +77,7 @@ func (cli *Cli) IsGroupExists(group string) (bool, error) {
 
 // ListGroups возвращает список имен всех групп в указанном домене.
 func (cli *Cli) ListGroups(domain string) ([]string, error) {
-	const cmd = "LISTGROUPS"
-	var res any
-	var err error
-
-	if domain != "" {
-		res, err = cli.Query(cmd, domain)
-	} else {
-		res, err = cli.Query(cmd)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-	return toStringSlice(cmd, res)
+	return cli.getSliceString("LISTGROUPS", Atom(domain))
 }
 
 // RenameGroup переименовывает группу или переносит её в другой домен.

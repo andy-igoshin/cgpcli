@@ -123,7 +123,7 @@ func (cli *Cli) GetVersion() (string, error) {
 
 // ListCLICommands возвращает список всех поддерживаемых команд.
 func (cli *Cli) ListCLICommands() ([]string, error) {
-	return cli.getSliceString("LISTCLICOMMANDS", "")
+	return cli.getSliceString("LISTCLICOMMANDS")
 }
 
 // Noop — пустая команда, всегда успешна.

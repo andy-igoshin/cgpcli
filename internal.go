@@ -20,31 +20,27 @@ func (cli *Cli) getMapAny(cmd string, args ...any) (map[string]any, error) {
 	return m, nil
 }
 
-func (cli *Cli) getSliceAny(cmd string, subject string) ([]any, error) {
-	var res any
-	var err error
-
-	if subject != "" {
-		res, err = cli.Query(cmd, Atom(subject))
-	} else {
-		res, err = cli.Query(cmd)
-	}
-
+// getSliceAny — получение произвольного слайса ([]any) от сервера.
+func (cli *Cli) getSliceAny(cmd string, args ...any) ([]any, error) {
+	res, err := cli.Query(cmd, args...)
 	if err != nil {
 		return nil, err
 	}
 
 	s, ok := res.([]any)
 	if !ok {
+		if res == nil {
+			return []any{}, nil
+		}
 		return nil, fmt.Errorf("%s: expected []any, got %T", cmd, res)
 	}
 
 	return s, nil
 }
 
-// getSliceString — получение списка строк с поддержкой приведения чисел через strconv.
-func (cli *Cli) getSliceString(cmd string, subject string) ([]string, error) {
-	raw, err := cli.getSliceAny(cmd, subject)
+// getSliceString — получение списка строк.
+func (cli *Cli) getSliceString(cmd string, args ...any) ([]string, error) {
+	raw, err := cli.getSliceAny(cmd, args...)
 	if err != nil {
 		return nil, err
 	}
