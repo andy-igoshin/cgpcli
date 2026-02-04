@@ -20,6 +20,14 @@ func (cli *Cli) getMapAny(cmd string, args ...any) (map[string]any, error) {
 	return m, nil
 }
 
+func (cli *Cli) getMapString(cmd string, args ...any) (map[string]string, error) {
+	res, err := cli.getMapAny(cmd, args...)
+	if err != nil {
+		return nil, err
+	}
+	return toStringMap(cmd, res)
+}
+
 // getSliceAny — получение произвольного слайса ([]any) от сервера.
 func (cli *Cli) getSliceAny(cmd string, args ...any) ([]any, error) {
 	res, err := cli.Query(cmd, args...)

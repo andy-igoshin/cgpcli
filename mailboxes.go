@@ -8,7 +8,7 @@ import (
 // CreateMailbox создает папку.
 func (cli *Cli) CreateMailbox(account, mailbox, class, authAccount string) error {
 	if account == "" || mailbox == "" {
-		return fmt.Errorf("account and mailbox names are required")
+		return fmt.Errorf("account name and mailbox name are required")
 	}
 
 	args := make([]any, 0, 7)
@@ -25,7 +25,7 @@ func (cli *Cli) CreateMailbox(account, mailbox, class, authAccount string) error
 // DeleteMailbox удаляет папку или папки.
 func (cli *Cli) DeleteMailbox(account, mailbox string, recursive bool, authAccount string) (err error) {
 	if account == "" || mailbox == "" {
-		return fmt.Errorf("account and mailbox names are required")
+		return fmt.Errorf("account name and mailbox name are required")
 	}
 
 	keyword := "MAILBOX"
@@ -41,23 +41,18 @@ func (cli *Cli) DeleteMailbox(account, mailbox string, recursive bool, authAccou
 }
 
 // GetMailboxACL возвращает список прав доступа (ACL) к папке.
-func (cli *Cli) GetMailboxACL(account, mailbox, authAccount string) (map[string]string, error) {
+func (cli *Cli) GetMailboxACL(account, mailbox, authAccount string) (res map[string]string, err error) {
 	if account == "" || mailbox == "" {
-		return nil, fmt.Errorf("account and mailbox names are required")
+		return nil, fmt.Errorf("account name and mailbox name are required")
 	}
 
 	const cmd = "GETMAILBOXACL"
-	var res map[string]any
-	var err error
 	if authAccount != "" {
-		res, err = cli.getMapAny(cmd, Atom(account), "MAILBOX", mailbox, "AUTH", authAccount)
+		res, err = cli.getMapString(cmd, Atom(account), "MAILBOX", mailbox, "AUTH", authAccount)
 	} else {
-		res, err = cli.getMapAny(cmd, Atom(account), "MAILBOX", mailbox)
+		res, err = cli.getMapString(cmd, Atom(account), "MAILBOX", mailbox)
 	}
-	if err != nil {
-		return nil, err
-	}
-	return toStringMap(cmd, res)
+	return
 }
 
 // GetMailboxAliases возвращает map алиасов папок.
@@ -65,12 +60,7 @@ func (cli *Cli) GetMailboxAliases(account string) (map[string]string, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
-	const cmd = "GETMAILBOXALIASES"
-	res, err := cli.getMapAny(cmd, Atom(account))
-	if err != nil {
-		return nil, err
-	}
-	return toStringMap(cmd, res)
+	return cli.getMapString("GETMAILBOXALIASES", Atom(account))
 }
 
 // GetMailboxInfo возвращает информацию о папке (размер, количество писем и т.д.).

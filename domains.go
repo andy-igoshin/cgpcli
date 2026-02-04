@@ -117,15 +117,7 @@ func (cli *Cli) ListAccountStorage(domain string) ([]string, error) {
 }
 
 func (cli *Cli) ListAccounts(domain string) (map[string]string, error) {
-	if domain == "" {
-		return nil, fmt.Errorf("domain name is required")
-	}
-	const cmd = "LISTACCOUNTS"
-	res, err := cli.getMapAny(cmd, Atom(domain))
-	if err != nil {
-		return nil, err
-	}
-	return toStringMap(cmd, res)
+	return cli.getMapString("LISTACCOUNTS", Atom(domain))
 }
 
 func (cli *Cli) ListAdminDomains(domain string) ([]string, error) {
@@ -154,22 +146,21 @@ func (cli *Cli) ListDomainObjects(domain string, limit int, filter string, what 
 	}
 	args = append(args, "COOKIE", cookie)
 
-	res, err := cli.Query(cmd, args...)
+	res, err := cli.getSliceAny(cmd, args...)
 	if err != nil {
 		return nil, err
 	}
 
-	raw, ok := res.([]any)
-	if !ok || len(raw) < 5 {
+	if len(res) < 5 {
 		return nil, fmt.Errorf("%s: unexpected response format", cmd)
 	}
 
 	result := &DomainObjectsResult{Objects: make(map[string]DomainObject)}
-	if c, ok := raw[4].(string); ok {
+	if c, ok := res[4].(string); ok {
 		result.Cookie = c
 	}
 
-	items, ok := raw[1].(map[string]any)
+	items, ok := res[1].(map[string]any)
 	if !ok {
 		return result, nil
 	}

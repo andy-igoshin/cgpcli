@@ -9,39 +9,19 @@ func (cli *Cli) GetAccountAlerts(account string) (map[string]string, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account is required")
 	}
-	const cmd = "GETACCOUNTALERTS"
-	res, err := cli.getMapAny(cmd, Atom(account))
-	if err != nil {
-		return nil, err
-	}
-	return toStringMap(cmd, res)
+	return cli.getMapString("GETACCOUNTALERTS", Atom(account))
 }
 
 func (cli *Cli) GetClusterAlerts() (map[string]string, error) {
-	const cmd = "GETCLUSTERALERTS"
-	res, err := cli.getMapAny(cmd)
-	if err != nil {
-		return nil, err
-	}
-	return toStringMap(cmd, res)
+	return cli.getMapString("GETCLUSTERALERTS")
 }
 
 func (cli *Cli) GetDomainAlerts(domain string) (map[string]string, error) {
-	const cmd = "GETDOMAINALERTS"
-	res, err := cli.getMapAny(cmd, Atom(domain))
-	if err != nil {
-		return nil, err
-	}
-	return toStringMap(cmd, res)
+	return cli.getMapString("GETDOMAINALERTS", Atom(domain))
 }
 
 func (cli *Cli) GetServerAlerts() (map[string]string, error) {
-	const cmd = "GETSERVERALERTS"
-	res, err := cli.getMapAny(cmd)
-	if err != nil {
-		return nil, err
-	}
-	return toStringMap(cmd, res)
+	return cli.getMapString("GETSERVERALERTS")
 }
 
 func (cli *Cli) PostAccountAlert(account, alert string) error {
