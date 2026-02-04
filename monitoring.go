@@ -15,30 +15,12 @@ const statsCapacity = 2048
 // ErrStatNotFound — внутренняя ошибка для идентификации конца списка или отсутствия элемента.
 var ErrStatNotFound = errors.New("statistics element is not found")
 
-// GetStatElement возвращает текущее значение элемента статистики (SNMP).
-// ObjectID — идентификатор элемента (например, "Login.External.Total").
-func (cli *Cli) GetStatElement(objectID string) (any, error) {
-	if objectID == "" {
-		return nil, fmt.Errorf("objectID is required")
-	}
-	return cli.Query("GETSTATELEMENT", objectID)
-}
-
-// SetStatElement обновляет значение "Custom" элемента статистики.
-// Синтаксис: SETSTATELEMENT ObjectID [INC|SET] value
-// op — "INC" (прибавить) или "SET" (установить значение).
-func (cli *Cli) SetStatElement(objectID, op string, val int64) error {
-	if objectID == "" {
-		return fmt.Errorf("objectID is required")
-	}
-	if op != "INC" && op != "SET" {
-		return fmt.Errorf("operation must be INC or SET")
-	}
-	return cli.QueryNV("SETSTATELEMENT", objectID, op, val)
+// GetDialogInfo возвращает данные о состоянии Signal Dialog по его ID.
+func (cli *Cli) GetDialogInfo(dialogID int64) (map[string]any, error) {
+	return cli.getMapAny("GETDIALOGINFO", dialogID)
 }
 
 // GetNextStatName возвращает имя следующего элемента статистики.
-// Возвращает io.EOF, когда элементы закончились.
 func (cli *Cli) GetNextStatName(objectID string) (string, error) {
 	const cmd = "GETNEXTSTATNAME"
 	res, err := cli.Query(cmd, objectID)
@@ -55,27 +37,14 @@ func (cli *Cli) GetNextStatName(objectID string) (string, error) {
 	return s, nil
 }
 
-// GetDialogInfo возвращает данные о состоянии Signal Dialog по его ID.
-func (cli *Cli) GetDialogInfo(dialogID int64) (map[string]any, error) {
-	res, err := cli.Query("GETDIALOGINFO", dialogID)
-	if err != nil {
-		return nil, err
+// GetStatElement возвращает текущее значение элемента статистики (SNMP).
+func (cli *Cli) GetStatElement(objectID string) (any, error) {
+	if objectID == "" {
+		return nil, fmt.Errorf("objectID is required")
 	}
-	m, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("GETDIALOGINFO: expected map, got %T", res)
-	}
-	return m, nil
+	return cli.Query("GETSTATELEMENT", objectID)
 }
 
-// Shutdown инициирует остановку сервера CommuniGate Pro.
-func (cli *Cli) Shutdown() error {
-	return cli.QueryNV("SHUTDOWN")
-}
-
-// -----------------------------------------------------------------------------
-// Helpers / Extended API
-// -----------------------------------------------------------------------------
 
 // ListAllStats собирает все доступные имена элементов статистики в один слайс.
 func (cli *Cli) ListAllStats() ([]string, error) {
@@ -94,4 +63,20 @@ func (cli *Cli) ListAllStats() ([]string, error) {
 		current = next
 	}
 	return stats, nil
+}
+
+// SetStatElement обновляет значение "Custom" элемента статистики.
+func (cli *Cli) SetStatElement(objectID, op string, val int64) error {
+	if objectID == "" {
+		return fmt.Errorf("objectID is required")
+	}
+	if op != "INC" && op != "SET" {
+		return fmt.Errorf("operation must be INC or SET")
+	}
+	return cli.QueryNV("SETSTATELEMENT", objectID, op, val)
+}
+
+// Shutdown инициирует остановку сервера CommuniGate Pro.
+func (cli *Cli) Shutdown() error {
+	return cli.QueryNV("SHUTDOWN")
 }

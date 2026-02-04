@@ -85,29 +85,18 @@ func (cli *Cli) DeleteAccountSignalRule(account, rule string) error {
 	return cli.QueryNV("UPDATEACCOUNTSIGNALRULE", account, "DELETE", rule)
 }
 
-func (cli *Cli) GetAccountACL(account, authAccount string) (map[string]any, error) {
+func (cli *Cli) GetAccountACL(account, authAccount string) (res map[string]any, err error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
 
 	const cmd = "GETACCOUNTACL"
-	var res any
-	var err error
-
 	if authAccount != "" {
-		res, err = cli.Query(cmd, Atom(account), "AUTH", authAccount)
+		res, err = cli.getMapAny(cmd, Atom(account), "AUTH", authAccount)
 	} else {
-		res, err = cli.Query(cmd, Atom(account))
+		res, err = cli.getMapAny(cmd, Atom(account))
 	}
-
-	if err != nil {
-		return nil, err
-	}
-	m, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
-	}
-	return m, nil
+	return
 }
 
 func (cli *Cli) GetAccountACLRights(account, authAccount string) (string, error) {
@@ -177,28 +166,18 @@ func (cli *Cli) GetAccountEffectiveSettings(account string) (map[string]any, err
 	return cli.getMapAny("GETACCOUNTEFFECTIVESETTINGS", Atom(account))
 }
 
-func (cli *Cli) GetAccountInfo(account string, keys []string) (map[string]any, error) {
+func (cli *Cli) GetAccountInfo(account string, keys []string) (res map[string]any, err error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
 
 	const cmd = "GETACCOUNTINFO"
-	var res any
-	var err error
-
-	if len(keys) == 0 {
-		res, err = cli.Query(cmd, Atom(account))
+	if len(keys) > 0 {
+		res, err = cli.getMapAny(cmd, Atom(account), keys)
 	} else {
-		res, err = cli.Query(cmd, Atom(account), keys)
+		res, err = cli.getMapAny(cmd, Atom(account))
 	}
-	if err != nil {
-		return nil, err
-	}
-	m, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
-	}
-	return m, nil
+	return
 }
 
 func (cli *Cli) GetAccountLocation(account string) (string, error) {
@@ -339,15 +318,7 @@ func (cli *Cli) ModifyAccountTelnums(account string, params map[string]any) (map
 	if account == "" || params == nil {
 		return nil, fmt.Errorf("account name and parameters dictionary are required")
 	}
-	res, err := cli.Query("MODIFYACCOUNTTELNUMS", account, params)
-	if err != nil {
-		return nil, err
-	}
-	m, ok := res.(map[string]any)
-	if !ok {
-		return make(map[string]any), nil
-	}
-	return m, nil
+	return cli.getMapAny("MODIFYACCOUNTTELNUMS", account, params)
 }
 
 func (cli *Cli) RenameAccount(oldName, newName, path string) (err error) {

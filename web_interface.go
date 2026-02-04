@@ -98,30 +98,18 @@ func (cli *Cli) FindAccountSession(account, addr, origAddr, protocol, transport,
 }
 
 // GetSession возвращает данные сессии в виде словаря.
-func (cli *Cli) GetSession(sessionID, domain string) (map[string]any, error) {
+func (cli *Cli) GetSession(sessionID, domain string) (res map[string]any, err error) {
 	if sessionID == "" {
 		return nil, fmt.Errorf("sessionID is required")
 	}
 
 	const cmd = "GETSESSION"
-	var res any
-	var err error
-
 	if domain != "" {
-		res, err = cli.Query(cmd, sessionID, "DOMAIN", domain)
+		res, err = cli.getMapAny(cmd, sessionID, "DOMAIN", domain)
 	} else {
-		res, err = cli.Query(cmd, sessionID)
+		res, err = cli.getMapAny(cmd, sessionID)
 	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	m, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
-	}
-	return m, nil
+	return
 }
 
 // KillSession принудительно завершает сессию.

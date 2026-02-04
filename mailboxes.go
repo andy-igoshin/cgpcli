@@ -47,23 +47,17 @@ func (cli *Cli) GetMailboxACL(account, mailbox, authAccount string) (map[string]
 	}
 
 	const cmd = "GETMAILBOXACL"
-	var res any
+	var res map[string]any
 	var err error
 	if authAccount != "" {
-		res, err = cli.Query(cmd, Atom(account), "MAILBOX", mailbox, "AUTH", authAccount)
+		res, err = cli.getMapAny(cmd, Atom(account), "MAILBOX", mailbox, "AUTH", authAccount)
 	} else {
-		res, err = cli.Query(cmd, Atom(account), "MAILBOX", mailbox)
+		res, err = cli.getMapAny(cmd, Atom(account), "MAILBOX", mailbox)
 	}
-
 	if err != nil {
 		return nil, err
 	}
-
-	m, ok := res.(map[string]any)
-	if !ok {
-		return map[string]string{}, nil
-	}
-	return toStringMap(cmd, m)
+	return toStringMap(cmd, res)
 }
 
 // GetMailboxAliases возвращает map алиасов папок.
@@ -72,37 +66,26 @@ func (cli *Cli) GetMailboxAliases(account string) (map[string]string, error) {
 		return nil, fmt.Errorf("account name is required")
 	}
 	const cmd = "GETMAILBOXALIASES"
-	m, err := cli.getMapAny(cmd, Atom(account))
+	res, err := cli.getMapAny(cmd, Atom(account))
 	if err != nil {
 		return nil, err
 	}
-	return toStringMap(cmd, m)
+	return toStringMap(cmd, res)
 }
 
 // GetMailboxInfo возвращает информацию о папке (размер, количество писем и т.д.).
-func (cli *Cli) GetMailboxInfo(account, mailbox, authAccount string) (map[string]any, error) {
+func (cli *Cli) GetMailboxInfo(account, mailbox, authAccount string) (res map[string]any, err error) {
 	if account == "" || mailbox == "" {
 		return nil, fmt.Errorf("account and mailbox names are required")
 	}
+
 	const cmd = "GETMAILBOXINFO"
-	var res any
-	var err error
 	if authAccount != "" {
-		res, err = cli.Query(cmd, Atom(account), "MAILBOX", mailbox, "AUTH", authAccount)
+		res, err = cli.getMapAny(cmd, Atom(account), "MAILBOX", mailbox, "AUTH", authAccount)
 	} else {
-		res, err = cli.Query(cmd, Atom(account), "MAILBOX", mailbox)
+		res, err = cli.getMapAny(cmd, Atom(account), "MAILBOX", mailbox)
 	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	m, ok := res.(map[string]any)
-	if !ok {
-		return map[string]any{}, nil
-	}
-
-	return m, nil
+	return
 }
 
 // GetMailboxRights возвращает эффективные права доступа к папке.
@@ -135,17 +118,7 @@ func (cli *Cli) ListMailboxes(account, filter, authAccount string) (map[string]a
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
-
-	res, err := cli.Query("LISTMAILBOXES", args...)
-	if err != nil {
-		return nil, err
-	}
-
-	m, ok := res.(map[string]any)
-	if !ok {
-		return map[string]any{}, nil
-	}
-	return m, nil
+	return cli.getMapAny("LISTMAILBOXES", args...)
 }
 
 // RenameMailbox переименовывает ящик (опционально включая вложенные).

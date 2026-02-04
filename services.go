@@ -10,16 +10,7 @@ func (cli *Cli) Balance(account string, params map[string]any) (map[string]any, 
 	if account == "" || len(params) == 0 {
 		return nil, fmt.Errorf("account name and params are required")
 	}
-	const cmd = "BALANCE"
-	res, err := cli.Query(cmd, Atom(account), params)
-	if err != nil {
-		return nil, err
-	}
-	m, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
-	}
-	return m, nil
+	return cli.getMapAny("BALANCE", Atom(account), params)
 }
 
 // Dataset выполняет операции с наборами данных аккаунта (адресные книги и т.д.).
@@ -27,16 +18,7 @@ func (cli *Cli) Dataset(account string, params map[string]any) (map[string]any, 
 	if account == "" || len(params) == 0 {
 		return nil, fmt.Errorf("account name and params are required")
 	}
-	const cmd = "DATASET"
-	res, err := cli.Query(cmd, Atom(account), params)
-	if err != nil {
-		return nil, err
-	}
-	m, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
-	}
-	return m, nil
+	return cli.getMapAny("DATASET", Atom(account), params)
 }
 
 // RemoveAccountSubset удаляет конкретный "dataset" аккаунта (например, 'RepliedAddresses').
@@ -52,14 +34,5 @@ func (cli *Cli) Roster(account string, params map[string]any) (map[string]any, e
 	if account == "" || len(params) == 0 {
 		return nil, fmt.Errorf("account name and params are required")
 	}
-	const cmd = "ROSTER"
-	res, err := cli.Query(cmd, Atom(account), params)
-	if err != nil {
-		return nil, err
-	}
-	m, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
-	}
-	return m, nil
+	return cli.getMapAny("ROSTER", Atom(account), params)
 }

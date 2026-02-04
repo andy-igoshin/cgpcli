@@ -39,14 +39,9 @@ func (cli *Cli) GetGroup(group string) (*GroupResult, error) {
 		return nil, fmt.Errorf("group name is required")
 	}
 
-	res, err := cli.Query("GETGROUP", group)
+	res, err := cli.getMapAny("GETGROUP", group)
 	if err != nil {
 		return nil, err
-	}
-
-	dict, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("GETGROUP: expected map, got %T", res)
 	}
 
 	result := &GroupResult{
@@ -54,7 +49,7 @@ func (cli *Cli) GetGroup(group string) (*GroupResult, error) {
 		Members:  []string{},
 	}
 
-	for k, v := range dict {
+	for k, v := range res {
 		if k == "Members" {
 			m, err := toStringSlice("GETGROUP", v)
 			if err == nil {

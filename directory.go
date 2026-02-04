@@ -103,53 +103,37 @@ func (cli *Cli) GetDirectoryAccessRights(shared bool) ([]DirAccessRight, error) 
 	return rights, nil
 }
 
-func (cli *Cli) GetDirectoryUnit(name string, shared bool) (map[string]any, error) {
+func (cli *Cli) GetDirectoryUnit(name string, shared bool) (res map[string]any, err error) {
 	if name == "" {
 		return nil, fmt.Errorf("unit name is required")
 	}
 
 	const cmd = "GETDIRECTORYUNIT"
-	var res any
-	var err error
-
 	if shared {
-		res, err = cli.Query(cmd, name, "SHARED")
+		res, err = cli.getMapAny(cmd, name, "SHARED")
 	} else {
-		res, err = cli.Query(cmd, name)
+		res, err = cli.getMapAny(cmd, name)
 	}
-	if err != nil {
-		return nil, err
-	}
-
-	m, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
-	}
-	return m, nil
+	return
 }
 
 func (cli *Cli) ListDirectoryUnits(shared bool) (map[string]string, error) {
 	const cmd = "LISTDIRECTORYUNITS"
-	var res any
+	var res map[string]any
 	var err error
 
 	if shared {
-		res, err = cli.Query(cmd, "SHARED")
+		res, err = cli.getMapAny(cmd, "SHARED")
 	} else {
-		res, err = cli.Query(cmd)
+		res, err = cli.getMapAny(cmd)
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	m, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
-	}
-
 	// Инвертируем мапу: CGP отдает {Mount: Name}, а нам нужно {Name: Mount}
-	units := make(map[string]string, len(m))
-	for mnt, nameAny := range m {
+	units := make(map[string]string, len(res))
+	for mnt, nameAny := range res {
 		name, _ := toString(cmd, nameAny)
 		units[name] = mnt
 	}

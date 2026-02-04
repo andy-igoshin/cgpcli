@@ -74,25 +74,14 @@ func (cli *Cli) ListClusterSkins() ([]string, error) {
 }
 
 // ListDomainSkinFiles возвращает словарь с атрибутами файлов в скине домена.
-func (cli *Cli) ListDomainSkinFiles(domain, skin string) (map[string]any, error) {
+func (cli *Cli) ListDomainSkinFiles(domain, skin string) (res map[string]any, err error) {
 	const cmd = "LISTDOMAINSKINFILES"
-	var res any
-	var err error
-
 	if domain != "" {
-		res, err = cli.Query(cmd, domain, "SKIN", skin)
+		res, err = cli.getMapAny(cmd, domain, "SKIN", skin)
 	} else {
-		res, err = cli.Query(cmd, skin)
+		res, err = cli.getMapAny(cmd, skin)
 	}
-
-	if err != nil {
-		return nil, err
-	}
-	m, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
-	}
-	return m, nil
+	return
 }
 
 // ListDomainSkins возвращает список имен кастомных скинов домена.

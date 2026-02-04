@@ -214,16 +214,12 @@ func (cli *Cli) ListDomainTelnums(domain, filter string, limit int) (map[string]
 	}
 	args = append(args, limit)
 
-	res, err := cli.Query(cmd, args...)
+	res, err := cli.getMapAny(cmd, args...)
 	if err != nil {
 		return nil, err
 	}
-	dict, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
-	}
-	delete(dict, "")
-	return toStringMap(cmd, dict)
+	delete(res, "")
+	return toStringMap(cmd, res)
 }
 
 func (cli *Cli) ResumeDomain(domain string) error {

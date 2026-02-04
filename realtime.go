@@ -61,7 +61,6 @@ func (cli *Cli) ListClusterPBXFiles(language string) (map[string]any, error) {
 
 // ListDomainPBXFiles возвращает список файлов в среде RTA домена.
 func (cli *Cli) ListDomainPBXFiles(domain, language string) (map[string]any, error) {
-	const cmd = "LISTDOMAINPBXFILES"
 	args := make([]any, 0, 3)
 	if domain != "" {
 		args = append(args, domain)
@@ -69,16 +68,7 @@ func (cli *Cli) ListDomainPBXFiles(domain, language string) (map[string]any, err
 	if language != "" {
 		args = append(args, "FILE", language)
 	}
-
-	res, err := cli.Query(cmd, args...)
-	if err != nil {
-		return nil, err
-	}
-	m, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
-	}
-	return m, nil
+	return cli.getMapAny("LISTDOMAINPBXFILES", args...)
 }
 
 func (cli *Cli) ListServerPBXFiles(language string) (map[string]any, error) {

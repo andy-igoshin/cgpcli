@@ -47,6 +47,7 @@ func (cli *Cli) GetClusterMailRules() ([]MailRule, error) {
 }
 
 func (cli *Cli) GetClusterNatedIPs() (IPList, error) { return cli.getIPListTyped("GETCLUSTERNATEDIPS") }
+
 func (cli *Cli) GetClusterNatSiteIPs() (IPList, error) {
 	return cli.getIPListTyped("GETCLUSTERNATSITEIPS")
 }

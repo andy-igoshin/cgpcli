@@ -91,16 +91,7 @@ func (cli *Cli) ListStorageFiles(account, path, authAccount string) (map[string]
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
-
-	res, err := cli.Query(cmd, args...)
-	if err != nil {
-		return nil, err
-	}
-	m, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
-	}
-	return m, nil
+	return cli.getMapAny(cmd, args...)
 }
 
 func (cli *Cli) ReadStorageFile(account, file string, offset, size int64, authAccount string) (*StorageFileContent, error) {

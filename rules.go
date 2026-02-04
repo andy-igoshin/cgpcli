@@ -64,7 +64,7 @@ func (r SignalRule) ToSlice() []any {
 }
 
 // -----------------------------------------------------------------------------
-// Internal Helpers (Private)
+// Internal Helpers
 // -----------------------------------------------------------------------------
 
 func (cli *Cli) getMailRules(cmd, subject string) ([]MailRule, error) {

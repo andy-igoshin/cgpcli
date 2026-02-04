@@ -285,16 +285,12 @@ func (cli *Cli) listTelnums(cmd, filter string, limit int) (map[string]string, e
 	if limit > 0 {
 		args = append(args, limit)
 	}
-	res, err := cli.Query(cmd, args...)
+	res, err := cli.getMapAny(cmd, args...)
 	if err != nil {
 		return nil, err
 	}
-	dict, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
-	}
-	delete(dict, "")
-	return toStringMap(cmd, dict)
+	delete(res, "")
+	return toStringMap(cmd, res)
 }
 
 func (cli *Cli) setTrustedCerts(cmd string, certs []string) error {

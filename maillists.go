@@ -46,12 +46,12 @@ func (cli *Cli) GetAccountLists(account string) (map[string]int, error) {
 		return nil, fmt.Errorf("account name is required")
 	}
 
-	m, err := cli.getMapAny("GETACCOUNTLISTS", account)
+	res, err := cli.getMapAny("GETACCOUNTLISTS", account)
 	if err != nil {
 		return nil, err
 	}
-	list := make(map[string]int, len(m))
-	for k, v := range m {
+	list := make(map[string]int, len(res))
+	for k, v := range res {
 		list[k] = toInt(v)
 	}
 	return list, nil
@@ -59,12 +59,12 @@ func (cli *Cli) GetAccountLists(account string) (map[string]int, error) {
 
 // GetDomainLists возвращает map "имя списка рассылки -> количество подписчиков".
 func (cli *Cli) GetDomainLists(domain string) (map[string]int, error) {
-	m, err := cli.getMapAny("GETDOMAINLISTS", Atom(domain))
+	res, err := cli.getMapAny("GETDOMAINLISTS", Atom(domain))
 	if err != nil {
 		return nil, err
 	}
-	list := make(map[string]int, len(m))
-	for k, v := range m {
+	list := make(map[string]int, len(res))
+	for k, v := range res {
 		list[k] = toInt(v)
 	}
 	return list, nil
@@ -76,16 +76,16 @@ func (cli *Cli) GetList(list string) (map[string]any, error) {
 		return nil, fmt.Errorf("list name is required")
 	}
 
-	m, err := cli.getMapAny("GETLIST", list)
+	res, err := cli.getMapAny("GETLIST", list)
 	if err != nil {
 		return nil, err
 	}
-	for k, v := range m {
+	for k, v := range res {
 		if s, ok := v.(string); ok {
-			m[k] = toGoText(s)
+			res[k] = toGoText(s)
 		}
 	}
-	return m, nil
+	return res, nil
 }
 
 // GetSubscriberInfo возвращает полную информацию о конкретном подписчике.
@@ -94,17 +94,11 @@ func (cli *Cli) GetSubscriberInfo(list, subscriber string) (*SubscriberInfo, err
 		return nil, fmt.Errorf("list name and subscriber address are required")
 	}
 
-	res, err := cli.Query("GETSUBSCRIBERINFO", list, "NAME", subscriber)
+	res, err := cli.getMapAny("GETSUBSCRIBERINFO", list, "NAME", subscriber)
 	if err != nil {
 		return nil, err
 	}
-
-	m, ok := res.(map[string]any)
-	if !ok || len(m) == 0 {
-		return nil, nil
-	}
-
-	s := mapToSubscriber(m)
+	s := mapToSubscriber(res)
 	return &s, nil
 }
 

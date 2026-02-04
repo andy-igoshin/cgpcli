@@ -78,16 +78,7 @@ func (cli *Cli) GetMessageQueueInfo(module, queue string) (map[string]any, error
 	if module == "" || queue == "" {
 		return nil, fmt.Errorf("module and queue are required")
 	}
-	const cmd = "GETMESSAGEQUEUEINFO"
-	res, err := cli.Query(cmd, module, "QUEUE", queue)
-	if err != nil {
-		return nil, err
-	}
-	m, ok := res.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
-	}
-	return m, nil
+	return cli.getMapAny("GETMESSAGEQUEUEINFO", module, "QUEUE", queue)
 }
 
 // GetSystemInfo возвращает системную информацию сервера по ключу.
