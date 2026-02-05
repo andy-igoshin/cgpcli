@@ -220,25 +220,25 @@ func (cli *Cli) ResumeDomain(domain string) error {
 	return cli.QueryNV("RESUMEDOMAIN", domain)
 }
 
-func (cli *Cli) SetAccountDefaultPrefs(domain string, s map[string]any) error {
+func (cli *Cli) SetAccountDefaultPrefs(domain string, settings map[string]any) error {
 	if domain == "" {
 		return fmt.Errorf("domain name is required")
 	}
-	return cli.setMapAny("SETACCOUNTDEFAULTPREFS", domain, s)
+	return cli.setMapAny("SETACCOUNTDEFAULTPREFS", domain, settings)
 }
 
-func (cli *Cli) SetAccountDefaults(domain string, s map[string]any) error {
+func (cli *Cli) SetAccountDefaults(domain string, settings map[string]any) error {
 	if domain == "" {
 		return fmt.Errorf("domain name is required")
 	}
-	return cli.setMapAny("SETACCOUNTDEFAULTS", domain, s)
+	return cli.setMapAny("SETACCOUNTDEFAULTS", domain, settings)
 }
 
-func (cli *Cli) SetAccountTemplate(domain string, s map[string]any) error {
+func (cli *Cli) SetAccountTemplate(domain string, settings map[string]any) error {
 	if domain == "" {
 		return fmt.Errorf("domain name is required")
 	}
-	return cli.setMapAny("SETACCOUNTTEMPLATE", domain, s)
+	return cli.setMapAny("SETACCOUNTTEMPLATE", domain, settings)
 }
 
 func (cli *Cli) SetDomainAliases(domain string, aliases []string) error {

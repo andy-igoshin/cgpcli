@@ -167,23 +167,23 @@ func (cli *Cli) RenameDomain(oldName, newName string, storage string) (err error
 }
 
 // SetClusterAccountDefaults устанавливает настройки аккаунтов кластера.
-func (cli *Cli) SetClusterAccountDefaults(s map[string]any) error {
-	return cli.setMapAny("SETCLUSTERACCOUNTDEFAULTS", "", s)
+func (cli *Cli) SetClusterAccountDefaults(settings map[string]any) error {
+	return cli.setMapAny("SETCLUSTERACCOUNTDEFAULTS", "", settings)
 }
 
 // SetClusterAccountPrefs устанавливает предпочтения аккаунтов кластера.
-func (cli *Cli) SetClusterAccountPrefs(s map[string]any) error {
-	return cli.setMapAny("SETCLUSTERACCOUNTPREFS", "", s)
+func (cli *Cli) SetClusterAccountPrefs(settings map[string]any) error {
+	return cli.setMapAny("SETCLUSTERACCOUNTPREFS", "", settings)
 }
 
 // SetClusterDirectoryIntegration устанавливает настройки интеграции справочника кластера.
-func (cli *Cli) SetClusterDirectoryIntegration(s map[string]any) error {
-	return cli.setMapAny("SETCLUSTERDIRECTORYINTEGRATION", "", s)
+func (cli *Cli) SetClusterDirectoryIntegration(settings map[string]any) error {
+	return cli.setMapAny("SETCLUSTERDIRECTORYINTEGRATION", "", settings)
 }
 
 // SetClusterDomainDefaults устанавливает настройки доменов кластера.
-func (cli *Cli) SetClusterDomainDefaults(s map[string]any) error {
-	return cli.setMapAny("SETCLUSTERDOMAINDEFAULTS", "", s)
+func (cli *Cli) SetClusterDomainDefaults(settings map[string]any) error {
+	return cli.setMapAny("SETCLUSTERDOMAINDEFAULTS", "", settings)
 }
 
 // SetClusterTrustedCerts устанавливает доверенные сертификаты кластера.
@@ -192,23 +192,23 @@ func (cli *Cli) SetClusterTrustedCerts(certs []string) error {
 }
 
 // SetDirectoryIntegration устанавливает настройки интеграции справочника сервера.
-func (cli *Cli) SetDirectoryIntegration(s map[string]any) error {
-	return cli.setMapAny("SETDIRECTORYINTEGRATION", "", s)
+func (cli *Cli) SetDirectoryIntegration(settings map[string]any) error {
+	return cli.setMapAny("SETDIRECTORYINTEGRATION", "", settings)
 }
 
 // SetDomainDefaults устанавливает настройки доменов сервера.
-func (cli *Cli) SetDomainDefaults(s map[string]any) error {
-	return cli.setMapAny("SETDOMAINDEFAULTS", "", s)
+func (cli *Cli) SetDomainDefaults(settings map[string]any) error {
+	return cli.setMapAny("SETDOMAINDEFAULTS", "", settings)
 }
 
 // SetServerAccountDefaults устанавливает настройки аккаунтов сервера.
-func (cli *Cli) SetServerAccountDefaults(s map[string]any) error {
-	return cli.setMapAny("SETSERVERACCOUNTDEFAULTS", "", s)
+func (cli *Cli) SetServerAccountDefaults(settings map[string]any) error {
+	return cli.setMapAny("SETSERVERACCOUNTDEFAULTS", "", settings)
 }
 
 // SetServerAccountPrefs устанавливает предпочтения аккаунтов сервера.
-func (cli *Cli) SetServerAccountPrefs(s map[string]any) error {
-	return cli.setMapAny("SETSERVERACCOUNTPREFS", "", s)
+func (cli *Cli) SetServerAccountPrefs(settings map[string]any) error {
+	return cli.setMapAny("SETSERVERACCOUNTPREFS", "", settings)
 }
 
 // SetServerTrustedCerts устанавливает доверенные сертификаты сервера.
@@ -217,33 +217,33 @@ func (cli *Cli) SetServerTrustedCerts(certs []string) error {
 }
 
 // UpdateClusterAccountDefaults обновляет настройки аккаунтов кластера.
-func (cli *Cli) UpdateClusterAccountDefaults(s map[string]any) error {
-	return cli.setMapAny("UPDATECLUSTERACCOUNTDEFAULTS", "", s)
+func (cli *Cli) UpdateClusterAccountDefaults(settings map[string]any) error {
+	return cli.setMapAny("UPDATECLUSTERACCOUNTDEFAULTS", "", settings)
 }
 
 // UpdateClusterAccountPrefs обновляет предпочтения аккаунтов кластера.
-func (cli *Cli) UpdateClusterAccountPrefs(s map[string]any) error {
-	return cli.setMapAny("UPDATECLUSTERACCOUNTPREFS", "", s)
+func (cli *Cli) UpdateClusterAccountPrefs(settings map[string]any) error {
+	return cli.setMapAny("UPDATECLUSTERACCOUNTPREFS", "", settings)
 }
 
 // UpdateClusterDomainDefaults обновляет настройки доменов кластера.
-func (cli *Cli) UpdateClusterDomainDefaults(s map[string]any) error {
-	return cli.setMapAny("UPDATECLUSTERDOMAINDEFAULTS", "", s)
+func (cli *Cli) UpdateClusterDomainDefaults(settings map[string]any) error {
+	return cli.setMapAny("UPDATECLUSTERDOMAINDEFAULTS", "", settings)
 }
 
 // UpdateDomainDefaults обновляет настройки доменов сервера.
-func (cli *Cli) UpdateDomainDefaults(s map[string]any) error {
-	return cli.setMapAny("UPDATEDOMAINDEFAULTS", "", s)
+func (cli *Cli) UpdateDomainDefaults(settings map[string]any) error {
+	return cli.setMapAny("UPDATEDOMAINDEFAULTS", "", settings)
 }
 
 // UpdateServerAccountDefaults обновляет настройки аккаунтов сервера.
-func (cli *Cli) UpdateServerAccountDefaults(s map[string]any) error {
-	return cli.setMapAny("UPDATESERVERACCOUNTDEFAULTS", "", s)
+func (cli *Cli) UpdateServerAccountDefaults(settings map[string]any) error {
+	return cli.setMapAny("UPDATESERVERACCOUNTDEFAULTS", "", settings)
 }
 
 // UpdateServerAccountPrefs обновляет предпочтения аккаунтов сервера.
-func (cli *Cli) UpdateServerAccountPrefs(s map[string]any) error {
-	return cli.setMapAny("UPDATESERVERACCOUNTPREFS", "", s)
+func (cli *Cli) UpdateServerAccountPrefs(settings map[string]any) error {
+	return cli.setMapAny("UPDATESERVERACCOUNTPREFS", "", settings)
 }
 
 func (cli *Cli) getTrustedCerts(cmd string) ([]string, error) {
