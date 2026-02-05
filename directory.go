@@ -16,13 +16,13 @@ type DirAccessRight struct {
 	ModifyAttrs  []string // GUI: Attribute Modifying
 }
 
-func (cli *Cli) CreateDirectoryUnit(name, mountPoint string, shared, remote bool) error {
-	if name == "" || mountPoint == "" {
+func (cli *Cli) CreateDirectoryUnit(unit, mountPoint string, shared, remote bool) error {
+	if unit == "" || mountPoint == "" {
 		return fmt.Errorf("unit name and mount point are required")
 	}
 
 	args := make([]any, 0, 4)
-	args = append(args, name)
+	args = append(args, unit)
 	if shared {
 		args = append(args, "SHARED")
 	}
@@ -33,40 +33,36 @@ func (cli *Cli) CreateDirectoryUnit(name, mountPoint string, shared, remote bool
 	return cli.QueryNV("CREATEDIRECTORYUNIT", args...)
 }
 
-func (cli *Cli) DeleteDirectoryUnit(name string, shared bool) (err error) {
-	if name == "" {
+func (cli *Cli) DeleteDirectoryUnit(unit string, shared bool) (err error) {
+	if unit == "" {
 		return fmt.Errorf("unit name is required")
 	}
+
 	const cmd = "DELETEDIRECTORYUNIT"
 	if shared {
-		err = cli.QueryNV(cmd, name, "SHARED")
+		err = cli.QueryNV(cmd, unit, "SHARED")
 	} else {
-		err = cli.QueryNV(cmd, name)
+		err = cli.QueryNV(cmd, unit)
 	}
 	return
 }
 
 func (cli *Cli) GetDirectoryAccessRights(shared bool) ([]DirAccessRight, error) {
 	const cmd = "GETDIRECTORYACCESSRIGHTS"
-	var res any
+	var res []any
 	var err error
 
 	if shared {
-		res, err = cli.Query(cmd, "SHARED")
+		res, err = cli.getSliceAny(cmd, "SHARED")
 	} else {
-		res, err = cli.Query(cmd)
+		res, err = cli.getSliceAny(cmd)
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	raw, ok := res.([]any)
-	if !ok {
-		return nil, fmt.Errorf("%s: expected []any, got %T", cmd, res)
-	}
-
-	rights := make([]DirAccessRight, 0, len(raw))
-	for i, item := range raw {
+	rights := make([]DirAccessRight, 0, len(res))
+	for i, item := range res {
 		fields, ok := item.([]any)
 		if !ok || len(fields) < 8 {
 			return nil, fmt.Errorf("%s: rule [%d] has invalid structure", cmd, i)
@@ -103,16 +99,16 @@ func (cli *Cli) GetDirectoryAccessRights(shared bool) ([]DirAccessRight, error) 
 	return rights, nil
 }
 
-func (cli *Cli) GetDirectoryUnit(name string, shared bool) (res map[string]any, err error) {
-	if name == "" {
+func (cli *Cli) GetDirectoryUnit(unit string, shared bool) (res map[string]any, err error) {
+	if unit == "" {
 		return nil, fmt.Errorf("unit name is required")
 	}
 
 	const cmd = "GETDIRECTORYUNIT"
 	if shared {
-		res, err = cli.getMapAny(cmd, name, "SHARED")
+		res, err = cli.getMapAny(cmd, unit, "SHARED")
 	} else {
-		res, err = cli.getMapAny(cmd, name)
+		res, err = cli.getMapAny(cmd, unit)
 	}
 	return
 }
@@ -131,7 +127,6 @@ func (cli *Cli) ListDirectoryUnits(shared bool) (map[string]string, error) {
 		return nil, err
 	}
 
-	// Инвертируем мапу: CGP отдает {Mount: Name}, а нам нужно {Name: Mount}
 	units := make(map[string]string, len(res))
 	for mnt, nameAny := range res {
 		name, _ := toString(cmd, nameAny)
@@ -140,46 +135,52 @@ func (cli *Cli) ListDirectoryUnits(shared bool) (map[string]string, error) {
 	return units, nil
 }
 
-func (cli *Cli) RelocateDirectoryUnit(name, newMountPoint string, shared bool) (err error) {
-	if name == "" || newMountPoint == "" {
+func (cli *Cli) RelocateDirectoryUnit(unit, mountPoint string, shared bool) (err error) {
+	if unit == "" || mountPoint == "" {
 		return fmt.Errorf("unit name and new mount point are required")
 	}
+
 	const cmd = "RELOCATEDIRECTORYUNIT"
 	if shared {
-		err = cli.QueryNV(cmd, name, "SHARED", newMountPoint)
+		err = cli.QueryNV(cmd, unit, "SHARED", mountPoint)
 	} else {
-		err = cli.QueryNV(cmd, name, newMountPoint)
+		err = cli.QueryNV(cmd, unit, mountPoint)
 	}
 	return
 }
 
 func (cli *Cli) SetDirectoryAccessRights(shared bool, rights []DirAccessRight) (err error) {
+	if rights == nil {
+		return fmt.Errorf("rights array is required")
+	}
+
 	const cmd = "SETDIRECTORYACCESSRIGHTS"
-	raw := make([]any, len(rights))
+	ar := make([]any, len(rights))
 	for i, r := range rights {
-		raw[i] = []any{
+		ar[i] = []any{
 			r.Name, r.Target, r.BindDN, r.Type,
 			r.RecordRights, r.SearchAttrs, r.ReadAttrs, r.ModifyAttrs,
 		}
 	}
 
 	if shared {
-		err = cli.QueryNV(cmd, "SHARED", raw)
+		err = cli.QueryNV(cmd, "SHARED", ar)
 	} else {
-		err = cli.QueryNV(cmd, raw)
+		err = cli.QueryNV(cmd, ar)
 	}
 	return
 }
 
-func (cli *Cli) SetDirectoryUnit(name string, shared bool, settings map[string]any) (err error) {
-	if name == "" {
-		return fmt.Errorf("unit name is required")
+func (cli *Cli) SetDirectoryUnit(unit string, shared bool, settings map[string]any) (err error) {
+	if unit == "" || settings == nil {
+		return fmt.Errorf("unit name and settings dictionary are required")
 	}
+
 	const cmd = "SETDIRECTORYUNIT"
 	if shared {
-		err = cli.QueryNV(cmd, name, "SHARED", settings)
+		err = cli.QueryNV(cmd, unit, "SHARED", settings)
 	} else {
-		err = cli.QueryNV(cmd, name, settings)
+		err = cli.QueryNV(cmd, unit, settings)
 	}
 	return
 }

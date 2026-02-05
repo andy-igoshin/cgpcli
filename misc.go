@@ -151,6 +151,7 @@ func (cli *Cli) RejectQueueMessages(sender, report string) (err error) {
 	if sender == "" {
 		return fmt.Errorf("sender is required")
 	}
+
 	if report != "" {
 		err = cli.QueryNV("REJECTQUEUEMESSAGES", "SENDER", sender, "REPORT", report)
 	} else {
@@ -199,6 +200,7 @@ func (cli *Cli) SetTrace(facility TraceFacility, on bool) error {
 	if facility == "" {
 		return fmt.Errorf("trace facility is required")
 	}
+
 	val := "OFF"
 	if on {
 		val = "ON"
@@ -211,6 +213,7 @@ func (cli *Cli) TempBlacklistIP(ip net.IP, timeout time.Duration) (err error) {
 	if ip == nil {
 		return fmt.Errorf("IP address is required")
 	}
+
 	if timeout <= 0 {
 		err = cli.QueryNV("TEMPBLACKLISTIP", ip.String(), "DELETE")
 	} else {
@@ -224,6 +227,7 @@ func (cli *Cli) TempUnblockIP(ip net.IP, timeout time.Duration) (err error) {
 	if ip == nil {
 		return fmt.Errorf("IP address is required")
 	}
+
 	if timeout <= 0 {
 		err = cli.QueryNV("TEMPUNBLOCKIP", ip.String(), "DELETE")
 	} else {

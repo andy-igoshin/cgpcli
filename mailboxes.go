@@ -132,7 +132,7 @@ func (cli *Cli) RenameMailbox(account, oldName, newName string, recursive bool, 
 
 // SetMailboxACL модифицирует права доступа (поддерживает префиксы + и -).
 func (cli *Cli) SetMailboxACL(account, mailbox, authAccount string, acl map[string]string) (err error) {
-	if account == "" || mailbox == "" || len(acl) == 0 {
+	if account == "" || mailbox == "" || acl == nil {
 		return fmt.Errorf("account, mailbox and non-empty acl are required")
 	}
 
@@ -147,8 +147,8 @@ func (cli *Cli) SetMailboxACL(account, mailbox, authAccount string, acl map[stri
 
 // SetMailboxAliases полностью перезаписывает список алиасов ящиков.
 func (cli *Cli) SetMailboxAliases(account string, aliases map[string]string) error {
-	if account == "" {
-		return fmt.Errorf("account name is required")
+	if account == "" || aliases == nil {
+		return fmt.Errorf("account name and aliases dictionary are required")
 	}
 	return cli.QueryNV("SETMAILBOXALIASES", Atom(account), aliases)
 }
@@ -170,8 +170,8 @@ func (cli *Cli) SetMailboxClass(account, mailbox, class, authAccount string) (er
 
 // SetMailboxSubscription полностью перезаписывает список подписок пользователя.
 func (cli *Cli) SetMailboxSubscription(account string, subs []string) error {
-	if account == "" {
-		return fmt.Errorf("account name is required")
+	if account == "" || subs == nil {
+		return fmt.Errorf("account name and subs array are required")
 	}
 	return cli.QueryNV("SETMAILBOXSUBSCRIPTION", Atom(account), subs)
 }

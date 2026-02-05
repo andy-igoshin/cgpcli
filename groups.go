@@ -16,6 +16,7 @@ func (cli *Cli) CreateGroup(group string, settings map[string]any) (err error) {
 	if group == "" {
 		return fmt.Errorf("group name is required")
 	}
+
 	const cmd = "CREATEGROUP"
 	if settings != nil {
 		err = cli.QueryNV(cmd, group, settings)

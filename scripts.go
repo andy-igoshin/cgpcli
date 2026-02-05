@@ -18,6 +18,5 @@ func (cli *Cli) RunScript(account, prog, entry string, param map[string]any) (an
 	if param != nil {
 		args = append(args, "PARAM", param)
 	}
-
 	return cli.Query("RUNSCRIPT", args...)
 }

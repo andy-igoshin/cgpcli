@@ -26,6 +26,7 @@ func (cli *Cli) SendTaskEvent(taskID, event string, param any) (err error) {
 	if taskID == "" || event == "" {
 		return fmt.Errorf("taskID and event name are required")
 	}
+
 	const cmd = "SENDTASKEVENT"
 	if param != nil {
 		err = cli.QueryNV(cmd, taskID, "EVENT", event, "PARAM", param)

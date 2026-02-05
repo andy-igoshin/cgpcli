@@ -17,6 +17,7 @@ func (cli *Cli) CreateDomainPBX(domain, language string) (err error) {
 	if domain == "" {
 		return fmt.Errorf("domain is required")
 	}
+
 	const cmd = "CREATEDOMAINPBX"
 	if language != "" {
 		err = cli.QueryNV(cmd, domain, "FILE", language)
@@ -83,6 +84,7 @@ func (cli *Cli) ReadClusterPBXFile(file string) ([]byte, error) {
 	if file == "" {
 		return nil, fmt.Errorf("file is required")
 	}
+
 	const cmd = "READCLUSTERPBXFILE"
 	res, err := cli.Query(cmd, file)
 	if err != nil {
@@ -100,6 +102,7 @@ func (cli *Cli) ReadDomainPBXFile(domain, file string) ([]byte, error) {
 	if domain == "" || file == "" {
 		return nil, fmt.Errorf("domain and file are required")
 	}
+
 	const cmd = "READDOMAINPBXFILE"
 	res, err := cli.Query(cmd, domain, "FILE", file)
 	if err != nil {
@@ -116,6 +119,7 @@ func (cli *Cli) ReadServerPBXFile(file string) ([]byte, error) {
 	if file == "" {
 		return nil, fmt.Errorf("file is required")
 	}
+
 	const cmd = "READSERVERPBXFILE"
 	res, err := cli.Query(cmd, file)
 	if err != nil {
@@ -132,6 +136,7 @@ func (cli *Cli) ReadStockPBXFile(file string) ([]byte, error) {
 	if file == "" {
 		return nil, fmt.Errorf("file is required")
 	}
+
 	const cmd = "READSTOCKPBXFILE"
 	res, err := cli.Query(cmd, file)
 	if err != nil {
@@ -148,6 +153,7 @@ func (cli *Cli) StoreClusterPBXFile(file string, data []byte) (err error) {
 	if file == "" {
 		return fmt.Errorf("file is required")
 	}
+
 	const cmd = "STORECLUSTERPBXFILE"
 	if data != nil {
 		err = cli.QueryNV(cmd, file, "DATA", data)
@@ -162,6 +168,7 @@ func (cli *Cli) StoreDomainPBXFile(domain, file string, data []byte) (err error)
 	if domain == "" || file == "" {
 		return fmt.Errorf("domain and file are required")
 	}
+
 	const cmd = "STOREDOMAINPBXFILE"
 	if data != nil {
 		err = cli.QueryNV(cmd, domain, "FILE", file, "DATA", data)
@@ -175,6 +182,7 @@ func (cli *Cli) StoreServerPBXFile(file string, data []byte) (err error) {
 	if file == "" {
 		return fmt.Errorf("file is required")
 	}
+
 	const cmd = "STORESERVERPBXFILE"
 	if data != nil {
 		err = cli.QueryNV(cmd, file, "DATA", data)

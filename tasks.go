@@ -11,6 +11,7 @@ func (cli *Cli) CreateNamedTask(task, account string) error {
 	if task == "" || account == "" {
 		return fmt.Errorf("task name and account name are required")
 	}
+
 	if idx := strings.IndexByte(account, '@'); idx != -1 {
 		account = account[:idx]
 	}

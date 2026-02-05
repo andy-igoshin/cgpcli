@@ -139,11 +139,13 @@ func (cli *Cli) ListDomainStorage(shared bool) (res []string, err error) {
 }
 
 // ListDomains возвращает список всех доменов.
-func (cli *Cli) ListDomains() ([]string, error) { return cli.getSliceString("LISTDOMAINS") }
+func (cli *Cli) ListDomains() ([]string, error) {
+	return cli.getSliceString("LISTDOMAINS")
+}
 
 // ListServerTelnums возвращает телефонные номера сервера.
-func (cli *Cli) ListServerTelnums(f string, l int) (map[string]string, error) {
-	return cli.listTelnums("LISTSERVERTELNUMS", f, l)
+func (cli *Cli) ListServerTelnums(filter string, limit int) (map[string]string, error) {
+	return cli.listTelnums("LISTSERVERTELNUMS", filter, limit)
 }
 
 // MainDomainName возвращает имя основного домена.

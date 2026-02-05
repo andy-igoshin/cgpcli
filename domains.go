@@ -91,14 +91,8 @@ func (cli *Cli) GetDomainSignalRules(domain string) ([]SignalRule, error) {
 	return cli.getSignalRules("GETDOMAINSIGNALRULES", domain)
 }
 
-func (cli *Cli) InsertDirectoryRecords(domain string) (err error) {
-	const cmd = "INSERTDIRECTORYRECORDS"
-	if domain != "" {
-		err = cli.QueryNV(cmd, domain)
-	} else {
-		err = cli.QueryNV(cmd)
-	}
-	return
+func (cli *Cli) InsertDirectoryRecords(domain string) error {
+	return cli.QueryNV("INSERTDIRECTORYRECORDS", Atom(domain))
 }
 
 func (cli *Cli) IsDomainExists(domain string) (bool, error) {
