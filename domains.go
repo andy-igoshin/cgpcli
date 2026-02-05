@@ -28,7 +28,7 @@ type DomainObjectsResult struct {
 
 func (cli *Cli) CreateAccountStorage(domain, storage string) error {
 	if domain == "" || storage == "" {
-		return fmt.Errorf("domain and storage path are required")
+		return fmt.Errorf("domain name and storage path are required")
 	}
 	return cli.QueryNV("CREATEACCOUNTSTORAGE", domain, "PATH", storage)
 }
@@ -128,6 +128,7 @@ func (cli *Cli) ListDomainObjects(domain string, limit int, filter string, what 
 	if domain == "" {
 		return nil, fmt.Errorf("domain name is required")
 	}
+
 	const cmd = "LISTDOMAINOBJECTS"
 	args := make([]any, 0, 8)
 	args = append(args, domain)
@@ -197,6 +198,7 @@ func (cli *Cli) ListDomainTelnums(domain, filter string, limit int) (map[string]
 	if domain == "" {
 		return nil, fmt.Errorf("domain name is required")
 	}
+
 	const cmd = "LISTDOMAINTELNUMS"
 	args := make([]any, 0, 4)
 	args = append(args, domain)
@@ -221,50 +223,50 @@ func (cli *Cli) ResumeDomain(domain string) error {
 }
 
 func (cli *Cli) SetAccountDefaultPrefs(domain string, settings map[string]any) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
+	if settings == nil {
+		return fmt.Errorf("settings dictionary is required")
 	}
-	return cli.setMapAny("SETACCOUNTDEFAULTPREFS", domain, settings)
+	return cli.QueryNV("SETACCOUNTDEFAULTPREFS", Atom(domain), settings)
 }
 
 func (cli *Cli) SetAccountDefaults(domain string, settings map[string]any) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
+	if settings == nil {
+		return fmt.Errorf("settings dictionary is required")
 	}
-	return cli.setMapAny("SETACCOUNTDEFAULTS", domain, settings)
+	return cli.QueryNV("SETACCOUNTDEFAULTS", Atom(domain), settings)
 }
 
 func (cli *Cli) SetAccountTemplate(domain string, settings map[string]any) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
+	if settings == nil {
+		return fmt.Errorf("settings dictionary is required")
 	}
-	return cli.setMapAny("SETACCOUNTTEMPLATE", domain, settings)
+	return cli.QueryNV("SETACCOUNTTEMPLATE", Atom(domain), settings)
 }
 
 func (cli *Cli) SetDomainAliases(domain string, aliases []string) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
+	if domain == "" || aliases == nil {
+		return fmt.Errorf("domain name and aliases array are required")
 	}
 	return cli.QueryNV("SETDOMAINALIASES", domain, aliases)
 }
 
 func (cli *Cli) SetDomainMailRules(domain string, rules []MailRule) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
+	if domain == "" || rules == nil {
+		return fmt.Errorf("domain name and rules array are required")
 	}
 	return setRulesGeneric(cli, "SETDOMAINMAILRULES", domain, rules)
 }
 
 func (cli *Cli) SetDomainSettings(domain string, settings map[string]any) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
+	if domain == "" || settings == nil {
+		return fmt.Errorf("domain name and settings dictionary are required")
 	}
-	return cli.setMapAny("SETDOMAINSETTINGS", domain, settings)
+	return cli.QueryNV("SETDOMAINSETTINGS", domain, settings)
 }
 
 func (cli *Cli) SetDomainSignalRules(domain string, rules []SignalRule) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
+	if domain == "" || rules == nil {
+		return fmt.Errorf("domain name and rules array are required")
 	}
 	return setRulesGeneric(cli, "SETDOMAINSIGNALRULES", domain, rules)
 }
@@ -277,29 +279,29 @@ func (cli *Cli) SuspendDomain(domain string) error {
 }
 
 func (cli *Cli) UpdateAccountDefaultPrefs(domain string, settings map[string]any) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
+	if len(settings) == 0 {
+		return fmt.Errorf("settings dictionary is required")
 	}
-	return cli.setMapAny("UPDATEACCOUNTDEFAULTPREFS", domain, settings)
+	return cli.QueryNV("UPDATEACCOUNTDEFAULTPREFS", Atom(domain), settings)
 }
 
 func (cli *Cli) UpdateAccountDefaults(domain string, settings map[string]any) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
+	if len(settings) == 0 {
+		return fmt.Errorf("settings dictionary is required")
 	}
-	return cli.setMapAny("UPDATEACCOUNTDEFAULTS", domain, settings)
+	return cli.QueryNV("UPDATEACCOUNTDEFAULTS", Atom(domain), settings)
 }
 
 func (cli *Cli) UpdateAccountTemplate(domain string, settings map[string]any) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
+	if len(settings) == 0 {
+		return fmt.Errorf("settings dictionary is required")
 	}
-	return cli.setMapAny("UPDATEACCOUNTTEMPLATE", domain, settings)
+	return cli.QueryNV("UPDATEACCOUNTTEMPLATE", Atom(domain), settings)
 }
 
 func (cli *Cli) UpdateDomainSettings(domain string, settings map[string]any) error {
-	if domain == "" {
-		return fmt.Errorf("domain name is required")
+	if len(settings) == 0 {
+		return fmt.Errorf("settings dictionary is required")
 	}
-	return cli.setMapAny("UPDATEDOMAINSETTINGS", domain, settings)
+	return cli.QueryNV("UPDATEDOMAINSETTINGS", Atom(domain), settings)
 }

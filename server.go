@@ -74,8 +74,18 @@ func (cli *Cli) GetClusterRouterSettings() (map[string]any, error) {
 	return cli.getMapAny("GETCLUSTERROUTERSETTINGS")
 }
 
-func (cli *Cli) GetClusterRouterTable() (string, error) {
-	return cli.getString("GETCLUSTERROUTERTABLE")
+func (cli *Cli) GetClusterRouterTable() (RouterList, error) {
+	raw, err := cli.getString("GETCLUSTERROUTERTABLE")
+	if err != nil {
+		return nil, err
+	}
+
+	parts := strings.Split(raw, `\e`)
+	anyParts := make([]any, len(parts))
+	for i, v := range parts {
+		anyParts[i] = v
+	}
+	return parseRouterTable(anyParts), nil
 }
 
 func (cli *Cli) GetClusterSettings() (map[string]any, error) {
@@ -102,11 +112,14 @@ func (cli *Cli) GetDNRSettings() (map[string]any, error) {
 	return cli.getMapAny("GETDNRSETTINGS")
 }
 
-func (cli *Cli) GetIPState(ip string, temp bool) (string, error) {
+func (cli *Cli) GetIPState(ip string, temp bool) (s string, err error) {
+	const cmd = "GETIPSTATE"
 	if temp {
-		return cli.getString("GETIPSTATE", ip, "TEMP")
+		s, err = cli.getString(cmd, ip, "TEMP")
+	} else {
+		s, err = cli.getString(cmd, ip)
 	}
-	return cli.getString("GETIPSTATE", ip)
+	return
 }
 
 func (cli *Cli) GetLANIPs() (IPList, error) {
@@ -152,12 +165,10 @@ func (cli *Cli) GetRouterTable() (RouterList, error) {
 	}
 
 	parts := strings.Split(raw, `\e`)
-
 	anyParts := make([]any, len(parts))
 	for i, v := range parts {
 		anyParts[i] = v
 	}
-
 	return parseRouterTable(anyParts), nil
 }
 
@@ -245,15 +256,21 @@ func (cli *Cli) SetClusterDeniedIPs(l IPList) error {
 }
 
 func (cli *Cli) SetClusterIntercept(settings map[string]any) error {
-	return cli.setMapAny("SETCLUSTERINTERCEPT", "", settings)
+	if settings == nil {
+		return fmt.Errorf("settings dictionary is required")
+	}
+	return cli.QueryNV("SETCLUSTERINTERCEPT", settings)
 }
 
 func (cli *Cli) SetClusterLANIPs(l IPList) error {
 	return cli.setIPListTyped("SETCLUSTERLANIPS", l)
 }
 
-func (cli *Cli) SetClusterMailRules(r []MailRule) error {
-	return setRulesGeneric(cli, "SETCLUSTERMAILRULES", "", r)
+func (cli *Cli) SetClusterMailRules(rules []MailRule) error {
+	if rules == nil {
+		return fmt.Errorf("rules array is required")
+	}
+	return setRulesGeneric(cli, "SETCLUSTERMAILRULES", "", rules)
 }
 
 func (cli *Cli) SetClusterNatedIPs(l IPList) error {
@@ -265,23 +282,35 @@ func (cli *Cli) SetClusterNatSiteIPs(l IPList) error {
 }
 
 func (cli *Cli) SetClusterNetwork(settings map[string]any) error {
-	return cli.setMapAny("SETCLUSTERNETWORK", "", settings)
+	if settings == nil {
+		return fmt.Errorf("settings dictionary is required")
+	}
+	return cli.QueryNV("SETCLUSTERNETWORK", settings)
 }
 
 func (cli *Cli) SetClusterRouterSettings(settings map[string]any) error {
-	return cli.setMapAny("SETCLUSTERROUTERSETTINGS", "", settings)
+	if settings == nil {
+		return fmt.Errorf("settings dictionary is required")
+	}
+	return cli.QueryNV("SETCLUSTERROUTERSETTINGS", settings)
 }
 
-func (cli *Cli) SetClusterRouterTable(t string) error {
-	return cli.QueryNV("SETCLUSTERROUTERTABLE", toCGPText(t))
+func (cli *Cli) SetClusterRouterTable(table RouterList) error {
+	return cli.QueryNV("SETCLUSTERROUTERTABLE", table.MarshalCGP())
 }
 
 func (cli *Cli) SetClusterSettings(settings map[string]any) error {
-	return cli.setMapAny("SETCLUSTERSETTINGS", "", settings)
+	if settings == nil {
+		return fmt.Errorf("settings dictionary is required")
+	}
+	return cli.QueryNV("SETCLUSTERSETTINGS", settings)
 }
 
-func (cli *Cli) SetClusterSignalRules(r []SignalRule) error {
-	return setRulesGeneric(cli, "SETCLUSTERSIGNALRULES", "", r)
+func (cli *Cli) SetClusterSignalRules(rules []SignalRule) error {
+	if rules == nil {
+		return fmt.Errorf("rules array is required")
+	}
+	return setRulesGeneric(cli, "SETCLUSTERSIGNALRULES", "", rules)
 }
 
 func (cli *Cli) SetClusterWhiteHoleIPs(l IPList) error {
@@ -297,7 +326,10 @@ func (cli *Cli) SetDeniedIPs(l IPList) error {
 }
 
 func (cli *Cli) SetDNRSettings(settings map[string]any) error {
-	return cli.setMapAny("SETDNRSETTINGS", "", settings)
+	if settings == nil {
+		return fmt.Errorf("settings dictionary is required")
+	}
+	return cli.QueryNV("SETDNRSETTINGS", settings)
 }
 
 func (cli *Cli) SetLANIPs(l IPList) error {
@@ -305,11 +337,17 @@ func (cli *Cli) SetLANIPs(l IPList) error {
 }
 
 func (cli *Cli) SetMediaServerSettings(settings map[string]any) error {
-	return cli.setMapAny("SETMEDIASERVERSETTINGS", "", settings)
+	if settings == nil {
+		return fmt.Errorf("settings dictionary is required")
+	}
+	return cli.QueryNV("SETMEDIASERVERSETTINGS", settings)
 }
 
-func (cli *Cli) SetModule(n string, settings map[string]any) error {
-	return cli.setMapAny("SETMODULE", n, settings)
+func (cli *Cli) SetModule(module string, settings map[string]any) error {
+	if module == "" || settings == nil {
+		return fmt.Errorf("module name and settings dictionary are required")
+	}
+	return cli.QueryNV("SETMODULE", module, settings)
 }
 
 func (cli *Cli) SetNatedIPs(l IPList) error {
@@ -321,15 +359,24 @@ func (cli *Cli) SetNatSiteIPs(l IPList) error {
 }
 
 func (cli *Cli) SetNetwork(settings map[string]any) error {
-	return cli.setMapAny("SETNETWORK", "", settings)
+	if settings == nil {
+		return fmt.Errorf("settings dictionary is required")
+	}
+	return cli.QueryNV("SETNETWORK", settings)
 }
 
 func (cli *Cli) SetQueueSettings(settings map[string]any) error {
-	return cli.setMapAny("SETQUEUESETTINGS", "", settings)
+	if settings == nil {
+		return fmt.Errorf("settings dictionary is required")
+	}
+	return cli.QueryNV("SETQUEUESETTINGS", settings)
 }
 
 func (cli *Cli) SetRouterSettings(settings map[string]any) error {
-	return cli.setMapAny("SETROUTERSETTINGS", "", settings)
+	if settings == nil {
+		return fmt.Errorf("settings dictionary is required")
+	}
+	return cli.QueryNV("SETROUTERSETTINGS", settings)
 }
 
 func (cli *Cli) SetRouterTable(table RouterList) error {
@@ -337,27 +384,45 @@ func (cli *Cli) SetRouterTable(table RouterList) error {
 }
 
 func (cli *Cli) SetServerIntercept(settings map[string]any) error {
-	return cli.setMapAny("SETSERVERINTERCEPT", "", settings)
+	if settings == nil {
+		return fmt.Errorf("settings dictionary is required")
+	}
+	return cli.QueryNV("SETSERVERINTERCEPT", settings)
 }
 
-func (cli *Cli) SetServerMailRules(r []MailRule) error {
-	return setRulesGeneric(cli, "SETSERVERMAILRULES", "", r)
+func (cli *Cli) SetServerMailRules(rules []MailRule) error {
+	if rules == nil {
+		return fmt.Errorf("rules array is required")
+	}
+	return setRulesGeneric(cli, "SETSERVERMAILRULES", "", rules)
 }
 
-func (cli *Cli) SetServerSignalRules(r []SignalRule) error {
-	return setRulesGeneric(cli, "SETSERVERSIGNALRULES", "", r)
+func (cli *Cli) SetServerSignalRules(rules []SignalRule) error {
+	if rules == nil {
+		return fmt.Errorf("rules array is required")
+	}
+	return setRulesGeneric(cli, "SETSERVERSIGNALRULES", "", rules)
 }
 
 func (cli *Cli) SetSessionSettings(settings map[string]any) error {
-	return cli.setMapAny("SETSESSIONSETTINGS", "", settings)
+	if settings == nil {
+		return fmt.Errorf("settings dictionary is required")
+	}
+	return cli.QueryNV("SETSESSIONSETTINGS", settings)
 }
 
 func (cli *Cli) SetSignalSettings(settings map[string]any) error {
-	return cli.setMapAny("SETSIGNALSETTINGS", "", settings)
+	if settings == nil {
+		return fmt.Errorf("settings dictionary is required")
+	}
+	return cli.QueryNV("SETSIGNALSETTINGS", settings)
 }
 
 func (cli *Cli) SetSMTPSendProfiles(settings map[string]any) error {
-	return cli.setMapAny("SETSMTPSENDPROFILES", "", settings)
+	if settings == nil {
+		return fmt.Errorf("settings dictionary is required")
+	}
+	return cli.QueryNV("SETSMTPSENDPROFILES", settings)
 }
 
 func (cli *Cli) SetWhiteHoleIPs(l IPList) error {
@@ -365,15 +430,24 @@ func (cli *Cli) SetWhiteHoleIPs(l IPList) error {
 }
 
 func (cli *Cli) UpdateLogSettings(settings map[string]any) error {
-	return cli.setMapAny("UPDATELOGSETTINGS", "", settings)
+	if len(settings) == 0 {
+		return fmt.Errorf("settings dictionary is required")
+	}
+	return cli.QueryNV("UPDATELOGSETTINGS", settings)
 }
 
-func (cli *Cli) UpdateModule(n string, settings map[string]any) error {
-	return cli.setMapAny("UPDATEMODULE", n, settings)
+func (cli *Cli) UpdateModule(module string, settings map[string]any) error {
+	if module == "" || len(settings) == 0 {
+		return fmt.Errorf("module name and settings dictionary are required")
+	}
+	return cli.QueryNV("UPDATEMODULE", module, settings)
 }
 
 func (cli *Cli) UpdateServerSettings(settings map[string]any) error {
-	return cli.setMapAny("UPDATESERVERSETTINGS", "", settings)
+	if len(settings) == 0 {
+		return fmt.Errorf("settings dictionary is required")
+	}
+	return cli.QueryNV("UPDATESERVERSETTINGS", settings)
 }
 
 func (cli *Cli) getBannedGeneric(cmd string) (*BannedLines, error) {
@@ -416,7 +490,7 @@ func (cli *Cli) setBannedGeneric(cmd string, lines *BannedLines) error {
 		"BannedBodyLines":   lines.BodyLines,
 		"BannedHeaderLines": lines.HeaderLines,
 	}
-	return cli.setMapAny(cmd, "", data)
+	return cli.QueryNV(cmd, data)
 }
 
 func (cli *Cli) setIPList(cmd, list string) error {

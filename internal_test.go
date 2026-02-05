@@ -104,14 +104,14 @@ func TestInternalIntegration(t *testing.T) {
 	})
 
 	// 3. Тестируем отправку данных (UpdateInfo)
-	t.Run("setMapAny_UpdateAccountInfo", func(t *testing.T) {
+	t.Run("UpdateAccountInfo", func(t *testing.T) {
 		testData := map[string]any{
 			"IntegrationTest": "Passed",
 			"Year":            2026,
 		}
-		err := cli.setMapAny("UPDATEACCOUNTINFO", "*", testData)
+		err := cli.QueryNV("UPDATEACCOUNTINFO", Atom("*"), testData)
 		if err != nil {
-			t.Errorf("setMapAny failed: %v", err)
+			t.Errorf("QueryNV failed: %v", err)
 		}
 	})
 

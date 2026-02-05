@@ -79,20 +79,6 @@ func (cli *Cli) getString(cmd string, args ...any) (string, error) {
 	return s, nil
 }
 
-// setMapAny — отправка словаря на сервер.
-func (cli *Cli) setMapAny(cmd string, subject string, data map[string]any) (err error) {
-	if data == nil {
-		return fmt.Errorf("%s: data map is nil", cmd)
-	}
-
-	if subject != "" {
-		err = cli.QueryNV(cmd, Atom(subject), data)
-	} else {
-		err = cli.QueryNV(cmd, data)
-	}
-	return
-}
-
 // toAnySlice — приведение к слайсу []any.
 func toAnySlice(v any) []any {
 	if s, ok := v.([]any); ok {

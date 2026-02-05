@@ -7,7 +7,7 @@ import (
 
 func (cli *Cli) GetAccountAlerts(account string) (map[string]string, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account is required")
+		return nil, fmt.Errorf("account name is required")
 	}
 	return cli.getMapString("GETACCOUNTALERTS", Atom(account))
 }
@@ -26,7 +26,7 @@ func (cli *Cli) GetServerAlerts() (map[string]string, error) {
 
 func (cli *Cli) PostAccountAlert(account, alert string) error {
 	if account == "" || alert == "" {
-		return fmt.Errorf("account and alert text are required")
+		return fmt.Errorf("account name and alert text are required")
 	}
 	return cli.QueryNV("POSTACCOUNTALERT", Atom(account), "ALERT", alert)
 }
@@ -40,9 +40,9 @@ func (cli *Cli) PostClusterAlert(alert string) error {
 
 func (cli *Cli) PostDomainAlert(domain, alert string) error {
 	if domain == "" || alert == "" {
-		return fmt.Errorf("domain and alert text are required")
+		return fmt.Errorf("domain name and alert text are required")
 	}
-	return cli.QueryNV("POSTDOMAINALERT", Atom(domain), "ALERT", alert)
+	return cli.QueryNV("POSTDOMAINALERT", domain, "ALERT", alert)
 }
 
 func (cli *Cli) PostServerAlert(alert string) error {
@@ -54,7 +54,7 @@ func (cli *Cli) PostServerAlert(alert string) error {
 
 func (cli *Cli) RemoveAccountAlert(account, timeStamp string) error {
 	if account == "" || timeStamp == "" {
-		return fmt.Errorf("account and timeStamp are required")
+		return fmt.Errorf("account name and timeStamp are required")
 	}
 	return cli.QueryNV("REMOVEACCOUNTALERT", Atom(account), "ALERT", timeStamp)
 }
@@ -68,9 +68,9 @@ func (cli *Cli) RemoveClusterAlert(timeStamp string) error {
 
 func (cli *Cli) RemoveDomainAlert(domain, timeStamp string) error {
 	if domain == "" || timeStamp == "" {
-		return fmt.Errorf("domain and timeStamp are required")
+		return fmt.Errorf("domain name and timeStamp are required")
 	}
-	return cli.QueryNV("REMOVEDOMAINALERT", Atom(domain), "ALERT", timeStamp)
+	return cli.QueryNV("REMOVEDOMAINALERT", domain, "ALERT", timeStamp)
 }
 
 func (cli *Cli) RemoveServerAlert(timeStamp string) error {
@@ -81,20 +81,20 @@ func (cli *Cli) RemoveServerAlert(timeStamp string) error {
 }
 
 func (cli *Cli) SetAccountAlerts(account string, alerts map[string]any) error {
-	if account == "" {
-		return fmt.Errorf("account is required")
+	if account == "" || alerts == nil {
+		return fmt.Errorf("account name and alerts dictionary are required")
 	}
-	return cli.setMapAny("SETACCOUNTALERTS", account, alerts)
+	return cli.QueryNV("SETACCOUNTALERTS", Atom(account), alerts)
 }
 
 func (cli *Cli) SetClusterAlerts(alerts map[string]any) error {
-	return cli.setMapAny("SETCLUSTERALERTS", "", alerts)
+	return cli.QueryNV("SETCLUSTERALERTS", alerts)
 }
 
 func (cli *Cli) SetDomainAlerts(domain string, alerts map[string]any) error {
-	return cli.setMapAny("SETDOMAINALERTS", domain, alerts)
+	return cli.QueryNV("SETDOMAINALERTS", Atom(domain), alerts)
 }
 
 func (cli *Cli) SetServerAlerts(alerts map[string]any) error {
-	return cli.setMapAny("SETSERVERALERTS", "", alerts)
+	return cli.QueryNV("SETSERVERALERTS", alerts)
 }

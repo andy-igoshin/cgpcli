@@ -312,8 +312,8 @@ func (cli *Cli) RenameAccount(oldName, newName, path string) (err error) {
 	return
 }
 
-func (cli *Cli) SetAccountACL(account, authAccount string, newACL map[string]any) error {
-	if account == "" || newACL == nil {
+func (cli *Cli) SetAccountACL(account, authAccount string, acl map[string]any) error {
+	if account == "" || acl == nil {
 		return fmt.Errorf("account name and ACL dictionary are required")
 	}
 	args := make([]any, 0, 4)
@@ -321,7 +321,7 @@ func (cli *Cli) SetAccountACL(account, authAccount string, newACL map[string]any
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
-	args = append(args, newACL)
+	args = append(args, acl)
 	return cli.QueryNV("SETACCOUNTACL", args...)
 }
 
@@ -347,23 +347,24 @@ func (cli *Cli) SetAccountAccessModes(account string, modes []string) error {
 }
 
 func (cli *Cli) SetAccountAliases(account string, aliases []string) error {
-	if account == "" {
-		return fmt.Errorf("account name is required")
+	if account == "" || aliases == nil {
+		return fmt.Errorf("account name and aliases array are required")
 	}
 	return cli.QueryNV("SETACCOUNTALIASES", account, aliases)
 }
 
 func (cli *Cli) SetAccountMailRules(account string, rules []MailRule) error {
-	if account == "" {
-		return fmt.Errorf("account name is required")
+	if account == "" || rules == nil {
+		return fmt.Errorf("account name and rules array are required")
 	}
 	return setRulesGeneric(cli, "SETACCOUNTMAILRULES", account, rules)
 }
 
 func (cli *Cli) SetAccountPassword(account, password, method, tag string, check bool) error {
-	if account == "" {
-		return fmt.Errorf("account name is required")
+	if account == "" || password == "" {
+		return fmt.Errorf("account name and password are required")
 	}
+
 	args := make([]any, 0, 8)
 	args = append(args, account, "PASSWORD", password)
 	if method != "" {
@@ -378,51 +379,51 @@ func (cli *Cli) SetAccountPassword(account, password, method, tag string, check 
 	return cli.QueryNV("SETACCOUNTPASSWORD", args...)
 }
 
-func (cli *Cli) SetAccountPrefs(account string, prefs map[string]any) error {
-	if account == "" {
-		return fmt.Errorf("account name is required")
+func (cli *Cli) SetAccountPrefs(account string, settings map[string]any) error {
+	if account == "" || settings == nil {
+		return fmt.Errorf("account name and settings dictionary are required")
 	}
-	return cli.setMapAny("SETACCOUNTPREFS", account, prefs)
+	return cli.QueryNV("SETACCOUNTPREFS", account, settings)
 }
 
 func (cli *Cli) SetAccountRIMAPs(account string, records map[string]any) error {
-	if account == "" {
-		return fmt.Errorf("account name is required")
+	if account == "" || records == nil {
+		return fmt.Errorf("account name and records dictionary are required")
 	}
-	return cli.setMapAny("SETACCOUNTRIMAPS", account, records)
+	return cli.QueryNV("SETACCOUNTRIMAPS", account, records)
 }
 
 func (cli *Cli) SetAccountRPOPs(account string, records map[string]any) error {
-	if account == "" {
-		return fmt.Errorf("account name is required")
+	if account == "" || records == nil {
+		return fmt.Errorf("account name and records dictionary are required")
 	}
-	return cli.setMapAny("SETACCOUNTRPOPS", account, records)
+	return cli.QueryNV("SETACCOUNTRPOPS", account, records)
 }
 
 func (cli *Cli) SetAccountRSIPs(account string, records map[string]any) error {
-	if account == "" {
-		return fmt.Errorf("account name is required")
+	if account == "" || records == nil {
+		return fmt.Errorf("account name and records dictionary are required")
 	}
-	return cli.setMapAny("SETACCOUNTRSIPS", account, records)
+	return cli.QueryNV("SETACCOUNTRSIPS", account, records)
 }
 
 func (cli *Cli) SetAccountSettings(account string, settings map[string]any) error {
-	if account == "" {
-		return fmt.Errorf("account name is required")
+	if account == "" || settings == nil {
+		return fmt.Errorf("account name and settings dictionary are required")
 	}
-	return cli.setMapAny("SETACCOUNTSETTINGS", account, settings)
+	return cli.QueryNV("SETACCOUNTSETTINGS", account, settings)
 }
 
 func (cli *Cli) SetAccountSignalRules(account string, rules []SignalRule) error {
-	if account == "" {
-		return fmt.Errorf("account name is required")
+	if account == "" || rules == nil {
+		return fmt.Errorf("account name and rules array are required")
 	}
 	return setRulesGeneric(cli, "SETACCOUNTSIGNALRULES", account, rules)
 }
 
 func (cli *Cli) SetAccountTelnums(account string, telnums []string) error {
-	if account == "" {
-		return fmt.Errorf("account name is required")
+	if account == "" || telnums == nil {
+		return fmt.Errorf("account name and telnums array are required")
 	}
 	return cli.QueryNV("SETACCOUNTTELNUMS", account, telnums)
 }
@@ -435,10 +436,10 @@ func (cli *Cli) SetAccountType(account string, accType AccountType) error {
 }
 
 func (cli *Cli) UpdateAccountInfo(account string, info map[string]any) error {
-	if account == "" {
-		return fmt.Errorf("account name is required")
+	if account == "" || len(info) == 0 {
+		return fmt.Errorf("account name and info are required")
 	}
-	return cli.setMapAny("UPDATEACCOUNTINFO", account, info)
+	return cli.QueryNV("UPDATEACCOUNTINFO", account, info)
 }
 
 func (cli *Cli) UpdateAccountMailRule(account string, rule MailRule) error {
@@ -448,18 +449,18 @@ func (cli *Cli) UpdateAccountMailRule(account string, rule MailRule) error {
 	return updateRuleGeneric(cli, "UPDATEACCOUNTMAILRULE", account, rule)
 }
 
-func (cli *Cli) UpdateAccountPrefs(account string, prefs map[string]any) error {
-	if account == "" {
-		return fmt.Errorf("account name is required")
+func (cli *Cli) UpdateAccountPrefs(account string, settings map[string]any) error {
+	if account == "" || len(settings) == 0 {
+		return fmt.Errorf("account name and settings dictionary are required")
 	}
-	return cli.setMapAny("UPDATEACCOUNTPREFS", account, prefs)
+	return cli.QueryNV("UPDATEACCOUNTPREFS", account, settings)
 }
 
 func (cli *Cli) UpdateAccountSettings(account string, settings map[string]any) error {
-	if account == "" {
-		return fmt.Errorf("account name is required")
+	if account == "" || len(settings) == 0 {
+		return fmt.Errorf("account name and settings dictionary are required")
 	}
-	return cli.setMapAny("UPDATEACCOUNTSETTINGS", account, settings)
+	return cli.QueryNV("UPDATEACCOUNTSETTINGS", account, settings)
 }
 
 func (cli *Cli) UpdateAccountSignalRule(account string, rule SignalRule) error {
@@ -469,14 +470,11 @@ func (cli *Cli) UpdateAccountSignalRule(account string, rule SignalRule) error {
 	return updateRuleGeneric(cli, "UPDATEACCOUNTSIGNALRULE", account, rule)
 }
 
-func (cli *Cli) UpdateScheduledTask(account string, taskData map[string]any) error {
-	if account == "" {
-		return fmt.Errorf("account name is required")
+func (cli *Cli) UpdateScheduledTask(account string, task map[string]any) error {
+	if account == "" || len(task) == 0 {
+		return fmt.Errorf("account name and task dictionary are required")
 	}
-	if _, ok := taskData["id"]; !ok {
-		return fmt.Errorf("task id is required in taskData")
-	}
-	return cli.setMapAny("UPDATESCHEDULEDTASK", account, taskData)
+	return cli.QueryNV("UPDATESCHEDULEDTASK", account, task)
 }
 
 func (cli *Cli) VerifyAccountIdentity(account, identity string) (bool, error) {
