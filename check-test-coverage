@@ -13,7 +13,7 @@ print "--- Анализ упоминаний методов в тестах (Dee
 
 foreach my $file (@files) {
     my $test_file = $file =~ s/\.go$/_test.go/r;
-    
+
     unless (-e $test_file) {
         print "![MISSING] Файл тестов для $file не найден\n";
         next;
@@ -67,4 +67,4 @@ foreach my $file (@files) {
     }
 }
 
-print "\n--- Скан завершен ---\n";
+exit;
