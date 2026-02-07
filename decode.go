@@ -12,10 +12,11 @@ import (
 )
 
 type decodeState struct {
-	data    []byte
-	len     int
-	span    int
-	scratch bytes.Buffer
+	data     []byte
+	len      int
+	span     int
+	scratch  bytes.Buffer
+	keyCache map[string]string
 }
 
 func (d *decodeState) init(data []byte) *decodeState {
@@ -23,6 +24,9 @@ func (d *decodeState) init(data []byte) *decodeState {
 	d.len = len(data)
 	d.span = 0
 	d.scratch.Grow(4096)
+	if d.keyCache == nil {
+		d.keyCache = make(map[string]string, 256)
+	}
 	return d
 }
 
@@ -49,13 +53,17 @@ func Unmarshal(data []byte, v any) error {
 	target := reflect.ValueOf(v).Elem()
 
 	if result == nil {
-		target.Set(reflect.Zero(target.Type()))
+		if target.CanSet() {
+			target.Set(reflect.Zero(target.Type()))
+		}
 		return nil
 	}
 
 	val := reflect.ValueOf(result)
 	if val.Type().AssignableTo(target.Type()) {
 		target.Set(val)
+	} else if val.Type().ConvertibleTo(target.Type()) {
+		target.Set(val.Convert(target.Type()))
 	} else {
 		return fmt.Errorf("cgpcli: cannot assign %T to %v", result, target.Type())
 	}
@@ -83,17 +91,61 @@ func (d *decodeState) valueInterface(asString bool) any {
 }
 
 func (d *decodeState) dictionaryInterface() any {
-	res := make(map[string]any)
+	count := 0
+	depth := 1
+	tempSpan := d.span
+	for tempSpan < d.len {
+		ch := d.data[tempSpan]
+		if ch == '{' {
+			depth++
+		}
+		if ch == '}' {
+			depth--
+			if depth == 0 {
+				break
+			}
+		}
+		if ch == ';' && depth == 1 {
+			count++
+		}
+		tempSpan++
+	}
+
+	res := make(map[string]any, count)
+
 	for d.span < d.len {
 		d.skipSpaces()
 		if d.span >= d.len || d.data[d.span] == '}' {
 			d.span++
 			break
 		}
-		keyRaw := d.wordInterface(true)
-		key, ok := keyRaw.(string)
-		if !ok {
-			break
+
+		var key string
+		start := d.span
+		if d.data[d.span] != '"' {
+			// Fast path keys
+			for d.span < d.len {
+				ch := d.data[d.span]
+				if isSpace(ch) || ch == '=' || ch == ';' || ch == ',' || ch == ')' || ch == '}' {
+					break
+				}
+				d.span++
+			}
+			keyBytes := d.data[start:d.span]
+			if cached, ok := d.keyCache[string(keyBytes)]; ok {
+				key = cached
+			} else {
+				key = string(keyBytes)
+				d.keyCache[key] = key
+			}
+		} else {
+			keyRaw := d.wordInterface(true)
+			key, _ = keyRaw.(string)
+			if cached, ok := d.keyCache[key]; ok {
+				key = cached
+			} else {
+				d.keyCache[key] = key
+			}
 		}
 
 		d.skipSpaces()
@@ -102,6 +154,7 @@ func (d *decodeState) dictionaryInterface() any {
 			val := d.valueInterface(false)
 			res[key] = transformRead(key, val)
 		}
+
 		d.skipSpaces()
 		if d.span < d.len && d.data[d.span] == ';' {
 			d.span++
@@ -110,6 +163,7 @@ func (d *decodeState) dictionaryInterface() any {
 	return res
 }
 
+/*
 func (d *decodeState) arrayInterface() any {
 	res := make([]any, 0)
 	for d.span < d.len {
@@ -126,6 +180,47 @@ func (d *decodeState) arrayInterface() any {
 	}
 	return res
 }
+*/
+
+func (d *decodeState) arrayInterface() any {
+	count := 1
+	depth := 1
+	tempSpan := d.span
+
+	// Пробежимся вперед, чтобы оценить размер массива
+	for tempSpan < d.len {
+		ch := d.data[tempSpan]
+		if ch == '(' {
+			depth++
+		} else if ch == ')' {
+			depth--
+			if depth == 0 {
+				break
+			}
+		} else if ch == ',' && depth == 1 {
+			count++
+		}
+		tempSpan++
+	}
+
+	res := make([]any, 0, count)
+
+	for d.span < d.len {
+		d.skipSpaces()
+		if d.span >= d.len || d.data[d.span] == ')' {
+			d.span++
+			break
+		}
+
+		res = append(res, d.valueInterface(false))
+
+		d.skipSpaces()
+		if d.span < d.len && d.data[d.span] == ',' {
+			d.span++
+		}
+	}
+	return res
+}
 
 func (d *decodeState) wordInterface(asString bool) any {
 	d.skipSpaces()
@@ -135,66 +230,110 @@ func (d *decodeState) wordInterface(asString bool) any {
 
 	curr := d.data[d.span]
 
-	// 1. Обработка блоков данных: [..], #[..], #I[..]
+	// 1. Data Blocks [base64]
 	if curr == '[' {
 		d.span++
 		return d.readCgpBlock('[', ']')
 	}
 
-	if curr == '#' && d.span+1 < d.len {
-		next := d.data[d.span+1]
-		// Специфический тип IP Address: #I[addr]:port
-		if next == 'I' && d.span+2 < d.len && d.data[d.span+2] == '[' {
-			d.span += 3
-			ipData := d.readCgpBlock('[', ']')
-			res := CGPIP{IP: net.ParseIP(string(ipData))}
-			if d.span < d.len && d.data[d.span] == ':' {
+	// 2. IP Addresses #I[...]
+	if curr == '#' && d.span+2 < d.len && d.data[d.span+1] == 'I' && d.data[d.span+2] == '[' {
+		d.span += 3
+		ipData := d.readCgpBlock('[', ']')
+		res := CGPIP{IP: net.ParseIP(string(ipData))}
+		if d.span < d.len && d.data[d.span] == ':' {
+			d.span++
+			start := d.span
+			for d.span < d.len && d.data[d.span] >= '0' && d.data[d.span] <= '9' {
 				d.span++
-				start := d.span
-				for d.span < d.len && d.data[d.span] >= '0' && d.data[d.span] <= '9' {
-					d.span++
-				}
-				portStr := string(d.data[start:d.span])
-				res.Port, _ = strconv.Atoi(portStr)
 			}
-			return res
+			res.Port, _ = strconv.Atoi(string(d.data[start:d.span]))
 		}
+		return res
 	}
 
+	// 3. Fast Path for simple tokens
+	if curr != '"' && curr != '#' {
+		start := d.span
+		for d.span < d.len {
+			ch := d.data[d.span]
+			if isSpace(ch) || ch == '=' || ch == ';' || ch == ',' || ch == ')' || ch == '}' {
+				break
+			}
+			d.span++
+		}
+		raw := string(d.data[start:d.span])
+		if asString {
+			return raw
+		}
+		switch raw {
+		case "YES", "yes":
+			return true
+		case "NO", "no":
+			return false
+		}
+
+		// Оптимизация: пробуем парсить в число ТОЛЬКО если похоже на число
+		if len(raw) > 0 && ((raw[0] >= '0' && raw[0] <= '9') || raw[0] == '-') {
+			if val, err := strconv.ParseInt(raw, 10, 64); err == nil {
+				return val
+			}
+		}
+
+		/*
+			if val, err := strconv.ParseInt(raw, 10, 64); err == nil {
+				return val
+			}
+		*/
+
+		return raw
+	}
+
+	// 4. Slow Path (Quoted, Objects #(..), Tags)
 	d.scratch.Reset()
 	isQuoted := curr == '"'
 	isTagged := curr == '#'
-	isUnkData := false
+	isObject := false
 
 	if isQuoted {
-		// Логика кавычек с поддержкой конкатенации "str1""str2"
 		for d.span < d.len && d.data[d.span] == '"' {
-			d.span++ // пропускаем открывающую кавычку
+			d.span++
 			for d.span < d.len {
 				ch := d.data[d.span]
-				if ch == '\\' && d.span+3 < d.len {
-					// Восьмеричные последовательности \NNN
-					octStr := string(d.data[d.span+1 : d.span+4])
-					if val, err := strconv.ParseInt(octStr, 8, 32); err == nil {
-						d.scratch.WriteByte(byte(val))
-						d.span += 4
+				if ch == '\\' {
+					if d.span+1 < d.len {
+						next := d.data[d.span+1]
+						if next >= '0' && next <= '7' && d.span+3 < d.len {
+							octStr := string(d.data[d.span+1 : d.span+4])
+							if val, err := strconv.ParseInt(octStr, 8, 32); err == nil {
+								d.scratch.WriteByte(byte(val))
+								d.span += 4
+								continue
+							}
+						}
+						switch next {
+						case 'e':
+							d.scratch.WriteByte('\n')
+						case 't':
+							d.scratch.WriteByte('\t')
+						case '\\':
+							d.scratch.WriteByte('\\')
+						case '"':
+							d.scratch.WriteByte('"')
+						default:
+							d.scratch.WriteByte(next)
+						}
+						d.span += 2
 						continue
 					}
-					// Обычный escape
-					d.scratch.WriteByte(d.data[d.span+1])
-					d.span += 2
-					continue
 				}
 				if ch == '"' {
 					d.span++
-					// Если за кавычкой сразу идет еще одна — это конкатенация
 					if d.span < d.len && d.data[d.span] == '"' {
-						// В некоторых версиях CGP "" внутри кавычек — это просто кавычка
 						d.scratch.WriteByte('"')
 						d.span++
 						continue
 					}
-					// Конец квотированной строки
 					d.skipSpaces()
 					break
 				}
@@ -202,22 +341,16 @@ func (d *decodeState) wordInterface(asString bool) any {
 				d.span++
 			}
 		}
-	} else {
-		// Логика для слов, чисел и тегов #(...)
-		if isTagged {
-			if bytes.HasPrefix(d.data[d.span:], []byte("#(")) {
-				isUnkData = true
-				// Оставляем span на #, цикл ниже его заберет
-			} else {
-				// Забираем # и сдвигаем span, чтобы не зациклиться
-				d.scratch.WriteByte('#')
-				d.span++
-			}
+	} else if isTagged {
+		if bytes.HasPrefix(d.data[d.span:], []byte("#(")) {
+			isObject = true
+		} else {
+			d.scratch.WriteByte('#')
+			d.span++
 		}
-
 		for d.span < d.len {
 			ch := d.data[d.span]
-			if isUnkData {
+			if isObject {
 				d.scratch.WriteByte(ch)
 				d.span++
 				if ch == ')' {
@@ -225,7 +358,6 @@ func (d *decodeState) wordInterface(asString bool) any {
 				}
 				continue
 			}
-			// Разделители CGP
 			if isSpace(ch) || ch == '=' || ch == ';' || ch == ',' || ch == ')' || ch == '}' {
 				break
 			}
@@ -239,19 +371,10 @@ func (d *decodeState) wordInterface(asString bool) any {
 		return raw
 	}
 
-	switch raw {
-	case "YES", "yes":
-		return true
-	case "NO", "no":
-		return false
-	}
-
-	// Пост-обработка накопленного "сырого" слова
-	if isTagged && !isUnkData {
+	if isTagged && !isObject {
 		if raw == "#NULL#" {
 			return nil
 		}
-		// Временные метки
 		if strings.HasPrefix(raw, "#T") {
 			switch raw {
 			case "#TPAST":
@@ -263,17 +386,13 @@ func (d *decodeState) wordInterface(asString bool) any {
 					return t
 				}
 			}
-			return raw
 		}
-		// Числа с базами (0x, 0o, 0b)
 		return parseCGPNumber(raw)
 	}
 
-	// Попытка распарсить как обычное число (без префикса #)
 	if val, err := strconv.ParseInt(raw, 10, 64); err == nil {
 		return val
 	}
-
 	return raw
 }
 
@@ -298,16 +417,11 @@ func (d *decodeState) xmlInterface() any {
 			d.span++
 			continue
 		}
-		if ch == '<' {
-			if d.span+1 < d.len {
-				next := d.data[d.span+1]
-				if next == '/' {
-					depth--
-				} else if next == '!' || next == '?' {
-					// skip comments
-				} else {
-					depth++
-				}
+		if ch == '<' && d.span+1 < d.len {
+			if d.data[d.span+1] == '/' {
+				depth--
+			} else if d.data[d.span+1] != '!' && d.data[d.span+1] != '?' {
+				depth++
 			}
 		} else if ch == '>' {
 			if d.span > 0 && d.data[d.span-1] == '/' {
@@ -433,7 +547,16 @@ func parseCGPSize(s string) any {
 	return s
 }
 
-func parseIPSA(s string) []net.IP {
+func parseIPSB(v any) net.IP {
+	s, ok := v.(string)
+	if !ok || s == "" {
+		return nil
+	}
+	s = strings.Trim(s, "[] ")
+	return net.ParseIP(s)
+}
+
+func parseIPSBSA(s string) []net.IP {
 	if s == "" {
 		return []net.IP{}
 	}
@@ -452,83 +575,57 @@ func parseIPSA(s string) []net.IP {
 	return res
 }
 
-func parseIPSingle(v any) any {
-	s, ok := v.(string)
-	if !ok || s == "" {
-		return nil
-	}
-	s = strings.Trim(s, "[] ")
-	if ip := net.ParseIP(s); ip != nil {
-		return ip
-	}
-	return v
-}
-
 func (d *decodeState) readCgpBlock(open, close byte) []byte {
-	// 1. Быстрый поиск конца всей цепочки блоков и расчет суммарной длины B64
-	startSpan := d.span
+	tempSpan := d.span
 	totalB64Len := 0
-
 	for {
-		// Считаем символы внутри текущего блока
-		for d.span < d.len && d.data[d.span] != close {
+		for tempSpan < d.len && d.data[tempSpan] != close {
 			totalB64Len++
+			tempSpan++
+		}
+		if tempSpan < d.len {
+			tempSpan++
+		}
+		for tempSpan < d.len && isSpace(d.data[tempSpan]) {
+			tempSpan++
+		}
+		if tempSpan < d.len && d.data[tempSpan] == open {
+			tempSpan++
+			continue
+		}
+		break
+	}
+
+	result := make([]byte, 0, base64.StdEncoding.DecodedLen(totalB64Len))
+	for d.span < d.len {
+		d.scratch.Reset()
+		for d.span < d.len && d.data[d.span] != close {
+			d.scratch.WriteByte(d.data[d.span])
 			d.span++
 		}
 		if d.span < d.len {
 			d.span++
-		} // Пропускаем ']'
+		}
 
+		if d.scratch.Len() > 0 {
+			src := d.scratch.Bytes()
+			start := len(result)
+			n := base64.StdEncoding.DecodedLen(len(src))
+			result = result[:start+n]
+			actualLen, err := base64.StdEncoding.Decode(result[start:], src)
+			if err == nil {
+				result = result[:start+actualLen]
+			} else {
+				result = result[:start]
+				result = append(result, src...)
+			}
+		}
 		d.skipSpaces()
 		if d.span < d.len && d.data[d.span] == open {
 			d.span++
 			continue
 		}
 		break
-	}
-
-	// Возвращаем указатель назад для фактического чтения
-	endSpan := d.span
-	d.span = startSpan
-
-	// 2. Выделяем память один раз (с запасом под B64, потом сделаем Slice)
-	// DecodedLen(n) возвращает (n / 4) * 3
-	maxDecodedLen := base64.StdEncoding.DecodedLen(totalB64Len)
-	result := make([]byte, 0, maxDecodedLen)
-
-	// 3. Фактическое декодирование фрагментов
-	for d.span < endSpan {
-		d.scratch.Reset()
-		for d.span < endSpan && d.data[d.span] != close {
-			d.scratch.WriteByte(d.data[d.span])
-			d.span++
-		}
-		if d.span < d.len {
-			d.span++
-		} // Пропускаем ']'
-
-		if d.scratch.Len() > 0 {
-			src := d.scratch.Bytes()
-			n := base64.StdEncoding.DecodedLen(len(src))
-			start := len(result)
-
-			result = result[:start+n]
-			actualLen, err := base64.StdEncoding.Decode(result[start:], src)
-
-			if err == nil {
-				// Усекаем до реально декодированного размера
-				result = result[:start+actualLen]
-			} else {
-				// Fallback: если не B64, копируем как есть
-				result = result[:start]
-				result = append(result, src...)
-			}
-		}
-		d.skipSpaces()
-		if d.span < endSpan && d.data[d.span] == open {
-			d.span++
-			continue
-		}
 	}
 	return result
 }
