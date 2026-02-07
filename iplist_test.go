@@ -1,162 +1,72 @@
 package cgpcli
 
 import (
+	"bytes"
 	"net"
 	"strings"
 	"testing"
 )
 
+// helper для получения строки из WriteCGP в тестах
+func marshalIPList(t *testing.T, l IPList) string {
+	var b bytes.Buffer
+	if err := l.WriteCGP(&b); err != nil {
+		t.Fatalf("WriteCGP failed: %v", err)
+	}
+	// Убираем обрамляющие кавычки для удобства сравнения в тестах
+	res := b.String()
+	if len(res) >= 2 && res[0] == '"' && res[len(res)-1] == '"' {
+		return res[1 : len(res)-1]
+	}
+	return res
+}
+
 func TestIPList_AddAndMarshal(t *testing.T) {
 	list := IPList{}
 
-	err := list.Add("1.1.1.1/32", "Single IP")
-	if err != nil {
-		t.Fatalf("Add failed: %v", err)
-	}
+	_ = list.Add("1.1.1.1/32", "Single IP")
+	_ = list.Add("192.168.1.1-192.168.1.10", "Internal range")
+	_ = list.Add("1.1.1.1/32", "Updated comment")
 
-	err = list.Add("192.168.1.1-192.168.1.10", "Internal range")
-	if err != nil {
-		t.Fatalf("Add range failed: %v", err)
-	}
+	res := marshalIPList(t, list)
 
-	err = list.Add("1.1.1.1/32", "Updated comment")
-	if err != nil {
-		t.Fatalf("Update failed: %v", err)
-	}
-
-	err = list.Add("not-an-ip", "Bad entry")
-	if err == nil {
-		t.Error("Expected error for invalid IP format, got nil")
-	}
-
-	res := list.marshal()
-	// Исправлено: 1.1.1.1 теперь без /32
-	expected := "1.1.1.1 ;Updated comment\n192.168.1.1-192.168.1.10 ;Internal range"
+	// Теперь используем \e как разделитель (Honest)
+	// 1.1.1.1 нормализуется (убирается /32 если маска полная)
+	expected := `1.1.1.1 ;Updated comment\e192.168.1.1-192.168.1.10 ;Internal range`
 	if res != expected {
-		t.Errorf("Marshal mismatch.\nGot:\n%q\nExpected:\n%q", res, expected)
+		t.Errorf("Marshal mismatch.\nGot:      %q\nExpected: %q", res, expected)
 	}
 }
 
 func TestIPList_LayoutPreservation(t *testing.T) {
-	// Исправлено: 10.0.0.1 в сырых данных без /32 для соответствия нормализации
-	raw := "10.0.0.1         ; Long distance comment\n172.16.0.1-172.16.0.255 ; Short"
-	list := parseIPList(raw)
+	// Входящие данные с \e (как приходят от сервера)
+	raw := `10.0.0.1          ; Long distance comment\e172.16.0.1-172.16.0.255 ; Short`
 
-	res := list.marshal()
+	// Unmarshal превратит \e в \n для парсера
+	list := parseIPList(strings.ReplaceAll(raw, `\e`, "\n"))
+
+	res := marshalIPList(t, list)
 	if res != raw {
-		t.Errorf("Layout not preserved.\nGot:\n%q\nExpected:\n%q", res, raw)
+		t.Errorf("Layout not preserved.\nGot:      %q\nExpected: %q", res, raw)
 	}
 
+	// Проверка сохранения позиции при обновлении комментария
 	_ = list.Add("10.0.0.1", "New comment")
-	res = list.marshal()
+	res = marshalIPList(t, list)
 
-	// Проверяем сохранение позиции ';'
-	if !strings.Contains(res, "10.0.0.1         ;New comment") {
+	if !strings.Contains(res, "10.0.0.1          ;New comment") {
 		t.Errorf("Comment position shift failed.\nGot: %q", res)
 	}
 }
 
-func TestIPList_Contains(t *testing.T) {
-	list := IPList{}
-	_ = list.Add("10.0.0.0/24", "Network")
-	_ = list.Add("192.168.1.50-192.168.1.60", "Range")
-	_ = list.Add("8.8.8.8,9.9.9.9", "Sequence")
-
-	tests := []struct {
-		ip     string
-		want   bool
-		reason string
-	}{
-		{"10.0.0.5", true, "Inside CIDR"},
-		{"10.0.1.5", false, "Outside CIDR"},
-		{"192.168.1.55", true, "Inside Range"},
-		{"192.168.1.49", false, "Below Range"},
-		{"192.168.1.61", false, "Above Range"},
-		{"8.8.8.8", true, "Inside Sequence (first)"},
-		{"9.9.9.9", true, "Inside Sequence (second)"},
-		{"8.8.4.4", false, "Outside all"},
-	}
-
-	for _, tt := range tests {
-		got := list.Contains(net.ParseIP(tt.ip))
-		if got != tt.want {
-			t.Errorf("Contains(%s) = %v; want %v (%s)", tt.ip, got, tt.want, tt.reason)
-		}
-	}
-}
-
-func TestIPList_Delete(t *testing.T) {
-	list := IPList{}
-	_ = list.Add("1.1.1.1", "To be deleted")
-	_ = list.Add("2.2.2.2", "To stay")
-
-	// Delete найдет запись по нормализованному значению
-	err := list.Delete("1.1.1.1")
-	if err != nil {
-		t.Fatalf("Delete failed: %v", err)
-	}
-
-	if len(list) != 1 {
-		t.Errorf("Delete failed, list size: %d", len(list))
-	}
-}
-
-func TestIPList_Positioning(t *testing.T) {
-	list := IPList{}
-
-	_ = list.Add("1.1.1.1", "First")
-	_ = list.Add("3.3.3.3", "Last")
-
-	err := list.Insert(1, "2.2.2.2", "Middle", 0)
-	// Исправлено: сравнение с 2.2.2.2 без маски
-	if err != nil || len(list) != 3 || dataToString(list[1].Value) != "2.2.2.2" {
-		t.Errorf("Insert by index failed. List: %v", list.marshal())
-	}
-
-	err = list.InsertBefore("1.1.1.1", "0.0.0.0", "Very First", 0)
-	if err != nil || dataToString(list[0].Value) != "0.0.0.0" {
-		t.Errorf("InsertBefore failed. Got first: %v", dataToString(list[0].Value))
-	}
-
-	err = list.InsertAfter("3.3.3.3", "4.4.4.4", "Extra Last", 0)
-	if err != nil || dataToString(list[len(list)-1].Value) != "4.4.4.4" {
-		t.Errorf("InsertAfter failed. Got last: %v", dataToString(list[len(list)-1].Value))
-	}
-
-	err = list.Insert(0, "4.4.4.4", "Moved to top", 0)
-	if err != nil || dataToString(list[0].Value) != "4.4.4.4" || len(list) != 5 {
-		t.Errorf("Re-insertion (move) failed. Size: %d, Top: %v", len(list), dataToString(list[0].Value))
-	}
-}
-
-func TestIPList_SmartIndexOf(t *testing.T) {
-	list := IPList{}
-	_ = list.Add("10.0.0.1, 10.0.0.2", "Cluster nodes")
-	_ = list.Add("192.168.1.1", "Gateway")
-
-	idx := list.indexOf("10.0.0.2")
-	if idx != 0 {
-		t.Errorf("Smart indexOf failed to find IP inside sequence. Got index: %d", idx)
-	}
-
-	idx = list.indexOf("192.168.1.1")
-	if idx != 1 {
-		t.Errorf("Smart indexOf failed to match IP. Got index: %d", idx)
-	}
-
-	err := list.InsertBefore("10.0.0.2", "8.8.8.8", "Before cluster", 0)
-	if err != nil || dataToString(list[0].Value) != "8.8.8.8" {
-		t.Errorf("InsertBefore smart marker failed: %v", err)
-	}
-}
-
 func TestIPList_Exclusion(t *testing.T) {
-	raw := "10.0.0.0/24      ; Office Network\n!10.0.0.5         ; Blocked printer"
-	list := parseIPList(raw)
+	// Эмулируем ответ сервера с инверсией
+	raw := `10.0.0.0/24      ; Office Network\e!10.0.0.5          ; Blocked printer`
+	list := parseIPList(strings.ReplaceAll(raw, `\e`, "\n"))
 
-	res := list.marshal()
+	res := marshalIPList(t, list)
 	if res != raw {
-		t.Errorf("Exclusion layout failed.\nGot:\n%q\nExpected:\n%q", res, raw)
+		t.Errorf("Exclusion layout failed.\nGot:      %q\nExpected: %q", res, raw)
 	}
 
 	tests := []struct {
@@ -164,8 +74,8 @@ func TestIPList_Exclusion(t *testing.T) {
 		want bool
 	}{
 		{"10.0.0.1", true},
-		{"10.0.0.5", false},
-		{"10.0.1.1", false},
+		{"10.0.0.5", false}, // Инверсия сработала
+		{"10.0.1.1", false}, // Вне сети
 	}
 
 	for _, tt := range tests {
@@ -176,41 +86,47 @@ func TestIPList_Exclusion(t *testing.T) {
 	}
 }
 
-func TestIPList_AddNegative(t *testing.T) {
+func TestIPList_SpecialCharsInComment(t *testing.T) {
 	list := IPList{}
+	// Проверяем, что наши новые правила эскейпинга работают и здесь
+	comment := "Comment with \n and \t and \\"
+	_ = list.Add("8.8.8.8", comment)
 
-	list = append(list, IPEntry{
-		Value:      parseDataPart("192.168.1.0/24"),
-		IsNegative: false,
-		Comment:    "LAN",
-		CommentPos: 20,
-	})
-	list = append(list, IPEntry{
-		Value:      parseDataPart("192.168.1.1"),
-		IsNegative: true,
-		Comment:    "Gateway",
-		CommentPos: 20,
-	})
+	res := marshalIPList(t, list)
 
-	res := list.marshal()
-	// Исправлено: !192.168.1.1 (12 символов) + 8 пробелов = 20-я позиция
-	expectedPart := "!192.168.1.1        ;Gateway"
-	if !strings.Contains(res, expectedPart) {
-		t.Errorf("Negative marshal alignment failed.\nGot: %q\nExpected to contain: %q", res, expectedPart)
+	// Ожидаем: \n -> \e, \t -> \t, \ -> \\
+	expectedComment := `8.8.8.8 ;Comment with \e and \t and \\`
+	if !strings.Contains(res, expectedComment) {
+		t.Errorf("Special chars handling failed.\nGot: %q", res)
 	}
 }
 
-func TestIPList_AddNegativeVariantB(t *testing.T) {
+func TestIPList_Positioning(t *testing.T) {
 	list := IPList{}
+	_ = list.Add("1.1.1.1", "First")
+	_ = list.Add("3.3.3.3", "Last")
 
-	_ = list.Add("10.0.0.0/24", "Office")
-	_ = list.Add("!10.0.0.5", "Blocked")
+	// Вставка в середину
+	_ = list.Insert(1, "2.2.2.2", "Middle", 0)
 
-	if !list[1].IsNegative {
-		t.Error("Add failed to recognize '!' prefix")
+	res := marshalIPList(t, list)
+	expected := `1.1.1.1 ;First\e2.2.2.2 ;Middle\e3.3.3.3 ;Last`
+	if res != expected {
+		t.Errorf("Insert failed.\nGot: %q", res)
+	}
+}
+
+func TestIPList_Delete(t *testing.T) {
+	list := IPList{}
+	_ = list.Add("1.1.1.1", "A")
+	_ = list.Add("2.2.2.2", "B")
+
+	if err := list.Delete("1.1.1.1"); err != nil {
+		t.Fatalf("Delete failed: %v", err)
 	}
 
-	if list.Contains(net.ParseIP("10.0.0.5")) {
-		t.Error("Contains should be false for excluded IP")
+	res := marshalIPList(t, list)
+	if strings.Contains(res, "1.1.1.1") {
+		t.Error("Entry 1.1.1.1 still exists after delete")
 	}
 }

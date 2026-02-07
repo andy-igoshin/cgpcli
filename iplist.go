@@ -152,12 +152,51 @@ func (l *IPList) InsertBefore(marker string, input string, comment string, align
 	return l.Insert(idx, input, comment, alignPos)
 }
 
-func (l IPList) MarshalCGP() string {
-	return strconv.Quote(l.marshal())
-}
+func (l IPList) WriteCGP(w encodeWriter) (err error) {
+	if err = w.WriteByte('"'); err != nil {
+		return
+	}
 
-func (l IPList) String() string {
-	return l.marshal()
+	for i, entry := range l {
+		if i > 0 {
+			if _, err = w.WriteString(`\e`); err != nil {
+				return
+			}
+		}
+
+		if entry.IsNegative {
+			if err = w.WriteByte('!'); err != nil {
+				return
+			}
+		}
+
+		if err = writeDataToString(w, entry.Value); err != nil {
+			return
+		}
+
+		if entry.Comment != "" {
+			dataStrLen := len(dataToString(entry.Value))
+			if entry.IsNegative {
+				dataStrLen++
+			}
+
+			if entry.CommentPos > dataStrLen {
+				w.WriteString(strings.Repeat(" ", entry.CommentPos-dataStrLen))
+			} else {
+				w.WriteByte(' ')
+			}
+
+			if err = w.WriteByte(';'); err != nil {
+				return
+			}
+
+			if _, err = w.WriteString(replaceSpecChars(entry.Comment)); err != nil {
+				return
+			}
+		}
+	}
+
+	return w.WriteByte('"')
 }
 
 func dataToString(val any) string {
@@ -202,45 +241,6 @@ func (l IPList) indexOf(input string) int {
 		}
 	}
 	return -1
-}
-
-func (l IPList) marshal() string {
-	var sb strings.Builder
-	for i, entry := range l {
-		dataStr := dataToString(entry.Value)
-
-		if dataStr != "" {
-			if entry.IsNegative {
-				sb.WriteByte('!')
-			}
-			sb.WriteString(dataStr)
-		}
-
-		if entry.Comment != "" {
-			currentLen := 0
-			if dataStr != "" {
-				currentLen = len(dataStr)
-				if entry.IsNegative {
-					currentLen++
-				}
-			}
-
-			if currentLen > 0 {
-				if entry.CommentPos > currentLen {
-					sb.WriteString(strings.Repeat(" ", entry.CommentPos-currentLen))
-				} else {
-					sb.WriteByte(' ')
-				}
-			}
-			sb.WriteByte(';')
-			sb.WriteString(entry.Comment)
-		}
-
-		if i < len(l)-1 {
-			sb.WriteByte('\n')
-		}
-	}
-	return sb.String()
 }
 
 func matchAny(val any, ip net.IP) bool {
@@ -330,4 +330,33 @@ func parseIPList(raw string) IPList {
 		}
 	}
 	return list
+}
+
+// writeDataToString пишет строковое представление IP-данных напрямую в writer
+func writeDataToString(w encodeWriter, val any) error {
+	switch v := val.(type) {
+	case IPCIDR:
+		ones, bits := v.Mask.Size()
+		w.WriteString(v.IP.String())
+		if ones != bits {
+			w.WriteByte('/')
+			w.WriteString(strconv.Itoa(ones))
+		}
+	case IPRange:
+		w.WriteString(v.Start.String())
+		w.WriteByte('-')
+		w.WriteString(v.End.String())
+	case IPSeq:
+		for i, sub := range v {
+			if i > 0 {
+				w.WriteByte(',')
+			}
+			if err := writeDataToString(w, sub); err != nil {
+				return err
+			}
+		}
+	case IPUnknown:
+		w.WriteString(string(v))
+	}
+	return nil
 }
