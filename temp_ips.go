@@ -1,9 +1,9 @@
 package cgpcli
 
 import (
-	"bytes"
 	"fmt"
 	"net"
+	"strconv"
 	"time"
 )
 
@@ -76,7 +76,7 @@ func (l *TempIPList) Get(input any) (TempIP, bool, error) {
 	return item, ok, nil
 }
 
-// IPs экспортирует слайс для Set-команд.
+// IPs экспортирует слайс IP.
 func (l *TempIPList) IPs() []net.IP {
 	if l == nil || l.items == nil {
 		return nil
@@ -94,6 +94,48 @@ func (l *TempIPList) Len() int {
 		return 0
 	}
 	return len(l.items)
+}
+
+func (l *TempIPList) WriteCGP(w encodeWriter) (err error) {
+	if err = w.WriteByte('"'); err != nil {
+		return
+	}
+
+	first := true
+	for _, item := range l.items {
+		if !first {
+			if err = w.WriteByte(','); err != nil {
+				return
+			}
+		}
+		first = false
+
+		if err = w.WriteByte('['); err != nil {
+			return
+		}
+		if _, err = w.WriteString(item.IP.String()); err != nil {
+			return
+		}
+		if err = w.WriteByte(']'); err != nil {
+			return
+		}
+
+		if item.Permanent {
+			if _, err = w.WriteString("-*"); err != nil {
+				return
+			}
+		} else if item.TimeLeft > 0 {
+			if err = w.WriteByte('-'); err != nil {
+				return
+			}
+			seconds := int64(item.TimeLeft.Seconds())
+			if _, err = w.WriteString(strconv.FormatInt(seconds, 10)); err != nil {
+				return
+			}
+		}
+	}
+
+	return w.WriteByte('"')
 }
 
 func (l *TempIPList) parseInput(input any) (net.IP, IPKey, error) {
@@ -120,44 +162,54 @@ func parseTempIPsToMap(raw string) map[IPKey]TempIP {
 		return nil
 	}
 
+	// Мы не знаем точного количества, но можем оценить по количеству запятых
+	commas := 0
+	for i := 0; i < len(raw); i++ {
+		if raw[i] == ',' {
+			commas++
+		}
+	}
+	res := make(map[IPKey]TempIP, commas+1)
+
 	b := []byte(raw)
-	count := bytes.Count(b, []byte{','}) + 1
-	res := make(map[IPKey]TempIP, count)
-
-	for i := 0; i < len(b); {
-		start := bytes.IndexByte(b[i:], '[')
-		if start == -1 {
+	n := len(b)
+	for i := 0; i < n; {
+		// Ищем начало IP '['
+		for i < n && b[i] != '[' {
+			i++
+		}
+		if i >= n {
 			break
 		}
-		start += i
+		i++ // Пропускаем '['
 
-		end := bytes.IndexByte(b[start:], ']')
-		if end == -1 {
+		start := i
+		for i < n && b[i] != ']' {
+			i++
+		}
+		if i >= n {
 			break
 		}
-		end += start
 
-		ipStr := string(b[start+1 : end])
+		// Извлекаем IP.
+		ipStr := string(b[start:i])
 		ip := net.ParseIP(ipStr)
-		if ip == nil {
-			i = end + 1
-			continue
-		}
+		i++ // Пропускаем ']'
 
 		item := TempIP{IP: ip}
-		curr := end + 1
 
-		if curr < len(b) && b[curr] == '-' {
-			curr++
-			if curr < len(b) && b[curr] == '*' {
+		// Проверяем наличие суффикса '-'
+		if i < n && b[i] == '-' {
+			i++
+			if i < n && b[i] == '*' {
 				item.Permanent = true
-				curr++
+				i++
 			} else {
 				val := 0
 				foundDigit := false
-				for curr < len(b) && b[curr] >= '0' && b[curr] <= '9' {
-					val = val*10 + int(b[curr]-'0')
-					curr++
+				for i < n && b[i] >= '0' && b[i] <= '9' {
+					val = val*10 + int(b[i]-'0')
+					i++
 					foundDigit = true
 				}
 				if foundDigit {
@@ -166,13 +218,15 @@ func parseTempIPsToMap(raw string) map[IPKey]TempIP {
 			}
 		}
 
-		res[ToKey(ip)] = item
-
-		nextComma := bytes.IndexByte(b[curr:], ',')
-		if nextComma == -1 {
-			break
+		if ip != nil {
+			res[ToKey(ip)] = item
 		}
-		i = curr + nextComma + 1
+
+		// Ищем следующую запятую или конец
+		for i < n && b[i] != ',' {
+			i++
+		}
+		i++ // Пропускаем запятую для следующей итерации
 	}
 	return res
 }

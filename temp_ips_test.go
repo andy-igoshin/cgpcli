@@ -1,6 +1,8 @@
 package cgpcli
 
 import (
+	"bufio"
+	"bytes"
 	"net"
 	"testing"
 	"time"
@@ -122,4 +124,50 @@ func TestTempIPList_All(t *testing.T) {
 			}
 		}
 	})
+}
+
+type mockEncodeWriter struct {
+	*bufio.Writer
+}
+
+func (m mockEncodeWriter) WriteByte(c byte) error {
+	return m.Writer.WriteByte(c)
+}
+
+func (m mockEncodeWriter) WriteString(s string) (int, error) {
+	return m.Writer.WriteString(s)
+}
+
+func TestTempIPList_RoundTrip(t *testing.T) {
+	list := &TempIPList{items: make(map[IPKey]TempIP)}
+	ip := net.ParseIP("192.168.250.250")
+	// Добавляем запись с 300 секундами
+	_ = list.Add(ip, 300*time.Second, false)
+
+	var b bytes.Buffer
+	mw := mockEncodeWriter{bufio.NewWriter(&b)}
+
+	if err := list.WriteCGP(mw); err != nil {
+		t.Fatalf("WriteCGP failed: %v", err)
+	}
+	mw.Flush()
+
+	gotRaw := b.String()
+	// Ожидаем: "[192.168.250.250]-300" в кавычках
+	expected := `"[192.168.250.250]-300"`
+	if gotRaw != expected {
+		t.Errorf("WriteCGP output mismatch.\nGot:      %s\nExpected: %s", gotRaw, expected)
+	}
+
+	// Проверяем, что парсер понимает наш собственный вывод (без кавычек)
+	trimmed := gotRaw[1 : len(gotRaw)-1]
+	parsedMap := parseTempIPsToMap(trimmed)
+
+	item, ok := parsedMap[ToKey(ip)]
+	if !ok {
+		t.Fatal("Parser failed to find IP in the resulting map")
+	}
+	if item.TimeLeft.Seconds() != 300 {
+		t.Errorf("TimeLeft mismatch: got %.0f, want 300", item.TimeLeft.Seconds())
+	}
 }
