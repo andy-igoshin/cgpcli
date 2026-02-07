@@ -66,33 +66,33 @@ func (l *RouterList) InsertBefore(pattern, rule, comment string, alignPos int) e
 	return nil
 }
 
-// MarshalCGP реализует интерфейс cgpMarshaler для генерации строки в формате CGP CLI.
-func (l RouterList) MarshalCGP() string {
-	var sb strings.Builder
+func (l RouterList) WriteCGP(w encodeWriter) error {
+	w.WriteByte('"')
 	for i, entry := range l {
 		if i > 0 {
-			sb.WriteString(`\e`)
+			w.WriteString(`\e`)
 		}
 
-		if entry.Comment == "" {
-			sb.WriteString(entry.Rule)
-		} else {
-			sb.WriteString(entry.Rule)
+		// Обрабатываем Rule и Comment через нашу прозрачную функцию
+		w.WriteString(replaceSpecChars(entry.Rule))
 
-			currentLen := len(entry.Rule)
+		if entry.Comment != "" {
+			// Если правило есть, нужно разделение. Если правила нет (пустая строка/заголовок),
+			// пишем ';' сразу, без ведущего пробела.
 			if entry.Rule != "" {
-				if entry.Pos > currentLen {
-					sb.WriteString(strings.Repeat(" ", entry.Pos-currentLen))
+				pad := entry.Pos - len(entry.Rule)
+				if pad > 0 {
+					w.WriteString(strings.Repeat(" ", pad))
 				} else {
-					sb.WriteByte(' ')
+					w.WriteByte(' ')
 				}
 			}
-
-			sb.WriteByte(';')
-			sb.WriteString(entry.Comment)
+			w.WriteByte(';')
+			w.WriteString(replaceSpecChars(entry.Comment))
 		}
 	}
-	return sb.String()
+	w.WriteByte('"')
+	return nil
 }
 
 // parseRouterLine разбирает одну строку, выделяя правило, комментарий и его позицию.
@@ -115,13 +115,12 @@ func parseRouterLine(line string) RouterEntry {
 	}
 }
 
-// parseRouterTable преобразует срез интерфейсов в RouterList.
-func parseRouterTable(lines []any) RouterList {
+// parseRouterTable преобразует строку маршрутов в RouterList.
+func parseRouterTable(raw string) RouterList {
+	lines := strings.Split(raw, "\n")
 	res := make(RouterList, 0, len(lines))
 	for _, l := range lines {
-		if s, ok := l.(string); ok {
-			res = append(res, parseRouterLine(s))
-		}
+		res = append(res, parseRouterLine(l))
 	}
 	return res
 }
