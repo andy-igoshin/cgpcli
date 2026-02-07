@@ -79,20 +79,45 @@ func (cli *Cli) getString(cmd string, args ...any) (string, error) {
 	return s, nil
 }
 
+func replaceSpecChars(s string) string {
+	var sb strings.Builder
+	sb.Grow(len(s) + 64)
+
+	for _, symbol := range s {
+		switch symbol {
+		case '\\':
+			// replace \ -> \\   (CGP backslash)
+			sb.WriteString(`\\`)
+
+		case '"':
+			// replace \" -> \\" (CGP quote)
+			sb.WriteString(`\"`)
+
+		case '\n':
+			// replace \n -> \\e (CGP End-of-Line)
+			sb.WriteString(`\e`)
+
+		case '\t':
+			// replace \t -> \\t (CGP Tab)
+			sb.WriteString(`\t`)
+
+		case '\r', 0x0000:
+			continue
+
+		default:
+			sb.WriteRune(symbol)
+		}
+	}
+
+	return sb.String()
+}
+
 // toAnySlice — приведение к слайсу []any.
 func toAnySlice(v any) []any {
 	if s, ok := v.([]any); ok {
 		return s
 	}
 	return []any{}
-}
-
-func toCGPText(s string) string {
-	return strings.ReplaceAll(s, "\n", `\e`)
-}
-
-func toGoText(s string) string {
-	return strings.ReplaceAll(s, `\e`, "\n")
 }
 
 // toInt — приведение различных числовых типов к int.
