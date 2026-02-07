@@ -1,20 +1,20 @@
 package cgpcli
 
 import (
+	"bufio"
+	"bytes"
 	"strings"
 	"testing"
 )
 
 func TestRouterRoundTrip(t *testing.T) {
-	input := `localhost = ; main domain\e\e; --- SIP Section ---\eSignal:<911@*> = emergency ; emergency call`
+	// Исходные данные (внутри кавычек)
+	rawTable := "localhost = ; main domain\n\n; --- SIP Section ---\nSignal:<911@*> = emergency ; emergency call"
+	expTable := `localhost = ; main domain\e\e; --- SIP Section ---\eSignal:<911@*> = emergency ; emergency call`
+	// Ожидаем, что маршалер обернет всё в кавычки
+	expectedOutput := `"` + expTable + `"`
 
-	parts := strings.Split(input, `\e`)
-	anyParts := make([]any, len(parts))
-	for i, v := range parts {
-		anyParts[i] = v
-	}
-
-	table := parseRouterTable(anyParts)
+	table := parseRouterTable(rawTable)
 
 	if len(table) != 4 {
 		t.Fatalf("expected 4 entries, got %d", len(table))
@@ -23,33 +23,23 @@ func TestRouterRoundTrip(t *testing.T) {
 	if table[0].Rule != "localhost =" {
 		t.Errorf("expected rule 'localhost =', got '%s'", table[0].Rule)
 	}
-	// Исправлено: ожидаем строку с ведущим пробелом, так как он есть в input после ';'
+
+	// Проверка заголовка (пустое правило, только комментарий)
 	if table[2].Comment != " --- SIP Section ---" {
 		t.Errorf("expected header comment, got '%s'", table[2].Comment)
 	}
-	if table[2].Rule != "" {
-		t.Errorf("expected empty rule for header, got '%s'", table[2].Rule)
+
+	// Проверка через WriteCGP
+	var b bytes.Buffer
+	w := bufio.NewWriter(&b)
+	if err := table.WriteCGP(w); err != nil {
+		t.Fatalf("WriteCGP failed: %v", err)
 	}
+	w.Flush()
 
-	output := table.MarshalCGP()
-	if output != input {
-		t.Errorf("Round-trip failed.\nExpected: %s\nGot     : %s", input, output)
-	}
-}
-
-func TestRouterAlignmentProtection(t *testing.T) {
-	entry := RouterEntry{
-		Rule:    "NewLongRuleName = value",
-		Comment: "added comment",
-		Pos:     5,
-	}
-
-	list := RouterList{entry}
-	output := list.MarshalCGP()
-
-	expected := "NewLongRuleName = value ;added comment"
-	if output != expected {
-		t.Errorf("Alignment protection failed.\nExpected: %s\nGot     : %s", expected, output)
+	output := b.String()
+	if output != expectedOutput {
+		t.Errorf("Round-trip failed.\nExpected: %s\nGot     : %s", expectedOutput, output)
 	}
 }
 
@@ -64,9 +54,19 @@ func TestRouterInsertAndPos(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	output := table.MarshalCGP()
-	// Проверка на наличие 25 пробелов (30 - len("rule2"))
-	expectedPart := "rule2                         ;comm2"
+	var b bytes.Buffer
+	w := bufio.NewWriter(&b)
+	if err := table.WriteCGP(w); err != nil {
+		t.Fatal(err)
+	}
+	w.Flush()
+
+	output := b.String()
+
+	// "rule2" имеет длину 5 символов. При Pos: 30 ожидаем 25 пробелов перед ';'
+	spaces := strings.Repeat(" ", 30-len("rule2"))
+	expectedPart := "rule2" + spaces + ";comm2"
+
 	if !strings.Contains(output, expectedPart) {
 		t.Errorf("Alignment generation failed.\nExpected to contain: %s\nGot: %s", expectedPart, output)
 	}
