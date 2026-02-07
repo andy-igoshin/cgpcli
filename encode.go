@@ -12,15 +12,23 @@ import (
 	"time"
 )
 
+type (
+	cgpDateLegacy  time.Time
+	cgpDuration    time.Duration
+	cgpIPSB        net.IP
+	cgpIPSBSA      []net.IP
+	cgpSize        int64
+	cgpForceString string
+)
+
 type encodeWriter interface {
 	io.Writer
 	WriteByte(byte) error
 	WriteString(string) (int, error)
 }
 
-// cgpMarshaler — контракт для типов с собственной логикой упаковки
-type cgpMarshaler interface {
-	MarshalCGP() string
+type cgpWriterTo interface {
+	WriteCGP(w encodeWriter) error
 }
 
 var cgpSafeTable = [256]byte{
@@ -111,23 +119,58 @@ func MarshalToString(v any) (string, error) {
 }
 
 func marshal(w encodeWriter, v any, keyName string) (err error) {
-	// Проверяем кастомные маршалеры по имени ключа
-	if raw, ok := transformWrite(keyName, v); ok {
-		if isCGPSafeString(raw) {
-			_, err = w.WriteString(raw)
-			return err
-		}
-		_, err = w.WriteString(strconv.Quote(raw))
-		return err
+	// 1. Прямая запись (самый быстрый путь для кастомных типов)
+	if m, ok := v.(cgpWriterTo); ok {
+		return m.WriteCGP(w)
 	}
 
-	// Приоритет кастомного маршалинга (интерфейс cgpMarshaler)
-	if m, ok := v.(cgpMarshaler); ok {
-		_, err = w.WriteString(m.MarshalCGP())
-		return err
+	// 2. Трансформация исключений (меняет тип на cgp*)
+	if keyName != "" {
+		v = transformWrite(keyName, v)
 	}
 
 	switch val := v.(type) {
+	case cgpDateLegacy:
+		tm := time.Time(val)
+		if tm.IsZero() {
+			_, err = w.WriteString("#NULL#")
+		} else {
+			w.WriteByte('"')
+			w.WriteString(tm.UTC().Format(cgpInternalTimeLayout))
+			err = w.WriteByte('"')
+		}
+		return err
+
+	case cgpIPSB:
+		w.WriteByte('"')
+		w.WriteByte('[')
+		w.WriteString(net.IP(val).String())
+		w.WriteByte(']')
+		err = w.WriteByte('"')
+		return err
+
+	case cgpIPSBSA:
+		w.WriteByte('"')
+		ips := []net.IP(val)
+		for i, ip := range ips {
+			if i > 0 {
+				w.WriteString(", ")
+			}
+			w.WriteByte('[')
+			w.WriteString(ip.String())
+			w.WriteByte(']')
+		}
+		err = w.WriteByte('"')
+		return err
+
+	case cgpSize:
+		_, err = w.WriteString(formatCGPSize(int64(val)))
+		return err
+
+	case cgpDuration:
+		_, err = w.WriteString(formatCGPDuration(time.Duration(val)))
+		return err
+
 	case Atom:
 		_, err = w.WriteString(string(val))
 		return err
@@ -152,8 +195,13 @@ func marshal(w encodeWriter, v any, keyName string) (err error) {
 			_, err = w.WriteString(val)
 			return err
 		}
-		_, err = w.WriteString(strconv.Quote(val))
-		return err
+		if err = w.WriteByte('"'); err != nil {
+			return err
+		}
+		if _, err = w.WriteString(replaceSpecChars(val)); err != nil {
+			return err
+		}
+		return w.WriteByte('"')
 
 	// --- Числа ---
 	case int, int32, int64:
@@ -184,12 +232,10 @@ func marshal(w encodeWriter, v any, keyName string) (err error) {
 
 	// --- Словари (Maps) ---
 	case map[string]any:
-		err = marshalMapAny(w, val)
-		return err
+		return marshalMap(w, val)
 
 	case map[string]string:
-		err = marshalMapString(w, val)
-		return err
+		return marshalMap(w, val)
 
 	// --- Списки (Slices) ---
 	case []any:
@@ -228,12 +274,22 @@ func marshal(w encodeWriter, v any, keyName string) (err error) {
 		return err
 
 	default:
-		_, err = w.WriteString(strconv.Quote(fmt.Sprint(val)))
-		return err
+		strVal := fmt.Sprint(val)
+		if isCGPSafeString(strVal) {
+			_, err = w.WriteString(strVal)
+			return err
+		}
+		if err = w.WriteByte('"'); err != nil {
+			return err
+		}
+		if _, err = w.WriteString(replaceSpecChars(strVal)); err != nil {
+			return err
+		}
+		return w.WriteByte('"')
 	}
 }
 
-func marshalMapAny(w encodeWriter, m map[string]any) error {
+func marshalMap[V any](w encodeWriter, m map[string]V) error {
 	w.WriteByte('{')
 	keys := make([]string, 0, len(m))
 	for k := range m {
@@ -247,27 +303,4 @@ func marshalMapAny(w encodeWriter, m map[string]any) error {
 		w.WriteByte(';')
 	}
 	return w.WriteByte('}')
-}
-
-func marshalMapString(w encodeWriter, m map[string]string) error {
-	w.WriteByte('{')
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		marshal(w, k, "")
-		w.WriteByte('=')
-		marshal(w, m[k], k)
-		w.WriteByte(';')
-	}
-	return w.WriteByte('}')
-}
-
-func marshalSingleIP(v any) string {
-	if ip, ok := v.(net.IP); ok {
-		return strconv.Quote("[" + ip.String() + "]")
-	}
-	return `""`
 }

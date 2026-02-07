@@ -11,20 +11,20 @@ const cgpInternalTimeLayout = "02-01-2006_15:04:05"
 type FieldType int
 
 const (
-	TypeAuto     FieldType = iota
-	TypeDate               // Формат Created (02-Jan-2006_15:04:05)
-	TypeDuration           // Интервалы (10s, 1m, never, immediately)
-	TypeIP                 // Одиночный IP адрес в скобках [1.2.3.4]
-	TypeIPList             // Список IP адресов (DNSServers и др.)
-	TypeIPSA               // Строка вида "[ip1], [ip2]" <-> []net.IP
-	TypeSize               // Квоты и размеры (10K, 5M, unlimited)
-	TypeString             // Принудительное сохранение значения как строки
+	TypeAuto       FieldType = iota
+	TypeDateLegacy           // Формат Created (01-09-2024_17:55:37)
+	TypeDuration             // Интервалы (10s, 1m, never, immediately)
+	TypeIPList               // Список IP адресов
+	TypeIPSB                 // IP in Square Brackets [1.2.3.4] <-> net.IP
+	TypeIPSBSA               // Строка вида "[ip1], [ip2]" <-> []net.IP
+	TypeSize                 // Квоты и размеры (10K, 5M, unlimited)
+	TypeString               // Принудительное сохранение значения как строки
 )
 
 // FieldExceptions — глобальный реестр исключений типов.
 var FieldExceptions = map[string]FieldType{
 	// dateFields
-	"Created": TypeDate,
+	"Created": TypeDateLegacy,
 
 	// durationFields
 	"BlockedLoginTime":      TypeDuration,
@@ -65,11 +65,11 @@ var FieldExceptions = map[string]FieldType{
 	"SizeLimit":        TypeSize,
 
 	// Сетевые исключения
-	"DNSServers":  TypeIPSA,
+	"DNSServers":  TypeIPSBSA,
 	"DummyIPs":    TypeIPList,
-	"LANAddress":  TypeIP,
-	"WANAddress":  TypeIP,
-	"WAN6Address": TypeIP,
+	"LANAddress":  TypeIPSB,
+	"WANAddress":  TypeIPSB,
+	"WAN6Address": TypeIPSB,
 }
 
 func RegisterFieldType(name string, t FieldType) {
@@ -96,7 +96,7 @@ func transformRead(key string, val any) any {
 	}
 
 	switch fType {
-	case TypeDate:
+	case TypeDateLegacy:
 		// В CGP всегда UTC.
 		if tm, err := time.Parse(cgpInternalTimeLayout, s); err == nil {
 			return tm.UTC()
@@ -105,10 +105,10 @@ func transformRead(key string, val any) any {
 		return parseCGPDuration(s)
 	case TypeSize:
 		return parseCGPSize(s)
-	case TypeIP:
-		return parseIPSingle(s)
-	case TypeIPSA:
-		return parseIPSA(s)
+	case TypeIPSB:
+		return parseIPSB(s)
+	case TypeIPSBSA:
+		return parseIPSBSA(s)
 	case TypeIPList:
 		return parseIPList(s)
 	}
@@ -116,44 +116,40 @@ func transformRead(key string, val any) any {
 }
 
 // transformWrite подготавливает объект Go к маршалингу в синтаксис CGP.
-func transformWrite(key string, v any) (string, bool) {
+func transformWrite(key string, v any) any {
 	fType, exists := FieldExceptions[key]
 	if !exists {
-		return "", false
+		return v
 	}
 
 	switch fType {
 	case TypeSize:
-		return formatCGPSize(toInt64(v)), true
+		return cgpSize(toInt64(v))
 
 	case TypeDuration:
 		if d, ok := v.(time.Duration); ok {
-			return formatCGPDuration(d), true
+			return cgpDuration(d)
 		}
 
-	case TypeIP:
+	case TypeIPSB:
 		if ip, ok := v.(net.IP); ok {
-			return "[" + ip.String() + "]", true
+			return cgpIPSB(ip)
 		}
 
-	case TypeIPSA:
+	case TypeIPSBSA:
 		if ips, ok := v.([]net.IP); ok {
-			return toIPsString(ips), true
+			return cgpIPSBSA(ips)
 		}
 
 	case TypeString:
 		s, _ := toString("registry", v)
-		return s, true
+		return cgpForceString(s)
 
-	case TypeDate:
+	case TypeDateLegacy:
 		if tm, ok := v.(time.Time); ok {
-			if tm.IsZero() {
-				return "#NULL#", true
-			}
-			// Возвращаем строку без префикса #T,
-			// так как маршалер в зависимости от контекста может добавить его сам
-			return tm.UTC().Format(cgpInternalTimeLayout), true
+			return cgpDateLegacy(tm)
 		}
 	}
-	return "", false
+
+	return v
 }

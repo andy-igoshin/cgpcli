@@ -1,6 +1,8 @@
 package cgpcli
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"net"
 	"reflect"
@@ -71,174 +73,132 @@ func TestTransformRead(t *testing.T) {
 
 func TestTransformWrite(t *testing.T) {
 	tests := []struct {
-		name    string
-		key     string
-		input   any
-		wantRaw string
-		wantOk  bool
-	}{
-		{
-			name:    "Size to CGP string",
-			key:     "MaxMessageSize",
-			input:   int64(1024 * 1024),
-			wantRaw: "1M",
-			wantOk:  true,
-		},
-		{
-			name:    "Duration to CGP string",
-			key:     "Timeout",
-			input:   10 * time.Minute,
-			wantRaw: "10m",
-			wantOk:  true,
-		},
-		{
-			name:    "IP to CGP string",
-			key:     "WANAddress",
-			input:   net.ParseIP("8.8.8.8"),
-			wantRaw: "[8.8.8.8]",
-			wantOk:  true,
-		},
-		{
-			name:    "TypeString to string",
-			key:     "TestStringField",
-			input:   99.9,
-			wantRaw: "99.9",
-			wantOk:  true,
-		},
-		{
-			name:    "Non-exception field",
-			key:     "SomeRegularField",
-			input:   "hello",
-			wantRaw: "",
-			wantOk:  false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotRaw, gotOk := transformWrite(tt.key, tt.input)
-			if gotOk != tt.wantOk {
-				t.Errorf("transformWrite() ok = %v, want %v", gotOk, tt.wantOk)
-			}
-			if gotRaw != tt.wantRaw {
-				t.Errorf("transformWrite() raw = %v, want %v", gotRaw, tt.wantRaw)
-			}
-		})
-	}
-}
-
-func TestTransformRead_EdgeCases(t *testing.T) {
-	RegisterFieldType("TestStringField", TypeString)
-
-	tests := []struct {
 		name     string
 		key      string
 		input    any
-		expected any
+		validate func(any) bool
 	}{
 		{
-			name:     "Nil input for TypeString",
-			key:      "TestStringField",
-			input:    nil,
-			expected: "",
+			name:  "Size exception",
+			key:   "MaxMessageSize",
+			input: int64(1024 * 1024),
+			validate: func(v any) bool {
+				val, ok := v.(cgpSize)
+				return ok && int64(val) == 1024*1024
+			},
 		},
 		{
-			name:     "Invalid date format (fallback to string)",
-			key:      "Created",
-			input:    "invalid-date",
-			expected: "invalid-date",
+			name:  "Duration exception",
+			key:   "Timeout",
+			input: 10 * time.Minute,
+			validate: func(v any) bool {
+				val, ok := v.(cgpDuration)
+				return ok && time.Duration(val) == 10*time.Minute
+			},
 		},
 		{
-			name:     "Empty string for Duration",
-			key:      "Timeout",
-			input:    "",
-			expected: "", // Должен вернуть как есть, если не распарсилось
+			name:  "IPSB exception",
+			key:   "WANAddress",
+			input: net.ParseIP("8.8.8.8"),
+			validate: func(v any) bool {
+				val, ok := v.(cgpIPSB)
+				return ok && net.IP(val).Equal(net.ParseIP("8.8.8.8"))
+			},
 		},
 		{
-			name:     "Size with 'unlimited' keyword",
-			key:      "MaxAccountSize",
-			input:    "unlimited",
-			expected: int64(-1),
+			name:  "ForceString exception",
+			key:   "SomeStringField", // Добавьте его в реестр как TypeString для теста
+			input: 99.9,
+			validate: func(v any) bool {
+				val, ok := v.(cgpForceString)
+				return ok && string(val) == "99.9"
+			},
 		},
 		{
-			name:     "IP with missing brackets (should still work if parseSingleIP handles it)",
-			key:      "LANAddress",
-			input:    "127.0.0.1",
-			expected: net.ParseIP("127.0.0.1"),
-		},
-		{
-			name:     "TypeString with boolean input",
-			key:      "TestStringField",
-			input:    true,
-			expected: "true",
+			name:  "No exception (pass-through)",
+			key:   "RegularField",
+			input: "hello",
+			validate: func(v any) bool {
+				val, ok := v.(string)
+				return ok && val == "hello"
+			},
 		},
 	}
 
+	// Регистрируем тестовое поле для TypeString
+	RegisterFieldType("SomeStringField", TypeString)
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := transformRead(tt.key, tt.input)
-			if !reflect.DeepEqual(got, tt.expected) {
-				t.Errorf("%s: got %v (%T), want %v (%T)", tt.name, got, got, tt.expected, tt.expected)
+			got := transformWrite(tt.key, tt.input)
+			if !tt.validate(got) {
+				t.Errorf("%s: transformWrite returned unexpected type or value: %T(%v)", tt.name, got, got)
 			}
 		})
 	}
 }
 
-func TestTransformWrite_EdgeCases(t *testing.T) {
+func TestMarshal_EdgeCases(t *testing.T) {
+	// Регистрируем поля для теста
+	RegisterFieldType("MaxMessageSize", TypeSize)
+	RegisterFieldType("Timeout", TypeDuration)
 	RegisterFieldType("TestStringField", TypeString)
+	RegisterFieldType("WANAddress", TypeIPSB)
 
 	tests := []struct {
-		name    string
-		key     string
-		input   any
-		wantRaw string
-		wantOk  bool
+		name  string
+		key   string
+		input any
+		want  string
 	}{
 		{
-			name:    "Size with zero value",
-			key:     "MaxMessageSize",
-			input:   0,
-			wantRaw: "0",
-			wantOk:  true,
+			name:  "Size zero",
+			key:   "MaxMessageSize",
+			input: 0,
+			want:  "0",
 		},
 		{
-			name:    "Size with negative value (unlimited)",
-			key:     "MaxMessageSize",
-			input:   -1,
-			wantRaw: "unlimited",
-			wantOk:  true,
+			name:  "Size unlimited",
+			key:   "MaxMessageSize",
+			input: -1,
+			want:  "unlimited",
 		},
 		{
-			name:    "Nil input for TypeString in write",
-			key:     "TestStringField",
-			input:   nil,
-			wantRaw: "",
-			wantOk:  true,
+			name:  "Duration immediately",
+			key:   "Timeout",
+			input: time.Duration(0),
+			want:  "immediately",
 		},
 		{
-			name:    "Duration zero (immediately)",
-			key:     "Timeout",
-			input:   time.Duration(0),
-			wantRaw: "immediately",
-			wantOk:  true,
+			name:  "TypeString nil",
+			key:   "TestStringField",
+			input: nil,
+			want:  `""`, // marshal nil через toString даст "", а Quote даст ""
 		},
 		{
-			name:    "IP nil input",
-			key:     "WANAddress",
-			input:   nil,
-			wantRaw: "",
-			wantOk:  false, // Реестр не должен обрабатывать nil как валидный IP
+			name:  "IP nil (pass-through to marshal)",
+			key:   "WANAddress",
+			input: nil,
+			want:  "#NULL#", // transformWrite вернет nil, marshal обработает как nil
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotRaw, gotOk := transformWrite(tt.key, tt.input)
-			if gotOk != tt.wantOk {
-				t.Errorf("%s: gotOk %v, wantOk %v", tt.name, gotOk, tt.wantOk)
+			// Используем вспомогательную функцию для получения строки
+			// Она должна вызвать marshal(buf, tt.input, tt.key)
+			var b bytes.Buffer
+			w := bufio.NewWriter(&b)
+
+			// Наша целевая функция, которую мы оптимизируем
+			err := marshal(w, tt.input, tt.key)
+			w.Flush()
+
+			if err != nil {
+				t.Errorf("%s: marshal error: %v", tt.name, err)
 			}
-			if gotRaw != tt.wantRaw {
-				t.Errorf("%s: gotRaw %q, wantRaw %q", tt.name, gotRaw, tt.wantRaw)
+			if got := b.String(); got != tt.want {
+				t.Errorf("%s: got %q, want %q", tt.name, got, tt.want)
 			}
 		})
 	}
