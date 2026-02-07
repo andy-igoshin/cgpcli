@@ -50,6 +50,9 @@ elif [ "$1" == "test-once" ]; then
     go test -v -run $2
 elif [ "$1" == "bench" ]; then
     go test -bench=. -benchmem $2
+elif [ "$1" == "bench2" ]; then
+    go test -bench=BenchmarkUnmarshalCGP -cpuprofile=cpu.pprof -benchmem $2
+    go test -bench=BenchmarkUnmarshalCGP -memprofile=mem.pprof -benchmem $2
 elif [ "$1" == "tidy" ]; then
     go mod tidy
 elif [ "$1" == "vet" ]; then
