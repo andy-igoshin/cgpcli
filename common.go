@@ -383,7 +383,8 @@ func (cli *Cli) Send(cmd string, args ...any) (err error) {
 	cli.buf.WriteByte('\n')
 
 	if cli.debug {
-		fmt.Fprintf(os.Stderr, ">>> SEND: %s", cli.buf.String())
+		os.Stderr.Write([]byte(">>> SEND: "))
+		os.Stderr.Write(cli.buf.Bytes())
 	}
 
 	_, err = cli.writer.Write(cli.buf.Bytes())
