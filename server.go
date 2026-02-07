@@ -3,7 +3,6 @@ package cgpcli
 
 import (
 	"fmt"
-	"strings"
 )
 
 // BannedLines представляет списки запрещенных строк в заголовках и теле сообщений.
@@ -18,11 +17,11 @@ func (cli *Cli) GetBanned() (*BannedLines, error) {
 }
 
 func (cli *Cli) GetBlacklistedIPs() (IPList, error) {
-	return cli.getIPListTyped("GETBLACKLISTEDIPS")
+	return cli.getIPList("GETBLACKLISTEDIPS")
 }
 
 func (cli *Cli) GetClientIPs() (IPList, error) {
-	return cli.getIPListTyped("GETCLIENTIPS")
+	return cli.getIPList("GETCLIENTIPS")
 }
 
 // GetClusterBanned возвращает общекластерные списки запрещенных строк.
@@ -31,19 +30,19 @@ func (cli *Cli) GetClusterBanned() (*BannedLines, error) {
 }
 
 func (cli *Cli) GetClusterBlacklistedIPs() (IPList, error) {
-	return cli.getIPListTyped("GETCLUSTERBLACKLISTEDIPS")
+	return cli.getIPList("GETCLUSTERBLACKLISTEDIPS")
 }
 
 func (cli *Cli) GetClusterClientIPs() (IPList, error) {
-	return cli.getIPListTyped("GETCLUSTERCLIENTIPS")
+	return cli.getIPList("GETCLUSTERCLIENTIPS")
 }
 
 func (cli *Cli) GetClusterDebugIPs() (IPList, error) {
-	return cli.getIPListTyped("GETCLUSTERDEBUGIPS")
+	return cli.getIPList("GETCLUSTERDEBUGIPS")
 }
 
 func (cli *Cli) GetClusterDeniedIPs() (IPList, error) {
-	return cli.getIPListTyped("GETCLUSTERDENIEDIPS")
+	return cli.getIPList("GETCLUSTERDENIEDIPS")
 }
 
 func (cli *Cli) GetClusterIntercept() (map[string]any, error) {
@@ -51,7 +50,7 @@ func (cli *Cli) GetClusterIntercept() (map[string]any, error) {
 }
 
 func (cli *Cli) GetClusterLANIPs() (IPList, error) {
-	return cli.getIPListTyped("GETCLUSTERLANIPS")
+	return cli.getIPList("GETCLUSTERLANIPS")
 }
 
 func (cli *Cli) GetClusterMailRules() ([]MailRule, error) {
@@ -59,11 +58,11 @@ func (cli *Cli) GetClusterMailRules() ([]MailRule, error) {
 }
 
 func (cli *Cli) GetClusterNatedIPs() (IPList, error) {
-	return cli.getIPListTyped("GETCLUSTERNATEDIPS")
+	return cli.getIPList("GETCLUSTERNATEDIPS")
 }
 
 func (cli *Cli) GetClusterNatSiteIPs() (IPList, error) {
-	return cli.getIPListTyped("GETCLUSTERNATSITEIPS")
+	return cli.getIPList("GETCLUSTERNATSITEIPS")
 }
 
 func (cli *Cli) GetClusterNetwork() (map[string]any, error) {
@@ -75,17 +74,7 @@ func (cli *Cli) GetClusterRouterSettings() (map[string]any, error) {
 }
 
 func (cli *Cli) GetClusterRouterTable() (RouterList, error) {
-	raw, err := cli.getString("GETCLUSTERROUTERTABLE")
-	if err != nil {
-		return nil, err
-	}
-
-	parts := strings.Split(raw, `\e`)
-	anyParts := make([]any, len(parts))
-	for i, v := range parts {
-		anyParts[i] = v
-	}
-	return parseRouterTable(anyParts), nil
+	return cli.getRouterTable("GETCLUSTERROUTERTABLE")
 }
 
 func (cli *Cli) GetClusterSettings() (map[string]any, error) {
@@ -97,15 +86,15 @@ func (cli *Cli) GetClusterSignalRules() ([]SignalRule, error) {
 }
 
 func (cli *Cli) GetClusterWhiteHoleIPs() (IPList, error) {
-	return cli.getIPListTyped("GETCLUSTERWHITEHOLEIPS")
+	return cli.getIPList("GETCLUSTERWHITEHOLEIPS")
 }
 
 func (cli *Cli) GetDebugIPs() (IPList, error) {
-	return cli.getIPListTyped("GETDEBUGIPS")
+	return cli.getIPList("GETDEBUGIPS")
 }
 
 func (cli *Cli) GetDeniedIPs() (IPList, error) {
-	return cli.getIPListTyped("GETDENIEDIPS")
+	return cli.getIPList("GETDENIEDIPS")
 }
 
 func (cli *Cli) GetDNRSettings() (map[string]any, error) {
@@ -123,7 +112,7 @@ func (cli *Cli) GetIPState(ip string, temp bool) (s string, err error) {
 }
 
 func (cli *Cli) GetLANIPs() (IPList, error) {
-	return cli.getIPListTyped("GETLANIPS")
+	return cli.getIPList("GETLANIPS")
 }
 
 func (cli *Cli) GetLogSettings() (map[string]any, error) {
@@ -139,11 +128,11 @@ func (cli *Cli) GetModule(name string) (map[string]any, error) {
 }
 
 func (cli *Cli) GetNatedIPs() (IPList, error) {
-	return cli.getIPListTyped("GETNATEDIPS")
+	return cli.getIPList("GETNATEDIPS")
 }
 
 func (cli *Cli) GetNatSiteIPs() (IPList, error) {
-	return cli.getIPListTyped("GETNATSITEIPS")
+	return cli.getIPList("GETNATSITEIPS")
 }
 
 func (cli *Cli) GetNetwork() (map[string]any, error) {
@@ -159,17 +148,7 @@ func (cli *Cli) GetRouterSettings() (map[string]any, error) {
 }
 
 func (cli *Cli) GetRouterTable() (RouterList, error) {
-	raw, err := cli.getString("GETROUTERTABLE")
-	if err != nil {
-		return nil, err
-	}
-
-	parts := strings.Split(raw, `\e`)
-	anyParts := make([]any, len(parts))
-	for i, v := range parts {
-		anyParts[i] = v
-	}
-	return parseRouterTable(anyParts), nil
+	return cli.getRouterTable("GETROUTERTABLE")
 }
 
 func (cli *Cli) GetServerIntercept() (map[string]any, error) {
@@ -201,7 +180,7 @@ func (cli *Cli) GetSMTPSendProfiles() (map[string]any, error) {
 }
 
 func (cli *Cli) GetWhiteHoleIPs() (IPList, error) {
-	return cli.getIPListTyped("GETWHITEHOLEIPS")
+	return cli.getIPList("GETWHITEHOLEIPS")
 }
 
 func (cli *Cli) ListModules() ([]string, error) {
@@ -226,12 +205,12 @@ func (cli *Cli) SetBanned(lines *BannedLines) error {
 	return cli.setBannedGeneric("SETBANNED", lines)
 }
 
-func (cli *Cli) SetBlacklistedIPs(l IPList) error {
-	return cli.setIPListTyped("SETBLACKLISTEDIPS", l)
+func (cli *Cli) SetBlacklistedIPs(list IPList) error {
+	return cli.QueryNV("SETBLACKLISTEDIPS", list)
 }
 
-func (cli *Cli) SetClientIPs(l IPList) error {
-	return cli.setIPListTyped("SETCLIENTIPS", l)
+func (cli *Cli) SetClientIPs(list IPList) error {
+	return cli.QueryNV("SETCLIENTIPS", list)
 }
 
 // SetClusterBanned устанавливает общекластерные списки запрещенных строк.
@@ -239,20 +218,20 @@ func (cli *Cli) SetClusterBanned(lines *BannedLines) error {
 	return cli.setBannedGeneric("SETCLUSTERBANNED", lines)
 }
 
-func (cli *Cli) SetClusterBlacklistedIPs(l IPList) error {
-	return cli.setIPListTyped("SETCLUSTERBLACKLISTEDIPS", l)
+func (cli *Cli) SetClusterBlacklistedIPs(list IPList) error {
+	return cli.QueryNV("SETCLUSTERBLACKLISTEDIPS", list)
 }
 
-func (cli *Cli) SetClusterClientIPs(l IPList) error {
-	return cli.setIPListTyped("SETCLUSTERCLIENTIPS", l)
+func (cli *Cli) SetClusterClientIPs(list IPList) error {
+	return cli.QueryNV("SETCLUSTERCLIENTIPS", list)
 }
 
-func (cli *Cli) SetClusterDebugIPs(l IPList) error {
-	return cli.setIPListTyped("SETCLUSTERDEBUGIPS", l)
+func (cli *Cli) SetClusterDebugIPs(list IPList) error {
+	return cli.QueryNV("SETCLUSTERDEBUGIPS", list)
 }
 
-func (cli *Cli) SetClusterDeniedIPs(l IPList) error {
-	return cli.setIPListTyped("SETCLUSTERDENIEDIPS", l)
+func (cli *Cli) SetClusterDeniedIPs(list IPList) error {
+	return cli.QueryNV("SETCLUSTERDENIEDIPS", list)
 }
 
 func (cli *Cli) SetClusterIntercept(settings map[string]any) error {
@@ -262,8 +241,8 @@ func (cli *Cli) SetClusterIntercept(settings map[string]any) error {
 	return cli.QueryNV("SETCLUSTERINTERCEPT", settings)
 }
 
-func (cli *Cli) SetClusterLANIPs(l IPList) error {
-	return cli.setIPListTyped("SETCLUSTERLANIPS", l)
+func (cli *Cli) SetClusterLANIPs(list IPList) error {
+	return cli.QueryNV("SETCLUSTERLANIPS", list)
 }
 
 func (cli *Cli) SetClusterMailRules(rules []MailRule) error {
@@ -273,12 +252,12 @@ func (cli *Cli) SetClusterMailRules(rules []MailRule) error {
 	return setRulesGeneric(cli, "SETCLUSTERMAILRULES", "", rules)
 }
 
-func (cli *Cli) SetClusterNatedIPs(l IPList) error {
-	return cli.setIPListTyped("SETCLUSTERNATEDIPS", l)
+func (cli *Cli) SetClusterNatedIPs(list IPList) error {
+	return cli.QueryNV("SETCLUSTERNATEDIPS", list)
 }
 
-func (cli *Cli) SetClusterNatSiteIPs(l IPList) error {
-	return cli.setIPListTyped("SETCLUSTERNATSITEIPS", l)
+func (cli *Cli) SetClusterNatSiteIPs(list IPList) error {
+	return cli.QueryNV("SETCLUSTERNATSITEIPS", list)
 }
 
 func (cli *Cli) SetClusterNetwork(settings map[string]any) error {
@@ -296,7 +275,7 @@ func (cli *Cli) SetClusterRouterSettings(settings map[string]any) error {
 }
 
 func (cli *Cli) SetClusterRouterTable(table RouterList) error {
-	return cli.QueryNV("SETCLUSTERROUTERTABLE", table.MarshalCGP())
+	return cli.QueryNV("SETCLUSTERROUTERTABLE", table)
 }
 
 func (cli *Cli) SetClusterSettings(settings map[string]any) error {
@@ -313,16 +292,16 @@ func (cli *Cli) SetClusterSignalRules(rules []SignalRule) error {
 	return setRulesGeneric(cli, "SETCLUSTERSIGNALRULES", "", rules)
 }
 
-func (cli *Cli) SetClusterWhiteHoleIPs(l IPList) error {
-	return cli.setIPListTyped("SETCLUSTERWHITEHOLEIPS", l)
+func (cli *Cli) SetClusterWhiteHoleIPs(list IPList) error {
+	return cli.QueryNV("SETCLUSTERWHITEHOLEIPS", list)
 }
 
-func (cli *Cli) SetDebugIPs(l IPList) error {
-	return cli.setIPListTyped("SETDEBUGIPS", l)
+func (cli *Cli) SetDebugIPs(list IPList) error {
+	return cli.QueryNV("SETDEBUGIPS", list)
 }
 
-func (cli *Cli) SetDeniedIPs(l IPList) error {
-	return cli.setIPListTyped("SETDENIEDIPS", l)
+func (cli *Cli) SetDeniedIPs(list IPList) error {
+	return cli.QueryNV("SETDENIEDIPS", list)
 }
 
 func (cli *Cli) SetDNRSettings(settings map[string]any) error {
@@ -332,8 +311,8 @@ func (cli *Cli) SetDNRSettings(settings map[string]any) error {
 	return cli.QueryNV("SETDNRSETTINGS", settings)
 }
 
-func (cli *Cli) SetLANIPs(l IPList) error {
-	return cli.setIPListTyped("SETLANIPS", l)
+func (cli *Cli) SetLANIPs(list IPList) error {
+	return cli.QueryNV("SETLANIPS", list)
 }
 
 func (cli *Cli) SetMediaServerSettings(settings map[string]any) error {
@@ -350,12 +329,12 @@ func (cli *Cli) SetModule(module string, settings map[string]any) error {
 	return cli.QueryNV("SETMODULE", module, settings)
 }
 
-func (cli *Cli) SetNatedIPs(l IPList) error {
-	return cli.setIPListTyped("SETNATEDIPS", l)
+func (cli *Cli) SetNatedIPs(list IPList) error {
+	return cli.QueryNV("SETNATEDIPS", list)
 }
 
-func (cli *Cli) SetNatSiteIPs(l IPList) error {
-	return cli.setIPListTyped("SETNATSITEIPS", l)
+func (cli *Cli) SetNatSiteIPs(list IPList) error {
+	return cli.QueryNV("SETNATSITEIPS", list)
 }
 
 func (cli *Cli) SetNetwork(settings map[string]any) error {
@@ -380,7 +359,7 @@ func (cli *Cli) SetRouterSettings(settings map[string]any) error {
 }
 
 func (cli *Cli) SetRouterTable(table RouterList) error {
-	return cli.QueryNV("SETROUTERTABLE", table.MarshalCGP())
+	return cli.QueryNV("SETROUTERTABLE", table)
 }
 
 func (cli *Cli) SetServerIntercept(settings map[string]any) error {
@@ -425,8 +404,8 @@ func (cli *Cli) SetSMTPSendProfiles(settings map[string]any) error {
 	return cli.QueryNV("SETSMTPSENDPROFILES", settings)
 }
 
-func (cli *Cli) SetWhiteHoleIPs(l IPList) error {
-	return cli.setIPListTyped("SETWHITEHOLEIPS", l)
+func (cli *Cli) SetWhiteHoleIPs(list IPList) error {
+	return cli.QueryNV("SETWHITEHOLEIPS", list)
 }
 
 func (cli *Cli) UpdateLogSettings(settings map[string]any) error {
@@ -466,20 +445,20 @@ func (cli *Cli) getBannedGeneric(cmd string) (*BannedLines, error) {
 	return res, nil
 }
 
-func (cli *Cli) getIPList(cmd string) (string, error) {
+func (cli *Cli) getIPList(cmd string) (IPList, error) {
 	s, err := cli.getString(cmd)
-	if err != nil {
-		return "", err
-	}
-	return toGoText(s), nil
-}
-
-func (cli *Cli) getIPListTyped(cmd string) (IPList, error) {
-	raw, err := cli.getIPList(cmd)
 	if err != nil {
 		return nil, err
 	}
-	return parseIPList(raw), nil
+	return parseIPList(s), nil
+}
+
+func (cli *Cli) getRouterTable(cmd string) (RouterList, error) {
+	raw, err := cli.getString(cmd)
+	if err != nil {
+		return nil, err
+	}
+	return parseRouterTable(raw), nil
 }
 
 func (cli *Cli) setBannedGeneric(cmd string, lines *BannedLines) error {
@@ -491,12 +470,4 @@ func (cli *Cli) setBannedGeneric(cmd string, lines *BannedLines) error {
 		"BannedHeaderLines": lines.HeaderLines,
 	}
 	return cli.QueryNV(cmd, data)
-}
-
-func (cli *Cli) setIPList(cmd, list string) error {
-	return cli.QueryNV(cmd, toCGPText(list))
-}
-
-func (cli *Cli) setIPListTyped(cmd string, list IPList) error {
-	return cli.setIPList(cmd, list.marshal())
 }
