@@ -1,11 +1,13 @@
 package cgpcli
 
 import (
+	"bufio"
+	"bytes"
 	"net"
 	"testing"
 )
 
-func TestCGPIP_MarshalCGP(t *testing.T) {
+func TestCGPIP_WriteCGP(t *testing.T) {
 	tests := []struct {
 		name string
 		ip   net.IP
@@ -22,8 +24,20 @@ func TestCGPIP_MarshalCGP(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := CGPIP{IP: tt.ip, Port: tt.port}
-			if got := c.MarshalCGP(); got != tt.want {
-				t.Errorf("MarshalCGP() = %v, want %v", got, tt.want)
+
+			var b bytes.Buffer
+			// Используем bufio.Writer, так как он удовлетворяет интерфейсу encodeWriter
+			w := bufio.NewWriter(&b)
+
+			err := c.WriteCGP(w)
+			w.Flush() // Важно сбросить буфер в bytes.Buffer
+
+			if err != nil {
+				t.Fatalf("WriteCGP() error = %v", err)
+			}
+
+			if got := b.String(); got != tt.want {
+				t.Errorf("WriteCGP() output = %v, want %v", got, tt.want)
 			}
 		})
 	}

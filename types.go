@@ -3,7 +3,6 @@ package cgpcli
 import (
 	"net"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -45,20 +44,32 @@ func (c CGPIP) String() string {
 	return c.IP.String()
 }
 
-// MarshalCGP формирует строку для отправки на сервер CGP.
-func (c CGPIP) MarshalCGP() string {
+// WriteCGP формирует данные для отправки на сервер CGP напрямую в буфер.
+func (c CGPIP) WriteCGP(w encodeWriter) (err error) {
 	if c.IsZero() {
-		return "#NULL#"
+		_, err = w.WriteString("#NULL#")
+		return
 	}
-	var sb strings.Builder
-	sb.WriteString("#I[")
-	sb.WriteString(c.IP.String())
-	sb.WriteByte(']')
+
+	if _, err = w.WriteString("#I["); err != nil {
+		return
+	}
+	if _, err = w.WriteString(c.IP.String()); err != nil {
+		return
+	}
+	if err = w.WriteByte(']'); err != nil {
+		return
+	}
+
 	if c.Port > 0 {
-		sb.WriteByte(':')
-		sb.WriteString(strconv.Itoa(c.Port))
+		if err = w.WriteByte(':'); err != nil {
+			return
+		}
+		if _, err = w.WriteString(strconv.Itoa(c.Port)); err != nil {
+			return
+		}
 	}
-	return sb.String()
+	return
 }
 
 type SessionOffset int
