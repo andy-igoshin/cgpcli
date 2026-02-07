@@ -4,7 +4,6 @@ package cgpcli
 import (
 	"fmt"
 	"net"
-	"strings"
 	"time"
 )
 
@@ -186,13 +185,19 @@ func (cli *Cli) SetLogAll(on bool) error {
 }
 
 // SetTempBlacklistedIPs заменяет текущий список временно заблокированных адресов.
-func (cli *Cli) SetTempBlacklistedIPs(ips []net.IP) (err error) {
-	return cli.QueryNV("SETTEMPBLACKLISTEDIPS", toIPsString(ips))
+func (cli *Cli) SetTempBlacklistedIPs(list *TempIPList) error {
+	if list == nil || list.Len() == 0 {
+		return cli.QueryNV("SETTEMPBLACKLISTEDIPS", "")
+	}
+	return cli.QueryNV("SETTEMPBLACKLISTEDIPS", list)
 }
 
 // SetTempUnblockableIPs заменяет текущий список временно не блокируемых адресов.
-func (cli *Cli) SetTempUnblockableIPs(ips []net.IP) (err error) {
-	return cli.QueryNV("SETTEMPUNBLOCKABLEIPS", toIPsString(ips))
+func (cli *Cli) SetTempUnblockableIPs(list *TempIPList) error {
+	if list == nil || list.Len() == 0 {
+		return cli.QueryNV("SETTEMPBLACKLISTEDIPS", "")
+	}
+	return cli.QueryNV("SETTEMPUNBLOCKABLEIPS", list)
 }
 
 // SetTrace включает или выключает трассировку указанного модуля.
@@ -248,23 +253,4 @@ func (cli *Cli) TestLoop(seconds int) (int, error) {
 // WriteLog пишет запись в системный лог сервера.
 func (cli *Cli) WriteLog(level int, record string) error {
 	return cli.QueryNV("WRITELOG", level, record)
-}
-
-func toIPsString(ips []net.IP) string {
-	if len(ips) > 0 {
-		var sb strings.Builder
-		for i, ip := range ips {
-			if ip == nil {
-				continue
-			}
-			if i > 0 {
-				sb.WriteByte(',')
-			}
-			sb.WriteByte('[')
-			sb.WriteString(ip.String())
-			sb.WriteByte(']')
-		}
-		return sb.String()
-	}
-	return ""
 }
