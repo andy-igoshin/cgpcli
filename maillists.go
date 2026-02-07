@@ -75,17 +75,7 @@ func (cli *Cli) GetList(list string) (map[string]any, error) {
 	if list == "" {
 		return nil, fmt.Errorf("list name is required")
 	}
-
-	res, err := cli.getMapAny("GETLIST", list)
-	if err != nil {
-		return nil, err
-	}
-	for k, v := range res {
-		if s, ok := v.(string); ok {
-			res[k] = toGoText(s)
-		}
-	}
-	return res, nil
+	return cli.getMapAny("GETLIST", list)
 }
 
 // GetSubscriberInfo возвращает полную информацию о конкретном подписчике.
@@ -223,16 +213,7 @@ func (cli *Cli) UpdateList(list string, settings map[string]any) error {
 	if list == "" || len(settings) == 0 {
 		return fmt.Errorf("list name and settings are required")
 	}
-
-	prepared := make(map[string]any, len(settings))
-	for k, v := range settings {
-		if s, ok := v.(string); ok {
-			prepared[k] = toCGPText(s)
-		} else {
-			prepared[k] = v
-		}
-	}
-	return cli.QueryNV("UPDATELIST", list, prepared)
+	return cli.QueryNV("UPDATELIST", list, settings)
 }
 
 // mapToSubscriber преобразует map[string]any в структуру SubscriberInfo.
