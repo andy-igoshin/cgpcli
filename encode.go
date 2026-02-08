@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"sort"
 	"strconv"
 	"time"
 )
@@ -205,8 +204,7 @@ func marshal(w encodeWriter, v any, keyName string) (err error) {
 
 	// --- Числа ---
 	case int, int32, int64:
-		_, err = w.WriteString(strconv.FormatInt(toInt64(val), 10))
-		return err
+		return writeInt64(w, toInt64(val))
 
 	// --- Время ---
 	case time.Time:
@@ -291,16 +289,50 @@ func marshal(w encodeWriter, v any, keyName string) (err error) {
 
 func marshalMap[V any](w encodeWriter, m map[string]V) error {
 	w.WriteByte('{')
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		marshal(w, k, "")
+
+	for k, v := range m {
+		if isCGPSafeString(k) {
+			w.WriteString(k)
+		} else {
+			w.WriteByte('"')
+			w.WriteString(replaceSpecChars(k))
+			w.WriteByte('"')
+		}
+
 		w.WriteByte('=')
-		marshal(w, m[k], k)
+		marshal(w, v, k)
 		w.WriteByte(';')
 	}
+
 	return w.WriteByte('}')
+}
+
+func writeInt64(w encodeWriter, i int64) error {
+	if i == 0 {
+		return w.WriteByte('0')
+	}
+
+	if i < 0 {
+		if err := w.WriteByte('-'); err != nil {
+			return err
+		}
+	} else {
+		i = -i
+	}
+
+	var buf [20]byte
+	pos := len(buf)
+
+	for i != 0 {
+		pos--
+		buf[pos] = byte('0' - (i % 10))
+		i /= 10
+	}
+
+	for ; pos < len(buf); pos++ {
+		if err := w.WriteByte(buf[pos]); err != nil {
+			return err
+		}
+	}
+	return nil
 }

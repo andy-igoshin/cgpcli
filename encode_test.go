@@ -3,6 +3,7 @@ package cgpcli
 import (
 	"bufio"
 	"net"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -136,5 +137,59 @@ func TestMarshal(t *testing.T) {
 				t.Errorf("%s: Result contains unexpected spaces: %s", tt.name, res)
 			}
 		})
+	}
+}
+
+func TestWriteInt64(t *testing.T) {
+	tests := []struct {
+		name string
+		val  int64
+	}{
+		{"Zero", 0},
+		{"One digit positive", 5},
+		{"One digit negative", -5},
+		{"Multi digit positive", 123456789},
+		{"Multi digit negative", -123456789},
+		{"Max Int64", 9223372036854775807},
+		{"Min Int64", -9223372036854775808},
+		{"Power of 10", 1000},
+		{"Negative power of 10", -1000},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var sb strings.Builder
+			// Передаем нашу обертку или прямо Builder, если интерфейс совпадает
+			err := writeInt64(&sb, tt.val)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			got := sb.String()
+			want := strconv.FormatInt(tt.val, 10)
+
+			if got != want {
+				t.Errorf("writeInt64(%d) = %q, want %q", tt.val, got, want)
+			}
+		})
+	}
+}
+
+// Дополнительный тест на отсутствие аллокаций
+type discardWriter struct{}
+
+func (d discardWriter) Write(p []byte) (int, error)     { return len(p), nil }
+func (d discardWriter) WriteString(s string) (int, error) { return len(s), nil }
+func (d discardWriter) WriteByte(c byte) error           { return nil }
+
+func TestWriteInt64_Allocs(t *testing.T) {
+	var dw discardWriter
+
+	allocs := testing.AllocsPerRun(100, func() {
+		_ = writeInt64(dw, -9223372036854775808)
+	})
+
+	if allocs > 0 {
+		t.Errorf("writeInt64 allocated %f times, want 0", allocs)
 	}
 }
