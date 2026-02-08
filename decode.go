@@ -669,7 +669,7 @@ func tryCgpBool(b []byte) (any, bool) {
 
 func tryParseInt(b []byte) (any, bool) {
 	if len(b) > 0 && ((b[0] >= '0' && b[0] <= '9') || b[0] == '-') {
-		s := *(*string)(unsafe.Pointer(&b))
+		s := unsafe.String(unsafe.SliceData(b), len(b))
 		if val, err := strconv.ParseInt(s, 10, 64); err == nil {
 			return val, true
 		}
