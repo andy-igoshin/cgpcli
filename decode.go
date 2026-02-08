@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unsafe"
 )
 
 type decodeState struct {
@@ -17,6 +18,42 @@ type decodeState struct {
 	span     int
 	scratch  bytes.Buffer
 	keyCache map[string]string
+}
+
+var (
+	binYesUpper = []byte("YES")
+	binYesLower = []byte("yes")
+	binNoUpper  = []byte("NO")
+	binNoLower  = []byte("no")
+)
+
+const (
+	isCgpSpace      uint8 = 1 << 0
+	isCgpDelimiter  uint8 = 1 << 1
+	isCgpOpen       uint8 = 1 << 2 // {
+	isCgpClose      uint8 = 1 << 3 // }
+	isCgpSemi       uint8 = 1 << 4 // ;
+	isCgpParenOpen  uint8 = 1 << 5 // (
+	isCgpParenClose uint8 = 1 << 6 // )
+	isCgpComma      uint8 = 1 << 7 // ,
+)
+
+var cgpCharTable [256]uint8
+
+func init() {
+	for _, c := range " \t\r\n" {
+		cgpCharTable[c] |= isCgpSpace
+	}
+	for _, c := range " \t\r\n=;,)}" {
+		cgpCharTable[c] |= isCgpDelimiter
+	}
+	// Специфические флаги для структуры словаря
+	cgpCharTable['{'] |= isCgpOpen
+	cgpCharTable['}'] |= isCgpClose
+	cgpCharTable[';'] |= isCgpSemi
+	cgpCharTable['('] |= isCgpParenOpen
+	cgpCharTable[')'] |= isCgpParenClose
+	cgpCharTable[','] |= isCgpComma
 }
 
 func (d *decodeState) init(data []byte) *decodeState {
@@ -31,11 +68,11 @@ func (d *decodeState) init(data []byte) *decodeState {
 }
 
 func isSpace(c byte) bool {
-	return c <= ' ' && (c == ' ' || c == '\t' || c == '\r' || c == '\n')
+	return cgpCharTable[c]&isCgpSpace != 0
 }
 
 func (d *decodeState) skipSpaces() {
-	for d.span < d.len && isSpace(d.data[d.span]) {
+	for d.span < d.len && (cgpCharTable[d.data[d.span]]&isCgpSpace != 0) {
 		d.span++
 	}
 }
@@ -93,22 +130,24 @@ func (d *decodeState) valueInterface(asString bool) any {
 func (d *decodeState) dictionaryInterface() any {
 	count := 0
 	depth := 1
-	tempSpan := d.span
-	for tempSpan < d.len {
-		ch := d.data[tempSpan]
-		if ch == '{' {
-			depth++
-		}
-		if ch == '}' {
-			depth--
-			if depth == 0 {
-				break
+	ts := d.span
+	data := d.data
+
+	for ts < len(data) {
+		f := cgpCharTable[data[ts]]
+		if f != 0 {
+			if f&isCgpOpen != 0 {
+				depth++
+			} else if f&isCgpClose != 0 {
+				depth--
+				if depth == 0 {
+					break
+				}
+			} else if f&isCgpSemi != 0 && depth == 1 {
+				count++
 			}
 		}
-		if ch == ';' && depth == 1 {
-			count++
-		}
-		tempSpan++
+		ts++
 	}
 
 	res := make(map[string]any, count)
@@ -123,24 +162,20 @@ func (d *decodeState) dictionaryInterface() any {
 		var key string
 		start := d.span
 		if d.data[d.span] != '"' {
-			// Fast path keys
-			for d.span < d.len {
-				ch := d.data[d.span]
-				if isSpace(ch) || ch == '=' || ch == ';' || ch == ',' || ch == ')' || ch == '}' {
-					break
-				}
+			for d.span < d.len && cgpCharTable[d.data[d.span]]&isCgpDelimiter == 0 {
 				d.span++
 			}
+
 			keyBytes := d.data[start:d.span]
-			if cached, ok := d.keyCache[string(keyBytes)]; ok {
-				key = cached
-			} else {
+
+			var ok bool
+			if key, ok = d.keyCache[string(keyBytes)]; !ok {
 				key = string(keyBytes)
 				d.keyCache[key] = key
 			}
 		} else {
-			keyRaw := d.wordInterface(true)
-			key, _ = keyRaw.(string)
+			kRaw := d.wordInterface(true)
+			key, _ = kRaw.(string)
 			if cached, ok := d.keyCache[key]; ok {
 				key = cached
 			} else {
@@ -163,44 +198,34 @@ func (d *decodeState) dictionaryInterface() any {
 	return res
 }
 
-/*
-func (d *decodeState) arrayInterface() any {
-	res := make([]any, 0)
-	for d.span < d.len {
-		d.skipSpaces()
-		if d.span >= d.len || d.data[d.span] == ')' {
-			d.span++
-			break
-		}
-		res = append(res, d.valueInterface(false))
-		d.skipSpaces()
-		if d.span < d.len && d.data[d.span] == ',' {
-			d.span++
-		}
-	}
-	return res
-}
-*/
-
 func (d *decodeState) arrayInterface() any {
 	count := 1
 	depth := 1
-	tempSpan := d.span
+	ts := d.span
+	data := d.data
 
-	// Пробежимся вперед, чтобы оценить размер массива
-	for tempSpan < d.len {
-		ch := d.data[tempSpan]
-		if ch == '(' {
-			depth++
-		} else if ch == ')' {
-			depth--
-			if depth == 0 {
-				break
+	for ts < len(data) {
+		f := cgpCharTable[data[ts]]
+		if f != 0 {
+			if f&isCgpParenOpen != 0 {
+				depth++
+			} else if f&isCgpParenClose != 0 {
+				depth--
+				if depth == 0 {
+					break
+				}
+			} else if f&isCgpComma != 0 && depth == 1 {
+				count++
 			}
-		} else if ch == ',' && depth == 1 {
-			count++
 		}
-		tempSpan++
+		ts++
+	}
+
+	// Если мы нашли элементы (или хотя бы один), count должен быть корректным.
+	// Для пустого массива () count останется 0. Для (1) - тоже 0, надо +1 если не пусто.
+	// Но проще: если мы встретили хотя бы один символ до закрытия, это 1 элемент или больше.
+	if ts > d.span { // Если между ( и ) что-то было
+		count++
 	}
 
 	res := make([]any, 0, count)
@@ -252,40 +277,38 @@ func (d *decodeState) wordInterface(asString bool) any {
 		return res
 	}
 
-	// 3. Fast Path for simple tokens
+	// 3. Fast Path (Unquoted tokens: keys, numbers, constants)
 	if curr != '"' && curr != '#' {
 		start := d.span
 		for d.span < d.len {
-			ch := d.data[d.span]
-			if isSpace(ch) || ch == '=' || ch == ';' || ch == ',' || ch == ')' || ch == '}' {
+			if cgpCharTable[d.data[d.span]]&isCgpDelimiter != 0 {
 				break
 			}
 			d.span++
 		}
-		raw := string(d.data[start:d.span])
-		if asString {
-			return raw
-		}
-		switch raw {
-		case "YES", "yes":
-			return true
-		case "NO", "no":
-			return false
-		}
 
-		// Оптимизация: пробуем парсить в число ТОЛЬКО если похоже на число
-		if len(raw) > 0 && ((raw[0] >= '0' && raw[0] <= '9') || raw[0] == '-') {
-			if val, err := strconv.ParseInt(raw, 10, 64); err == nil {
+		subSlice := d.data[start:d.span]
+
+		// Если нам не принудительно нужна строка (как для ключей мап)
+		if !asString {
+			// Проверка на YES/NO через bytes.Equal
+			if val, ok := tryCgpBool(subSlice); ok {
+				return val
+			}
+			// Проверка на числа через unsafe string
+			if val, ok := tryParseInt(subSlice); ok {
 				return val
 			}
 		}
 
-		/*
-			if val, err := strconv.ParseInt(raw, 10, 64); err == nil {
-				return val
-			}
-		*/
+		// Поиск в кеше строк (интернирование)
+		if s, ok := d.keyCache[string(subSlice)]; ok {
+			return s
+		}
 
+		// Единственная точка аллокации для новых уникальных строк/ключей
+		raw := string(subSlice)
+		d.keyCache[raw] = raw
 		return raw
 	}
 
@@ -628,4 +651,28 @@ func (d *decodeState) readCgpBlock(open, close byte) []byte {
 		break
 	}
 	return result
+}
+
+func tryCgpBool(b []byte) (any, bool) {
+	switch len(b) {
+	case 2:
+		if bytes.Equal(b, binNoUpper) || bytes.Equal(b, binNoLower) {
+			return false, true
+		}
+	case 3:
+		if bytes.Equal(b, binYesUpper) || bytes.Equal(b, binYesLower) {
+			return true, true
+		}
+	}
+	return nil, false
+}
+
+func tryParseInt(b []byte) (any, bool) {
+	if len(b) > 0 && ((b[0] >= '0' && b[0] <= '9') || b[0] == '-') {
+		s := *(*string)(unsafe.Pointer(&b))
+		if val, err := strconv.ParseInt(s, 10, 64); err == nil {
+			return val, true
+		}
+	}
+	return nil, false
 }
