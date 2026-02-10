@@ -178,9 +178,9 @@ func TestWriteInt64(t *testing.T) {
 // Дополнительный тест на отсутствие аллокаций
 type discardWriter struct{}
 
-func (d discardWriter) Write(p []byte) (int, error)     { return len(p), nil }
+func (d discardWriter) Write(p []byte) (int, error)       { return len(p), nil }
 func (d discardWriter) WriteString(s string) (int, error) { return len(s), nil }
-func (d discardWriter) WriteByte(c byte) error           { return nil }
+func (d discardWriter) WriteByte(c byte) error            { return nil }
 
 func TestWriteInt64_Allocs(t *testing.T) {
 	var dw discardWriter

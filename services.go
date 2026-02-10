@@ -1,4 +1,22 @@
-// # Section: Account Services
+// # Account Services
+//
+// The Account Services section provides access to user-specific application
+// data and billing operations. These methods interface with the high-level
+// subsystems of CommuniGate Pro that handle real-time user interactions
+// and resource accounting.
+//
+// Key capabilities include:
+//   - Billing & Quotas: Using the [Cli.Balance] method to perform complex
+//     financial operations, including balance inquiries, credit reservations,
+//     and service charging.
+//   - Data Management: Interacting with account-level datasets (such as
+//     collected addresses) via [Cli.Dataset] and [Cli.RemoveAccountSubset].
+//   - Instant Messaging: Managing the XMPP/SIP [Cli.Roster], allowing for
+//     programmatic contact list manipulation, subscription management,
+//     and presence monitoring.
+//
+// These services are essential for integrating CommuniGate Pro with external
+// billing platforms, CRM systems, and custom messaging clients.
 package cgpcli
 
 import (

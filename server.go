@@ -1,4 +1,26 @@
-// # Section: Server Settings
+// # Server Settings
+//
+// The Server Settings section is the core of the library, providing comprehensive
+// access to the CommuniGate Pro configuration engine. It allows for the
+// management of both node-local and cluster-wide parameters, ensuring
+// consistency across multi-server environments.
+//
+// Key capabilities include:
+//   - Network Security: Management of various IP address lists including
+//     Blacklisted, Client (Trusted), LAN, and Denied IPs for granular
+//     access control.
+//   - Routing & Rules: Integration with [RouterList], [MailRule], and
+//     [SignalRule] at both Server and Cluster levels.
+//   - Module Configuration: Dynamic retrieval and updates for specific
+//     protocol modules (SMTP, IMAP, SIP, etc.) via [Cli.GetModule] and [Cli.UpdateModule].
+//   - Content Filtering: Controlling prohibited content through the
+//     [BannedLines] structure for headers and message bodies.
+//   - Global Subsystems: Fine-tuning of DNR (Domain Name Resolver),
+//     Logging, Queue Management, and Session settings.
+//
+// Use these methods to build automated configuration auditors,
+// disaster recovery scripts, or centralized management consoles for
+// large-scale CGP deployments.
 package cgpcli
 
 import (

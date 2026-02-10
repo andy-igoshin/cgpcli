@@ -1,4 +1,23 @@
-// # Section: Mailbox Administration
+// # Mailbox Administration
+//
+// The Mailboxes section provides methods for managing account folder structures,
+// access control lists (ACL), and mailbox-specific metadata. It supports
+// operations for both private user folders and shared resources.
+//
+// Key capabilities include:
+//   - Lifecycle Management: Creating, renaming, and deleting mailboxes.
+//     Supports recursive operations for entire folder trees using the "MAILBOXES" keyword.
+//   - Access Control: Granular management of permissions via [Cli.GetMailboxACL]
+//     and [Cli.SetMailboxACL], including support for effective rights calculation.
+//   - Metadata & Organization: Managing mailbox classes (e.g., for MAPI/Groupware
+//     compatibility) and mailbox-level aliases.
+//   - Discovery: Listing mailbox trees with filters and retrieving detailed
+//     information such as message counts and storage size.
+//   - On-behalf Operations: Most methods support the "AUTH" parameter,
+//     enabling administrative actions on behalf of a specific user.
+//
+// Use these methods to manage IMAP folder structures, shared calendars,
+// and complex permission schemes in multi-user environments.
 package cgpcli
 
 import (

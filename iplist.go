@@ -1,3 +1,22 @@
+// # IP List Administration
+//
+// The IP List section provides specialized types and methods for handling CommuniGate Pro
+// Network Lists (Client IP addresses, Blacklists, etc.). It implements the unique
+// CGP format that allows for mixed IP addresses, CIDR masks, ranges, and sequences
+// within a single list, including support for negative (exclusion) rules and comments.
+//
+// Key capabilities include:
+//   - Flexible Management: Adding, inserting, and deleting entries with [Cli.Add],
+//     [Cli.InsertBefore], and [Cli.InsertAfter] to maintain strict rule ordering.
+//   - Rule Logic: Full support for exclusion rules (prefixed with "!") and complex
+//     entry types like [IPRange] and [IPSeq].
+//   - IP Matching: The [IPList.Contains] method allows for high-performance
+//     checks to determine if a specific net.IP is matched by any rule in the list.
+//   - Format Preservation: Methods for parsing and writing lists while maintaining
+//     comment alignment and special character encoding required by the CGP CLI.
+//
+// This section is essential for managing security settings, relay permissions,
+// and access control lists based on network topology.
 package cgpcli
 
 import (
@@ -10,17 +29,19 @@ import (
 
 type IPCIDR struct{ net.IPNet }
 
+// IPEntry represents a single line in a CGP IP List, including the value,
+// optional comment, and whether it is an exclusion rule.
 type IPEntry struct {
-	Comment    string
-	CommentPos int
-	IsNegative bool
-	Value      any
+	Comment    string // Human-readable comment after the semicolon.
+	CommentPos int    // Original position of the semicolon for alignment preservation.
+	IsNegative bool   // True if the entry starts with "!" (exclusion).
+	Value      any    // Can be IPCIDR, IPRange, IPSeq, or IPUnknown.
 }
 
 type (
 	IPList    []IPEntry
-	IPRange   struct{ Start, End net.IP }
-	IPSeq     []any
+	IPRange   struct{ Start, End net.IP } // IPRange represents a contiguous range of IP addresses from Start to End.
+	IPSeq     []any                       // IPSeq represents a comma-separated sequence of multiple IP rules.
 	IPUnknown string
 )
 

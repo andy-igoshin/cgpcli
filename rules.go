@@ -1,3 +1,23 @@
+// # Rules Administration
+//
+// The Rules section provides specialized management for message and signal
+// processing logic. CommuniGate Pro uses a rule-based engine to automate
+// actions like filtering, forwarding, or complex VoIP call routing.
+//
+// Key capabilities include:
+//   - Dual-Engine Support: Separate structures and methods for [MailRule]
+//     (standard mail processing) and [SignalRule] (SIP/Signal processing).
+//   - Priority Logic: Automatic handling of "packed" priorities in Signal
+//     rules, where the library transparently manages delays and event codes
+//     (e.g., Error, Busy, No Answer).
+//   - Flexible Conditions & Actions: Rules are represented as structured
+//     slices, allowing for complex nested logic as defined in CGP.
+//   - Generics-Powered Operations: Unified internal logic for setting and
+//     updating rules using Go Generics to ensure type safety across
+//     different rule levels.
+//
+// Use these methods to automate the deployment of corporate mail filters,
+// build custom auto-responders, or manage dynamic telephony routing logic.
 package cgpcli
 
 import (
@@ -9,7 +29,6 @@ const (
 	delayBase     = 1000
 	priorityScale = 100
 
-	// Константы событий для пользовательских правил
 	EventError    = 1 // 100
 	EventBusy     = 3 // 300
 	EventNoAnswer = 5 // 500
@@ -19,22 +38,24 @@ const (
 // Types & Interfaces
 // -----------------------------------------------------------------------------
 
+// MailRule represents a standard email processing rule.
 type MailRule struct {
-	Priority   int
-	Name       string
-	Conditions []any
-	Actions    []any
-	Comment    string
+	Priority   int    // Execution order (0 to 99).
+	Name       string // Unique rule identifier.
+	Conditions []any  // Filter criteria (e.g., ["From", "is", "spammer@..."]).
+	Actions    []any  // Resulting actions (e.g., ["Discard"]).
+	Comment    string // Optional administrative note.
 }
 
+// SignalRule represents a Real-Time Application (SIP/Signal) rule.
 type SignalRule struct {
-	Priority   int
-	Delay      int
-	EventCode  int
-	Name       string
-	Conditions []any
-	Actions    []any
-	Comment    string
+	Priority   int    // Base priority (0 to 99).
+	Delay      int    // Delay in seconds before the rule is applied.
+	EventCode  int    // Specific event trigger (Busy, No Answer, etc.).
+	Name       string // Unique rule identifier.
+	Conditions []any  // Signal-specific conditions.
+	Actions    []any  // Signaling actions (e.g., ["Redirect", "target"]).
+	Comment    string // Optional administrative note.
 }
 
 type ruleConstraint interface {

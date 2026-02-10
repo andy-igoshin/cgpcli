@@ -1,4 +1,21 @@
-// # Section: Statistics
+// # Statistics
+//
+// The Statistics section provides methods for monitoring the activity and
+// resource consumption of specific domains and individual accounts.
+// These metrics are invaluable for usage auditing, billing verification,
+// and identifying unusual activity patterns.
+//
+// Key capabilities include:
+//   - Granular Monitoring: Retrieving specific counters or the entire statistics
+//     dictionary for an account or domain.
+//   - Reset Mechanisms: Clearing accumulated counters via [Cli.ResetAccountStat]
+//     and [Cli.ResetDomainStat], allowing for periodic (e.g., monthly or daily)
+//     reporting cycles.
+//   - Resource Tracking: Accessing data related to protocol usage, login
+//     frequency, and storage interaction at the entity level.
+//
+// These methods are essential for building per-customer reporting tools,
+// monitoring SLA compliance, and automating resource-based policy enforcement.
 package cgpcli
 
 import (

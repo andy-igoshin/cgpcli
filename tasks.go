@@ -1,4 +1,21 @@
-// # Section: Named Task Administration
+// # Named Task Administration
+//
+// The Named Tasks section provides management for the CommuniGate Pro
+// internal scheduler. Named Tasks allow administrators and users to
+// automate actions (such as executing CG/PL scripts) based on specific
+// time intervals or calendar schedules.
+//
+// Key capabilities include:
+//   - Lifecycle Management: Creating, renaming, and deleting tasks associated
+//     with specific accounts using [Cli.CreateNamedTask] and [Cli.DeleteNamedTask].
+//   - Configuration: Retrieving and updating task parameters.
+//   - Discovery: Listing tasks at both account and domain levels to
+//     monitor automated workflows across the server.
+//   - Owner Resolution: Automatic handling of account names, ensuring
+//     tasks are correctly linked to the local part of the account address.
+//
+// Use these methods to build automation engines, backup triggers, or
+// custom maintenance routines within the CommuniGate Pro ecosystem.
 package cgpcli
 
 import (

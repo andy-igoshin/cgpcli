@@ -1,4 +1,22 @@
-// # Section: Miscellaneous Commands
+// # Miscellaneous Commands
+//
+// The Miscellaneous section provides a diverse set of administrative methods for
+// system diagnostics, real-time monitoring, and low-level server control.
+//
+// Key capabilities include:
+//   - System Inspection: Retrieving server version, OS details, start time,
+//     and cluster instances via [Cli.GetSystemInfo] and predefined [SystemInfoKey] constants.
+//   - Dynamic IP Protection: Managing temporary blacklists and unblockable IP lists
+//     to mitigate brute-force attacks in real-time.
+//   - Queue Management: Monitoring and managing the message delivery pipeline,
+//     including the ability to reject or release messages from SMTP queues.
+//   - Diagnostics & Logging: Controlling trace facilities (FileIO/FileOp),
+//     toggling "Log Everything" mode, and writing custom entries to the system log.
+//   - Cluster Operations: Force-reconnecting cluster administration channels and
+//     identifying the current Dynamic Cluster Controller.
+//
+// These methods are essential for building health-check monitors, automated
+// security responders, and advanced troubleshooting scripts.
 package cgpcli
 
 import (
@@ -7,22 +25,24 @@ import (
 	"time"
 )
 
+// SystemInfoKey represents a recognized key for server metadata retrieval.
 type SystemInfoKey string
 
 const (
-	SysVersion         SystemInfoKey = "serverVersion"
-	SysOS              SystemInfoKey = "serverOS"
-	SysCPU             SystemInfoKey = "serverCPU"
+	SysVersion         SystemInfoKey = "serverVersion" // e.g., "6.3.20"
+	SysOS              SystemInfoKey = "serverOS"      // Target Operating System
+	SysCPU             SystemInfoKey = "serverCPU"     // CPU Architecture
 	SysMainDomain      SystemInfoKey = "mainDomainName"
 	SysLicenseDomain   SystemInfoKey = "licenseDomainName"
-	SysStartTime       SystemInfoKey = "startTime"
+	SysStartTime       SystemInfoKey = "startTime" // Server boot time
 	SysServerInstance  SystemInfoKey = "serverInstance"
 	SysClusterInstance SystemInfoKey = "clusterInstance"
 	SysCharsets        SystemInfoKey = "knownCharsets"
 	SysDigesters       SystemInfoKey = "knownDigesters"
-	SysCiphers         SystemInfoKey = "knownCiphers"
+	SysCiphers         SystemInfoKey = "knownCiphers" // Supported SSL/TLS ciphers
 )
 
+// TraceFacility defines specific server modules available for real-time tracing.
 type TraceFacility string
 
 const (

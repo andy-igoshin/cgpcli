@@ -1,4 +1,16 @@
-// # Section: Alert Administration
+// # Alert Administration
+//
+// The Alerts section provides functionality for managing system and user notifications
+// across all administrative levels: Server, Cluster, Domain, and Account.
+//
+// These methods allow for:
+//   - Retrieving active alerts using "GET...ALERTS" commands.
+//   - Posting new custom alerts for administrators or users to see.
+//   - Removing specific alerts using their unique timestamps.
+//   - Batch updating alert dictionaries.
+//
+// Using these capabilities, you can integrate external monitoring data
+// directly into the CommuniGate Pro WebAdmin interface or track system-generated events.
 package cgpcli
 
 import (

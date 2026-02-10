@@ -1,3 +1,24 @@
+// # Router Table Administration
+//
+// The Router section provides specialized structures and methods for managing the
+// CommuniGate Pro Routing Table. The Router is the central engine that determines
+// how every message, signal, or call is directed within the server or to
+// external destinations.
+//
+// Key capabilities include:
+//   - Ordered Management: [RouterList] ensures that the strict top-to-bottom
+//     evaluation order of CGP routing rules is preserved during manipulation.
+//   - Pattern-Based Insertion: Methods like [RouterList.InsertBefore] and
+//     [RouterList.InsertAfter] allow for precise rule placement without
+//     overwriting the entire table manually.
+//   - Metadata Preservation: Full support for comments and alignment positions
+//     (Pos), ensuring that the table remains readable in the WebAdmin interface.
+//   - Format Compatibility: Automatic handling of the internal multi-line
+//     representation and special character escaping required by the CLI.
+//
+// Use these structures to automate complex routing tasks, such as dynamic
+// gateway switching, anti-spam redirection, or multi-domain mail flow
+// management.
 package cgpcli
 
 import (
@@ -5,14 +26,15 @@ import (
 	"strings"
 )
 
-// RouterEntry описывает одну строку в таблице маршрутизации.
+// RouterEntry represents a single line in the CGP Routing Table.
 type RouterEntry struct {
-	Comment string
-	Pos     int
-	Rule    string
+	Rule    string // The routing rule (e.g., "<*@domain.com> = user@other.com").
+	Comment string // Optional text after the semicolon.
+	Pos     int    // The original character position of the semicolon for alignment.
 }
 
-// RouterList представляет собой упорядоченный список правил маршрутизации.
+// RouterList is an ordered slice of [RouterEntry] providing high-level
+// manipulation methods.
 type RouterList []RouterEntry
 
 // Add добавляет правило в конец таблицы.

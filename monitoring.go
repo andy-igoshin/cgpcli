@@ -1,4 +1,22 @@
-// # Section: Monitoring
+// # Monitoring and Server Control
+//
+// The Monitoring section provides access to the CommuniGate Pro internal
+// statistics subsystem (SNMP-compatible). It enables real-time tracking of
+// server performance, resource utilization, and protocol-specific metrics.
+//
+// Key capabilities include:
+//   - Statistics Retrieval: Iterating through the hierarchical OID tree using
+//     [Cli.GetNextStatName] and [Cli.ListAllStats] to discover available metrics.
+//   - Value Inspection: Fetching current values for specific statistics elements
+//     (counters, gauges, or strings) via [Cli.GetStatElement].
+//   - Custom Metrics: Updating user-defined statistics elements using [Cli.SetStatElement]
+//     with "SET" or "INC" (increment) operations.
+//   - Signal Inspection: Retrieving detailed state information for active
+//     Signal Dialogs by their numeric identifiers.
+//   - Server Lifecycle: Gracefully initiating server termination via the [Cli.Shutdown] method.
+//
+// This section is vital for building health-check exporters (like Prometheus exporters),
+// automated scaling triggers, and administrative dashboards.
 package cgpcli
 
 import (

@@ -1,4 +1,24 @@
-// # Section: File Storage Administration
+// # File Storage Administration
+//
+// The Files section provides capabilities for managing the CommuniGate Pro File Storage
+// (Web-folder) content. It allows for direct manipulation of files and directories
+// within an account's storage area, supporting both binary data transfer and
+// metadata management.
+//
+// Key capabilities include:
+//   - File Operations: Reading, writing, renaming, and deleting files using
+//     streaming-friendly methods like [Cli.ReadStorageFile] and [Cli.WriteStorageFile].
+//   - Partial Access: Support for offsets and specific data sizes, enabling
+//     efficient processing of large files.
+//   - Metadata & Attributes: Retrieving storage statistics via [StorageFileInfo]
+//     and managing extended file attributes.
+//   - Access Control: The "AUTH" parameter in most methods allows administrators
+//     to perform operations on behalf of other accounts.
+//   - Subscriptions: Managing file-folder subscriptions for collaborative
+//     work and synchronization.
+//
+// Use these methods to build web-mail file attachments handlers, document
+// management systems, or automated backup solutions within CGP.
 package cgpcli
 
 import (
@@ -6,17 +26,17 @@ import (
 	"time"
 )
 
-// StorageFileInfo содержит статистику по количеству файлов и их общему объему.
+// StorageFileInfo represents cumulative statistics for a storage path.
 type StorageFileInfo struct {
-	TotalSize  int64
-	FilesCount int64
+	TotalSize  int64 // Total size in bytes of all files in the path.
+	FilesCount int64 // Total number of files in the path.
 }
 
-// StorageFileContent содержит сырые байты файла и метаданные.
+// StorageFileContent holds the raw data and metadata of a storage file.
 type StorageFileContent struct {
-	Data         []byte
-	ModifiedTime time.Time
-	CurrentSize  int64
+	Data         []byte    // Raw file content.
+	ModifiedTime time.Time // Last modification timestamp.
+	CurrentSize  int64     // Total size of the file on the server.
 }
 
 func (cli *Cli) DeleteStorageFile(account, file, authAccount string) (err error) {

@@ -1,4 +1,24 @@
-// # Section: Real-Time Application Administration
+// # Real-Time Application Administration
+//
+// The PBX section provides functionality for managing CommuniGate Pro
+// Real-Time Applications (RTA). It allows administrators to upload,
+// retrieve, and organize files for telephony services, automated
+// attendants, and custom signal-processing applications.
+//
+// Key capabilities include:
+//   - Multi-Level Management: Handling PBX files at different hierarchy
+//     levels: [Stock] (read-only system files), [Server], [Cluster],
+//     and [Domain].
+//   - File Operations: Storing, reading, and deleting RTA assets such
+//     as application scripts and localized media resources (audio prompts).
+//   - Localization Support: Managing national subsets of the RTA
+//     environment through language-specific directories.
+//   - Discovery: Listing available PBX files at various levels to
+//     inspect the current state of custom signaling logic.
+//
+// Use these methods to deploy custom IVR solutions, manage corporate
+// voice prompts, and automate the provisioning of telephony environments
+// across multiple domains.
 package cgpcli
 
 import (

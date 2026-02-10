@@ -1,4 +1,23 @@
-// # Section: Real-Time Application Control
+// # Real-Time Application Control
+//
+// The RTA Control section provides methods for managing the execution of
+// PBX (Real-Time Application) tasks. While the PBX section handles file
+// management, this section focuses on the runtime environment and
+// inter-process communication within the CommuniGate Pro Signal engine.
+//
+// Key capabilities include:
+//   - Task Lifecycle: Starting new PBX tasks for specific accounts using
+//     [Cli.StartPBXTask] with custom entry points and initial parameters.
+//   - Process Control: Monitoring the current status of running tasks and
+//     terminating them (killing nodes) when necessary.
+//   - Event Management: Sending asynchronous events to active tasks via
+//     [Cli.SendTaskEvent], enabling interaction between the CLI and
+//     running signal applications.
+//   - Task Identification: Each task is managed via a unique TaskID returned
+//     at startup, allowing precise control over concurrent applications.
+//
+// This section is vital for building complex telephony controllers,
+// external dialers, and real-time monitoring tools for VoIP services.
 package cgpcli
 
 import (

@@ -1,19 +1,36 @@
-// # Section: Directory Administration
+// # Directory Administration
+//
+// The Directory section provides functionality for managing CommuniGate Pro Directory
+// Units and their access control lists (ACLs). It enables integration with
+// LDAP-compatible data stores and manages the hierarchical structure of the
+// system-wide directory.
+//
+// Key capabilities include:
+//   - Unit Lifecycle: Creating, relocating, and deleting local or remote
+//     Directory Units with support for shared and mount-point configurations.
+//   - Access Control: Granular management of directory access rights via the
+//     [DirAccessRight] structure, including record-level and attribute-level permissions.
+//   - Search and Discovery: Listing and retrieving configuration details for
+//     individual directory units.
+//
+// Use these methods to synchronize account data, manage shared contacts,
+// and configure organizational units within the CommuniGate Pro environment.
 package cgpcli
 
 import (
 	"fmt"
 )
 
+// DirAccessRight defines a single rule for Directory Access Control.
 type DirAccessRight struct {
-	Name         string   // GUI: Name
-	Target       string   // GUI: Target (attribute or *)
-	BindDN       string   // GUI: Bind DN (subject)
-	Type         string   // GUI: Type (allow, prohibit, grant)
-	RecordRights []string // GUI: Record-Level Rights (create, delete)
-	SearchAttrs  []string // GUI: Attribute Searching
-	ReadAttrs    []string // GUI: Attribute Reading
-	ModifyAttrs  []string // GUI: Attribute Modifying
+	Name         string   // Unique name of the access rule.
+	Target       string   // Target attribute or "*" for all attributes.
+	BindDN       string   // Subject Distinguished Name (DN) this rule applies to.
+	Type         string   // Access type: "allow", "prohibit", or "grant".
+	RecordRights []string // Record-level permissions (e.g., "create", "delete").
+	SearchAttrs  []string // List of attributes allowed for searching.
+	ReadAttrs    []string // List of attributes allowed for reading.
+	ModifyAttrs  []string // List of attributes allowed for modification.
 }
 
 func (cli *Cli) CreateDirectoryUnit(unit, mountPoint string, shared, remote bool) error {

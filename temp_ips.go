@@ -1,3 +1,27 @@
+// # Temporary IP List Management
+//
+// The TempIP section provides advanced structures for handling transient IP
+// address lists in CommuniGate Pro. These lists are primarily used for
+// dynamic security measures, such as temporary blacklisting of failed login
+// attempts or short-term "unblockable" exceptions.
+//
+// Key capabilities include:
+//   - Structured Representation: The [TempIP] struct associates an IP address
+//     with its remaining time-to-live (TTL) or a permanent status flag.
+//   - Efficient Lookups: [TempIPList] uses a fixed-size [IPKey] ([16]byte)
+//     based map for O(1) IP address lookups, handling both IPv4 and IPv6 transparently.
+//   - Native Protocol Support: Implementation of [WriteCGP] ensures that the
+//     complex string format used by CGP CLI (e.g., "[1.2.3.4]-3600,[5.6.7.8]-*")
+//     is generated correctly.
+//   - Robust Parsing: Optimized parsing logic in [parseTempIPsToMap] that
+//     extracts IPs and their durations from raw protocol strings with
+//     minimal allocations.
+//   - Local Drafting: Methods like [TempIPList.Add] and [TempIPList.Delete]
+//     allow for building or modifying lists locally before committing
+//     them to the server.
+//
+// These structures are vital for building security orchestrators,
+// fail2ban-style integrators, and automated traffic controllers.
 package cgpcli
 
 import (

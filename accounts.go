@@ -1,4 +1,15 @@
-// # Section: Account Administration
+// # Account Administration
+//
+// The Accounts section provides comprehensive methods for managing CommuniGate Pro accounts
+// across their entire lifecycle. It supports core administrative tasks such as
+// creation, deletion, and renaming, as well as fine-grained configuration of
+// Settings (admin-level limits) and Preferences (user-level options).
+//
+// Key capabilities include:
+//   - Password management and identity verification.
+//   - Full support for Mail and Signal Rules.
+//   - Access control via ACLs and Rights management.
+//   - Alias and Telephony number (Telnums) configuration.
 package cgpcli
 
 import (
@@ -6,14 +17,26 @@ import (
 	"strings"
 )
 
+// AccountType represents the storage and management type of a CommuniGate Pro account.
 type AccountType int
 
 const (
+	// TypeDefault uses the default storage type defined for the Domain.
 	TypeDefault AccountType = iota
+
+	// MultiMailbox represents a standard multi-mailbox account.
 	MultiMailbox
+
+	// TextMailbox represents a legacy text-based single mailbox account.
 	TextMailbox
+
+	// MailDirMailbox represents an account using MailDir storage format.
 	MailDirMailbox
+
+	// SlicedMailbox represents an account using Sliced storage format.
 	SlicedMailbox
+
+	// AGrade, BGrade, CGrade, DGrade represent special account types
 	AGrade
 	BGrade
 	CGrade
@@ -32,6 +55,8 @@ func (t AccountType) String() string {
 	return accountTypeNames[t]
 }
 
+// CheckAccountPassword checks the password for the specified account.
+// Returns true if the password is correct.
 func (cli *Cli) CheckAccountPassword(account, password string) (bool, error) {
 	if password == "" {
 		return false, fmt.Errorf("password is required")

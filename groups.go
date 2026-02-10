@@ -1,14 +1,31 @@
-// # Section: Group Administration
+// # Group Administration
+//
+// The Groups section provides functionality for managing CommuniGate Pro groups.
+// Groups serve as versatile objects for mail distribution and signal routing.
+//
+// Key capabilities include:
+//   - Lifecycle Management: Creating, deleting, and renaming groups across
+//     the environment.
+//   - Membership & Configuration: Using [Cli.GetGroup] and [Cli.SetGroup] to manage
+//     both group-specific settings and the list of group members simultaneously.
+//   - Discovery: Listing all groups within a specific domain and checking
+//     for the existence of individual groups.
+//   - Unified Data Access: The [GroupResult] structure simplifies interaction
+//     by separating administrative settings from the member list.
+//
+// Use these methods to automate the management of distribution lists and
+// departmental communication channels.
 package cgpcli
 
 import (
 	"fmt"
 )
 
-// GroupResult объединяет настройки и список участников
+// GroupResult represents the combined data of a CommuniGate Pro group,
+// separating operational settings from the actual member list.
 type GroupResult struct {
-	Settings map[string]any
-	Members  []string
+	Settings map[string]any // Administrative settings and attributes of the group.
+	Members  []string       // List of addresses or object names belonging to the group.
 }
 
 // CreateGroup создает новую группу.

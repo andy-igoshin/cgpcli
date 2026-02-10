@@ -1,3 +1,25 @@
+// # Data Transformation and Field Registry
+//
+// The Registry section provides a high-level abstraction for data transformation
+// between CommuniGate Pro string-based protocol and Go native types. Since CGP
+// CLI often returns complex types (like "10M" for sizes or "10-02-2026_12:00:00"
+// for dates) as plain strings, this registry ensures consistent and
+// type-safe conversion.
+//
+// Key capabilities include:
+//   - Field Exceptions: A global map [FieldExceptions] that defines how specific
+//     keys (e.g., "Created", "MaxAccountSize") should be interpreted.
+//   - Specialized Parsers: Built-in logic for handling legacy date formats,
+//     storage quotas with suffixes (K, M, G), and time durations (s, m, h, never).
+//   - Networking Support: Automatic marshaling of IP addresses in square
+//     brackets (TypeIPSB) and comma-separated IP lists (TypeIPSBSA).
+//   - Extensibility: The [RegisterFieldType] function allows developers to
+//     add support for custom fields or override existing transformation rules.
+//   - Symmetric Transformation: Automatic handling of both [transformRead]
+//     (from CGP to Go) and [transformWrite] (from Go to CGP syntax).
+//
+// This registry is applied automatically during Query operations, making the
+// interaction with CGP feel like working with a strongly-typed Go application.
 package cgpcli
 
 import (
@@ -5,23 +27,49 @@ import (
 	"time"
 )
 
-// cgpInternalTimeLayout соответствует формату поля Created
+// cgpInternalTimeLayout defines the standard CommuniGate Pro date format.
 const cgpInternalTimeLayout = "02-01-2006_15:04:05"
 
+// FieldType represents a data transformation category.
+// It instructs the library how to map a specific field to a native Go type.
 type FieldType int
 
 const (
-	TypeAuto       FieldType = iota
-	TypeDateLegacy           // Формат Created (01-09-2024_17:55:37)
-	TypeDuration             // Интервалы (10s, 1m, never, immediately)
-	TypeIPList               // Список IP адресов
-	TypeIPSB                 // IP in Square Brackets [1.2.3.4] <-> net.IP
-	TypeIPSBSA               // Строка вида "[ip1], [ip2]" <-> []net.IP
-	TypeSize                 // Квоты и размеры (10K, 5M, unlimited)
-	TypeString               // Принудительное сохранение значения как строки
+	// TypeAuto relies on the parser's basic detection (Atoms, Numbers, Arrays).
+	TypeAuto FieldType = iota
+
+	// TypeDateLegacy represents the "DD-MM-YYYY_HH:MM:SS" format.
+	// Maps to: time.Time (UTC).
+	TypeDateLegacy
+
+	// TypeDuration represents time intervals (e.g., "10s", "1m", "never").
+	// Maps to: time.Duration.
+	TypeDuration
+
+	// TypeIPList represents IP address lists as formatted in the CGP WebAdmin UI
+	// (e.g., space-separated or multi-line address lists).
+	// Maps to: []net.IP.
+	TypeIPList
+
+	// TypeIPSB represents an IP address in square brackets [1.2.3.4].
+	// Maps to: net.IP.
+	TypeIPSB
+
+	// TypeIPSBSA represents a string of comma-separated square bracketed IPs: "[ip1],[ip2]".
+	// Maps to: []net.IP.
+	TypeIPSBSA
+
+	// TypeSize represents storage quotas with suffixes (e.g., "10K", "5M", "unlimited").
+	// Maps to: int64 (total bytes).
+	TypeSize
+
+	// TypeString forces the value to be treated as a raw string,
+	// bypassing any automatic numeric or boolean conversion.
+	TypeString
 )
 
-// FieldExceptions — глобальный реестр исключений типов.
+// FieldExceptions is the global registry of field-to-type mappings.
+// It contains predefined rules for core CommuniGate Pro fields.
 var FieldExceptions = map[string]FieldType{
 	// dateFields
 	"Created": TypeDateLegacy,
@@ -72,6 +120,8 @@ var FieldExceptions = map[string]FieldType{
 	"WAN6Address": TypeIPSB,
 }
 
+// RegisterFieldType adds or overrides a field mapping in the global registry.
+// Use this to support new CGP fields or change how existing fields are interpreted.
 func RegisterFieldType(name string, t FieldType) {
 	FieldExceptions[name] = t
 }

@@ -1,3 +1,24 @@
+// # Utilities
+//
+// The Utilities section provides developer-focused functions for data visualization
+// and debugging. When working with the CommuniGate Pro CLI, responses often
+// arrive as deeply nested structures of maps and slices; these utilities
+// simplify the inspection of such data.
+//
+// Key capabilities include:
+//   - Recursive Visualization: [PrettyPrint] allows for a clean, indented
+//     tree-view output of any data structure returned by the CLI.
+//   - Sorted Inspection: Maps are automatically sorted by key during output,
+//     ensuring consistent and predictable debugging sessions.
+//   - Type Metadata: Each value in the pretty-printed output is annotated
+//     with its Go type information, making it easier to map CLI responses
+//     to application logic.
+//   - Formatted Time: Date and time objects are rendered in a human-readable
+//     format, bypassing the default verbose [time.Time] representation.
+//
+// These functions are intended for use during the development and
+// troubleshooting phases to verify the integrity of data received
+// from the server.
 package cgpcli
 
 import (

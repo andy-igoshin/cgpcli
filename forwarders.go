@@ -1,4 +1,18 @@
-// # Section: Forwarder Administration
+// # Forwarder Administration
+//
+// The Forwarders section provides methods for managing standalone mail redirection
+// objects within CommuniGate Pro. Unlike account-level rules, Forwarders act as
+// dedicated routing entities that redirect incoming messages to target address.
+//
+// Key capabilities include:
+//   - Lifecycle Management: Creating, renaming, and deleting forwarders.
+//   - Discovery: Listing all forwarders in a domain or performing reverse
+//     lookups with [Cli.FindForwarders] to identify which objects point
+//     to a specific target address.
+//   - Inspection: Retrieving the target address of a specific forwarder.
+//
+// This section is particularly useful for managing system-wide redirections
+// and migrating legacy mail aliases to dedicated routing objects.
 package cgpcli
 
 import (

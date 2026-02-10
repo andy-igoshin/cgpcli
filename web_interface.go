@@ -1,4 +1,25 @@
-// # Section: Web Interface Integration
+// # Web Interface Integration
+//
+// The Web Interface section provides methods for managing user sessions across
+// various CommuniGate Pro protocols, including WebUser, XIMSS, and Lite sessions.
+// These methods are essential for building custom web portals, implementing
+// Single Sign-On (SSO), and managing active connections.
+//
+// Key capabilities include:
+//   - Session Creation: Programmatically initiating WebUser, XIMSS, or Lite
+//     sessions for accounts via [Cli.CreateWebUserSession] and related methods.
+//   - Multi-Factor Authentication: Supporting the 2FA flow by finalizing
+//     authentication steps with [Cli.BlessSession].
+//   - Session Discovery & Inspection: Locating active sessions by IP address,
+//     protocol, or client type using [Cli.FindAccountSession] and [Cli.GetSession].
+//   - Resource Management: Handling session-bound file uploads and storage
+//     via [Cli.StoreSessionFile], supporting various offsets for partial data.
+//   - Lifecycle Control: Terminating specific sessions with [Cli.KillSession]
+//     or updating session-specific metadata with [Cli.UpdateSession].
+//
+// Use these methods to integrate external web applications with the CGP
+// authentication engine or to build administrative dashboards for
+// monitoring real-time user activity.
 package cgpcli
 
 import (

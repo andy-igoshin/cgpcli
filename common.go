@@ -1,3 +1,21 @@
+// # CLI Access
+//
+// The CLI Access section implements the core transport and session management for
+// CommuniGate Pro. It handles the low-level communication protocol, ensuring
+// reliable and secure data exchange between the Go application and the CGP Server.
+//
+// Key features include:
+//   - Session Lifecycle: Automatic connection establishment, authentication,
+//     and graceful termination via [Cli.Close].
+//   - Persistence: Transparent re-connection logic if the session exceeds
+//     the server's idle timeout (approx. 5 minutes).
+//   - Security: Support for standard [Plain] login, MD5-based [APOP], and [WebUser]
+//     authentication, with optional TLS (STARTTLS) encryption.
+//   - Efficiency: Mandatory use of CGP "INLINE" mode, which, combined with
+//     the library's custom parser, ensures high-performance data processing.
+//
+// For most administrative tasks, use the [Cli.Query] or [Cli.QueryNV] methods,
+// as they handle command marshaling and response unmarshaling automatically.
 package cgpcli
 
 import (
@@ -12,11 +30,17 @@ import (
 	"time"
 )
 
+// Secure defines the authentication method used for the CGP CLI session.
 type Secure int
 
 const (
+	// Plain represents standard USER/PASS authentication.
 	Plain Secure = iota
+
+	// APOP represents Authenticated Post Office Protocol (MD5-based) security.
 	APOP
+
+	// WebUser represents authentication for web-specific users.
 	WebUser
 )
 
@@ -33,12 +57,13 @@ const (
 	connTimeout = 7 * time.Second
 )
 
+// CliCode represents a numeric response status from the CGP server.
 type CliCode int
 
 const (
 	CodeOk       CliCode = 200
 	CodeOkInline         = 201
-	CodePassword         = 300
+	CodePassword         = 300 // Server expects a password
 	CodeGenErr           = 500
 	CodeGenErr1          = 501
 	CodeGenErr12         = 512
@@ -49,6 +74,9 @@ const (
 
 const defaultPort = "106"
 
+// Cli represents a CommuniGate Pro CLI client session.
+// It handles connection persistence, automatic reconnection, and command marshaling.
+// Use New() to initialize a session.
 type Cli struct {
 	host        string
 	login       string
@@ -66,18 +94,7 @@ type Cli struct {
 	respData    []byte
 }
 
-func (cli *Cli) GetRespCode() CliCode {
-	return cli.respCode
-}
-
-func (cli *Cli) GetRespData() string {
-	return string(cli.respData)
-}
-
-func (cli *Cli) IsSuccess() bool {
-	return (cli.respCode == CodeOk || cli.respCode == CodeOkInline)
-}
-
+// Close gracefully terminates the CGP session.
 func (cli *Cli) Close() (err error) {
 	if cli.conn == nil {
 		return nil
@@ -95,10 +112,26 @@ func (cli *Cli) Close() (err error) {
 	return
 }
 
+func (cli *Cli) GetRespCode() CliCode {
+	return cli.respCode
+}
+
+func (cli *Cli) GetRespData() string {
+	return string(cli.respData)
+}
+
+// IsSuccess returns true if the last response code indicates success (200 or 201).
+func (cli *Cli) IsSuccess() bool {
+	return (cli.respCode == CodeOk || cli.respCode == CodeOkInline)
+}
+
 func (cli *Cli) Logout() error {
 	return cli.Close()
 }
 
+// New creates and initializes a new CommuniGate Pro CLI session.
+// It establishes a connection, performs authentication, and sets the session
+// to INLINE mode for efficient data exchange.
 func New(host, login, password string, secure Secure, tls bool) (cli *Cli, err error) {
 
 	cli = new(Cli)
@@ -114,6 +147,7 @@ func New(host, login, password string, secure Secure, tls bool) (cli *Cli, err e
 	return
 }
 
+// SetDebug enables or disables raw protocol logging to os.Stderr.
 func (cli *Cli) SetDebug(debug bool) {
 	cli.debug = debug
 }
@@ -331,6 +365,13 @@ func (cli *Cli) parseResponse() (err error) {
 	return nil
 }
 
+// Query sends a command to CGP and unmarshals the response into a Go type.
+// It automatically handles connection health and session state.
+//
+// Example:
+//
+//	var settings map[string]any
+//	res, err := cli.Query("GETACCOUNTSETTINGS", "postmaster@example.com")
 func (cli *Cli) Query(cmd string, args ...any) (res any, err error) {
 	if err = cli.Send(cmd, args...); err != nil {
 		return
@@ -347,6 +388,8 @@ func (cli *Cli) Query(cmd string, args ...any) (res any, err error) {
 	return
 }
 
+// QueryNV (No Value) sends a command where only the success status code is needed.
+// It is useful for commands like "UPDATEACCOUNT".
 func (cli *Cli) QueryNV(cmd string, args ...any) (err error) {
 	if err = cli.Send(cmd, args...); err != nil {
 		return
@@ -360,6 +403,8 @@ func (cli *Cli) QueryNV(cmd string, args ...any) (err error) {
 	return
 }
 
+// Send marshals and sends a raw command to the CGP server.
+// Most users should use Query or QueryNV instead.
 func (cli *Cli) Send(cmd string, args ...any) (err error) {
 	if time.Since(cli.lastAccess) > cgpTimeout || cli.conn == nil {
 		cli.close()

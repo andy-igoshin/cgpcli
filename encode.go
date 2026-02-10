@@ -1,3 +1,27 @@
+// # Data Serialization (Encoder)
+//
+// The Encoding section provides methods for converting Go data structures into
+// the CommuniGate Pro CLI protocol format. It ensures that all commands,
+// keywords, and settings are formatted correctly according to the server's
+// unique grammar rules.
+//
+// Key capabilities include:
+//   - Smart String Quoting: Automatically determines if a string is "safe"
+//     to send as an unquoted token or if it requires escaping and double quotes.
+//   - Unit Transformation: Converts numeric values into CGP size units
+//     (K, M, G, T) and durations into time units (s, m, h, d) automatically
+//     based on the context (key name).
+//   - Native Binary Support: Efficiently encodes byte slices into
+//     Base64-wrapped [data blocks] required by the server for file transfers
+//     and certificates.
+//   - Temporal Handling: Maps Go's [time.Time] to CGP's #T, #TPAST, and
+//     #TFUTURE syntax, specifically managing the UTC offset to match the
+//     server's internal time representation.
+//   - Recursive Structures: Deep serialization of maps ({...}) and
+//     slices ((...)) with support for nested custom types.
+//
+// This encoder is the core communication bridge, responsible for
+// constructing every command and data structure sent to the server.
 package cgpcli
 
 import (
@@ -107,10 +131,29 @@ func formatCGPSize(v int64) string {
 	return strconv.FormatInt(v, 10)
 }
 
+// MarshalTo serializes v directly into a buffered writer. This is the
+// preferred method for high-performance operations or large data sets
+// to avoid intermediate string allocations.
+//
+// Parameters:
+//   - w: A pointer to a *bufio.Writer where the serialized data will be written.
+//   - v: The data structure to be serialized.
+//
+// Returns:
+//   - An error if writing to the buffer fails or if the data is invalid.
 func MarshalTo(w *bufio.Writer, v any) error {
 	return marshal(w, v, "")
 }
 
+// MarshalToString returns the CGP-formatted string representation of v.
+//
+// Parameters:
+//   - v: The data to be serialized. Can be any basic Go type (string, int,
+//     bool, time.Time), a map[string]any, or a slice.
+//
+// Returns:
+//   - A string ready to be sent to the CGP CLI.
+//   - An error if the data structure contains types that cannot be serialized.
 func MarshalToString(v any) (string, error) {
 	var b bytes.Buffer
 	err := marshal(&b, v, "")

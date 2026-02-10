@@ -1,4 +1,25 @@
-// # Section: Web Skins Administration
+// # Web Skins Administration
+//
+// The Web Skins section provides comprehensive management for CommuniGate Pro
+// WebUser interface customizations. It allows developers to manipulate
+// skins at three distinct hierarchy levels: Server, Cluster, and Domain.
+//
+// Key capabilities include:
+//   - Hierarchy Management: Creating, renaming, and deleting custom skins
+//     at different scopes (Server, Cluster, or Domain-specific).
+//   - File Operations: Full CRUD support for individual skin files,
+//     enabling programmatic updates to HTML templates, CSS, and images via
+//     [Cli.StoreServerSkinFile] and related methods.
+//   - Stock Skin Access: Ability to read and list files from built-in
+//     "stock" skins provided by the server for reference or inheritance.
+//   - Metadata Tracking: Retrieving file content along with its modification
+//     timestamp ([time.Time]) for efficient caching and synchronization.
+//   - Discovery: Listing available skins and inspecting their file contents
+//     at each hierarchy level.
+//
+// These methods are vital for building white-label solutions, automating
+// brand deployment across multiple domains, and maintaining UI
+// consistency in large clusters.
 package cgpcli
 
 import (

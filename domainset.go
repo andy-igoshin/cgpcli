@@ -1,4 +1,22 @@
-// # Section: Domain Set Administration
+// # Domain Set Administration
+//
+// The Domain Set section provides functionality for global configuration and
+// high-level management of the CommuniGate Pro environment. It handles operations
+// that affect the entire server or cluster, rather than specific individual domains.
+//
+// Key capabilities include:
+//   - Domain Lifecycle: Creating and deleting domains (including [Directory Domains]),
+//     renaming, and managing physical storage mount points.
+//   - Cluster-Wide Defaults: Managing [Cluster Domain Defaults], [Account Defaults],
+//     and [Preferences] that synchronize across all cluster nodes.
+//   - Server-Wide Defaults: Configuring default settings and preferences used for
+//     newly created objects at the single-server level.
+//   - Security: Managing [Trusted Certificates] (CA lists) for both Cluster and Server levels.
+//   - Integration: Configuring system-wide [Directory Integration] settings and
+//     global telephony number (Telnums).
+//
+// Use these methods to maintain consistency across large-scale deployments and
+// manage the infrastructure upon which individual domains reside.
 package cgpcli
 
 import (

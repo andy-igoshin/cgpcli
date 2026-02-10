@@ -1,10 +1,29 @@
-// # Section: Domain Administration
+// # Domain Administration
+//
+// The Domains section provides extensive functionality for managing CommuniGate Pro
+// domains and their internal objects. It handles the domain lifecycle, inheritance
+// of settings, and mass-object discovery.
+//
+// Key capabilities include:
+//   - Configuration Management: Handling [Domain Settings], [Effective Settings],
+//     and Domain-level [Aliases].
+//   - Inheritance Control: Managing [Account Defaults] and [Account Templates],
+//     which dictate the initial state of new accounts within the domain.
+//   - Object Discovery: Using [Cli.ListDomainObjects] to efficiently search and
+//     categorize accounts, aliases, and forwarders using filters and cookies for pagination.
+//   - Operational State: Suspending, resuming, and locating domain storage paths.
+//   - Rules & Directory: Managing Domain-level Mail/Signal rules and synchronizing
+//     data with the Directory Service.
+//
+// This section is vital for multi-tenant environments where administrators need
+// to enforce domain-wide policies and manage large sets of objects.
 package cgpcli
 
 import (
 	"fmt"
 )
 
+// ObjectType defines the bitmask for filtering domain objects (accounts, aliases, forwarders).
 type ObjectType int
 
 const (
@@ -14,6 +33,8 @@ const (
 	TypeAll = TypeAccount | TypeAlias | TypeForwarder
 )
 
+// DomainObject represents a generic object within a domain,
+// holding its name, type, and associated targets (for aliases and forwarders).
 type DomainObject struct {
 	Name    string
 	Type    ObjectType
@@ -21,6 +42,8 @@ type DomainObject struct {
 	Targets []string
 }
 
+// DomainObjectsResult contains a batch of domain objects and a cookie
+// for paginated retrieval.
 type DomainObjectsResult struct {
 	Objects map[string]DomainObject
 	Cookie  string
