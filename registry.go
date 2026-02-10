@@ -120,7 +120,7 @@ var FieldExceptions = map[string]FieldType{
 	"WAN6Address": TypeIPSB,
 }
 
-// RegisterFieldType adds or overrides a field mapping in the global registry.
+// RegisterFieldType adds or overrides a field mapping in the global registry [FieldExceptions].
 // Use this to support new CGP fields or change how existing fields are interpreted.
 func RegisterFieldType(name string, t FieldType) {
 	FieldExceptions[name] = t
