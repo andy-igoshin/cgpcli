@@ -2,7 +2,7 @@
 //
 // The CLI Access section implements the core transport and session management for
 // CommuniGate Pro. It handles the low-level communication protocol, ensuring
-// reliable and secure data exchange between the Go application and the CGP Server.
+// reliable and secure data exchange between the Go application and the CommuniGate Pro CLI.
 //
 // Key features include:
 //   - Session Lifecycle: Automatic connection establishment, authentication,
@@ -11,7 +11,7 @@
 //     the server's idle timeout (approx. 5 minutes).
 //   - Security: Support for standard [Plain] login, MD5-based [APOP], and [WebUser]
 //     authentication, with optional TLS (STARTTLS) encryption.
-//   - Efficiency: Mandatory use of CGP "INLINE" mode, which, combined with
+//   - Efficiency: Mandatory use of CommuniGate Pro CLI "INLINE" mode, which, combined with
 //     the library's custom parser, ensures high-performance data processing.
 //
 // For most administrative tasks, use the [Cli.Query] or [Cli.QueryNV] methods,
@@ -30,7 +30,7 @@ import (
 	"time"
 )
 
-// Secure defines the authentication method used for the CGP CLI session.
+// Secure defines the authentication method used for the CommuniGate Pro CLI session.
 type Secure int
 
 const (
@@ -57,7 +57,7 @@ const (
 	connTimeout = 7 * time.Second
 )
 
-// CliCode represents a numeric response status from the CGP server.
+// CliCode represents a numeric response status from the CommuniGate Pro server.
 type CliCode int
 
 const (
@@ -94,7 +94,7 @@ type Cli struct {
 	respData    []byte
 }
 
-// Close gracefully terminates the CGP session.
+// Close gracefully terminates the CommuniGate Pro CLI session.
 func (cli *Cli) Close() (err error) {
 	if cli.conn == nil {
 		return nil
@@ -145,6 +145,81 @@ func New(host, login, password string, secure Secure, tls bool) (cli *Cli, err e
 	err = cli.connect()
 
 	return
+}
+
+// Query sends a command to CommuniGate Pro CLI and unmarshals the response into a Go type.
+// It automatically handles connection health and session state.
+//
+// Example:
+//
+//	var settings map[string]any
+//	res, err := cli.Query("GETACCOUNTSETTINGS", "postmaster@example.com")
+func (cli *Cli) Query(cmd string, args ...any) (res any, err error) {
+	if err = cli.Send(cmd, args...); err != nil {
+		return
+	}
+	if err = cli.parseResponse(); err != nil {
+		return
+	}
+	if !cli.IsSuccess() {
+		err = fmt.Errorf("CGP Error %d: %s", cli.respCode, string(cli.respData))
+		return
+	}
+
+	err = Unmarshal(cli.respData, &res)
+	return
+}
+
+// QueryNV (No Value) sends a command where only the success status code is needed.
+// It is useful for commands like "UPDATEACCOUNT".
+func (cli *Cli) QueryNV(cmd string, args ...any) (err error) {
+	if err = cli.Send(cmd, args...); err != nil {
+		return
+	}
+	if err = cli.parseResponse(); err != nil {
+		return
+	}
+	if !cli.IsSuccess() {
+		err = fmt.Errorf("CGP Error %d: %s", cli.respCode, string(cli.respData))
+	}
+	return
+}
+
+// Send marshals and sends a raw command to the CommuniGate Pro CLI.
+// Most users should use Query or QueryNV instead.
+func (cli *Cli) Send(cmd string, args ...any) (err error) {
+	if time.Since(cli.lastAccess) > cgpTimeout || cli.conn == nil {
+		cli.close()
+		if err = cli.connect(); err != nil {
+			return
+		}
+	}
+
+	cli.lastAccess = time.Now()
+	cli.conn.SetWriteDeadline(time.Now().Add(cmdTimeout))
+	cli.buf.Reset()
+
+	cli.buf.WriteString(cmd)
+
+	for _, arg := range args {
+		cli.buf.WriteByte(' ')
+		if err = marshal(&cli.buf, arg, ""); err != nil {
+			return
+		}
+	}
+	cli.buf.WriteByte('\n')
+
+	if cli.debug {
+		os.Stderr.Write([]byte(">>> SEND: "))
+		os.Stderr.Write(cli.buf.Bytes())
+	}
+
+	_, err = cli.writer.Write(cli.buf.Bytes())
+	if err != nil {
+		return
+	}
+
+	return cli.writer.Flush()
 }
 
 // SetDebug enables or disables raw protocol logging to os.Stderr.
@@ -363,79 +438,4 @@ func (cli *Cli) parseResponse() (err error) {
 	cli.lastAccess = time.Now()
 
 	return nil
-}
-
-// Query sends a command to CGP and unmarshals the response into a Go type.
-// It automatically handles connection health and session state.
-//
-// Example:
-//
-//	var settings map[string]any
-//	res, err := cli.Query("GETACCOUNTSETTINGS", "postmaster@example.com")
-func (cli *Cli) Query(cmd string, args ...any) (res any, err error) {
-	if err = cli.Send(cmd, args...); err != nil {
-		return
-	}
-	if err = cli.parseResponse(); err != nil {
-		return
-	}
-	if !cli.IsSuccess() {
-		err = fmt.Errorf("CGP Error %d: %s", cli.respCode, string(cli.respData))
-		return
-	}
-
-	err = Unmarshal(cli.respData, &res)
-	return
-}
-
-// QueryNV (No Value) sends a command where only the success status code is needed.
-// It is useful for commands like "UPDATEACCOUNT".
-func (cli *Cli) QueryNV(cmd string, args ...any) (err error) {
-	if err = cli.Send(cmd, args...); err != nil {
-		return
-	}
-	if err = cli.parseResponse(); err != nil {
-		return
-	}
-	if !cli.IsSuccess() {
-		err = fmt.Errorf("CGP Error %d: %s", cli.respCode, string(cli.respData))
-	}
-	return
-}
-
-// Send marshals and sends a raw command to the CGP server.
-// Most users should use Query or QueryNV instead.
-func (cli *Cli) Send(cmd string, args ...any) (err error) {
-	if time.Since(cli.lastAccess) > cgpTimeout || cli.conn == nil {
-		cli.close()
-		if err = cli.connect(); err != nil {
-			return
-		}
-	}
-
-	cli.lastAccess = time.Now()
-	cli.conn.SetWriteDeadline(time.Now().Add(cmdTimeout))
-	cli.buf.Reset()
-
-	cli.buf.WriteString(cmd)
-
-	for _, arg := range args {
-		cli.buf.WriteByte(' ')
-		if err = marshal(&cli.buf, arg, ""); err != nil {
-			return
-		}
-	}
-	cli.buf.WriteByte('\n')
-
-	if cli.debug {
-		os.Stderr.Write([]byte(">>> SEND: "))
-		os.Stderr.Write(cli.buf.Bytes())
-	}
-
-	_, err = cli.writer.Write(cli.buf.Bytes())
-	if err != nil {
-		return
-	}
-
-	return cli.writer.Flush()
 }
