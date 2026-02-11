@@ -21,9 +21,9 @@ For production applications, we recommend writing **thin wrappers** over the lib
 The library provides two levels of debugging to simplify development and troubleshooting:
 
 * **Type Inspection:** The `PrettyPrint` function prints the structure of returned data to `stdout`. It highlights the Go types assigned to each value, clearly showing how the parser interpreted the CGP data.
-* **Protocol Logging:** By calling `cli.SetDebug(true)`, you can enable raw protocol printing. This allows you to see the exact strings being exchanged with the CommuniGate Pro CLI, which is essential for diagnosing low-level communication issues.
+* **Protocol Logging:** By calling `cli.SetDebug(true)`, you can enable raw protocol printing to `stderr`. This allows you to see the exact strings being exchanged with the CommuniGate Pro CLI, which is essential for diagnosing low-level communication issues.
 
-## Performance & Design
+## Performance and Design
 
 * **Efficient Encoding:** The marshaling engine avoids unnecessary heap allocations and uses a specialized `writeInt64` implementation for maximum throughput.
 * **Predictable Memory Usage:** Designed with careful resource management, avoiding unwarranted use of reflection and the `fmt` package in hot paths.
