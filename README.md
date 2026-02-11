@@ -16,8 +16,6 @@ The library uses `map[string]any` as the primary container for CGP data structur
 
 For production applications, we recommend writing **thin wrappers** over the library's maps. Since a typical application only needs a fraction of the available keys, this approach ensures strict typing and clean code without the overhead of maintaining massive struct definitions.
 
-> **Note:** Reflect-based struct mapping is planned for future updates to support interactive tools where development speed is prioritized over peak performance.
-
 ## Debugging
 
 The library provides two levels of debugging to simplify development and troubleshooting:
