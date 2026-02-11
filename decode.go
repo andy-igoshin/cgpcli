@@ -16,7 +16,7 @@
 //     constants (#TPAST, #TFUTURE).
 //   - Structural Mapping: Handles recursive dictionaries ({...}),
 //     arrays ((...)), and even embedded XML or tagged objects.
-//   - Type Transformation: Automatically converts CGP strings like "10M" or
+//   - Type Transformation: Automatically converts CommuniGate Pro CLI strings like "10M" or
 //     "1h" into meaningful numeric bytes or [time.Duration] values via
 //     internal helper functions.
 //
@@ -105,7 +105,7 @@ func (d *decodeState) skipSpaces() {
 // value pointed to by v.
 //
 // Parameters:
-//   - data: A byte slice containing the raw response from the CGP CLI.
+//   - data: A byte slice containing the raw response from the CommuniGate Pro CLI.
 //     This can be a simple word, a dictionary, an array or a complex nested types.
 //   - v: A non-nil pointer to the destination variable. If v is a pointer
 //     to an interface{}, Unmarshal will populate it with map[string]any,

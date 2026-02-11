@@ -1,7 +1,7 @@
 // # Data Transformation and Field Registry
 //
 // The Registry section provides a high-level abstraction for data transformation
-// between CommuniGate Pro string-based protocol and Go native types. Since CGP
+// between CommuniGate Pro string-based protocol and Go native types. Since CommuniGate Pro
 // CLI often returns complex types (like "10M" for sizes or "10-02-2026_12:00:00"
 // for dates) as plain strings, this registry ensures consistent and
 // type-safe conversion.
@@ -19,7 +19,7 @@
 //     (from CGP to Go) and [transformWrite] (from Go to CGP syntax).
 //
 // This registry is applied automatically during Query operations, making the
-// interaction with CGP feel like working with a strongly-typed Go application.
+// interaction with CommuniGate Pro feel like working with a strongly-typed Go application.
 package cgpcli
 
 import (
@@ -46,9 +46,9 @@ const (
 	// Maps to: time.Duration.
 	TypeDuration
 
-	// TypeIPList represents IP address lists as formatted in the CGP WebAdmin UI
-	// (e.g., space-separated or multi-line address lists).
-	// Maps to: []net.IP.
+	// TypeIPList represents IP address lists as formatted in the CommuniGate Pro WebAdmin UI
+	// (e.g., space-separated or multi-line addresses lists).
+	// Maps to: IPList.
 	TypeIPList
 
 	// TypeIPSB represents an IP address in square brackets [1.2.3.4].
@@ -121,7 +121,7 @@ var FieldExceptions = map[string]FieldType{
 }
 
 // RegisterFieldType adds or overrides a field mapping in the global registry [FieldExceptions].
-// Use this to support new CGP fields or change how existing fields are interpreted.
+// Use this to support new CommuniGate Pro fields or change how existing fields are interpreted.
 func RegisterFieldType(name string, t FieldType) {
 	FieldExceptions[name] = t
 }
@@ -165,7 +165,7 @@ func transformRead(key string, val any) any {
 	return val
 }
 
-// transformWrite подготавливает объект Go к маршалингу в синтаксис CGP.
+// transformWrite подготавливает объект Go к маршалингу в синтаксис CommuniGate Pro.
 func transformWrite(key string, v any) any {
 	fType, exists := FieldExceptions[key]
 	if !exists {

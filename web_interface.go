@@ -17,7 +17,7 @@
 //   - Lifecycle Control: Terminating specific sessions with [Cli.KillSession]
 //     or updating session-specific metadata with [Cli.UpdateSession].
 //
-// Use these methods to integrate external web applications with the CGP
+// Use these methods to integrate external web applications with the CommuniGate Pro
 // authentication engine or to build administrative dashboards for
 // monitoring real-time user activity.
 package cgpcli

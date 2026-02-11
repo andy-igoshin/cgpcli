@@ -2,7 +2,7 @@
 //
 // The IP List section provides specialized types and methods for handling CommuniGate Pro
 // Network Lists (Client IP addresses, Blacklists, etc.). It implements the unique
-// CGP format that allows for mixed IP addresses, CIDR masks, ranges, and sequences
+// CommuniGate Pro format that allows for mixed IP addresses, CIDR masks, ranges, and sequences
 // within a single list, including support for negative (exclusion) rules and comments.
 //
 // Key capabilities include:
@@ -13,7 +13,7 @@
 //   - IP Matching: The [IPList.Contains] method allows for high-performance
 //     checks to determine if a specific net.IP is matched by any rule in the list.
 //   - Format Preservation: Methods for parsing and writing lists while maintaining
-//     comment alignment and special character encoding required by the CGP CLI.
+//     comment alignment and special character encoding required by the CommuniGate Pro CLI.
 //
 // This section is essential for managing security settings, relay permissions,
 // and access control lists based on network topology.
@@ -29,7 +29,7 @@ import (
 
 type IPCIDR struct{ net.IPNet }
 
-// IPEntry represents a single line in a CGP IP List, including the value,
+// IPEntry represents a single line in a CommuniGate Pro IP List, including the value,
 // optional comment, and whether it is an exclusion rule.
 type IPEntry struct {
 	Comment    string // Human-readable comment after the semicolon.

@@ -7,7 +7,7 @@
 // Key capabilities include:
 //   - Privilege Management: Using [Cli.SetAccountRights] to define a specific set
 //     of administrative permissions for any given account.
-//   - Granular Control: Assigning predefined CGP rights such as "CanModifySettings",
+//   - Granular Control: Assigning predefined CommuniGate Pro rights such as "CanModifySettings",
 //     "CanCreateAccounts", or "CanManageQueues".
 //
 // Use these methods to automate the provisioning of delegated administration

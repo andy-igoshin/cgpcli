@@ -18,7 +18,7 @@
 //     work and synchronization.
 //
 // Use these methods to build web-mail file attachments handlers, document
-// management systems, or automated backup solutions within CGP.
+// management systems, or automated backup solutions within CommuniGate Pro.
 package cgpcli
 
 import (

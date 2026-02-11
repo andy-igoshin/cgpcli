@@ -9,7 +9,7 @@
 //   - Immediate Execution: Using [Cli.RunScript] to trigger a specific program
 //     and entry point within the context of an account.
 //   - Data Exchange: Passing complex parameters via a map and receiving
-//     structured results (any type supported by CGP CLI) back into the Go application.
+//     structured results (any type supported by CommuniGate Pro CLI) back into the Go application.
 //   - Contextual Execution: Scripts run within the environment of a specified
 //     account, respecting its settings and storage access.
 //

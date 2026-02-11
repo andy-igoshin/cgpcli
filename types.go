@@ -19,7 +19,7 @@
 //     ([OffsetBeg], [OffsetEnd], [OffsetNew]).
 //
 // These types are used throughout the library to maintain strict compliance
-// with the CGP data model while providing a developer-friendly API.
+// with the CommuniGate Pro data model while providing a developer-friendly API.
 package cgpcli
 
 import (
@@ -43,7 +43,7 @@ type Atom string
 // уже закодированы в Base64.
 type DataBlock []byte
 
-// CGPIP представляет специфический для CGP тип данных IP Address (#I).
+// CGPIP представляет специфический для CGP тип данных IP Address.
 // Формат в протоколе: #I[address] или #I[address]:port
 type CGPIP struct {
 	IP   net.IP

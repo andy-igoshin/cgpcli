@@ -7,7 +7,7 @@
 //
 // Key capabilities include:
 //   - Ordered Management: [RouterList] ensures that the strict top-to-bottom
-//     evaluation order of CGP routing rules is preserved during manipulation.
+//     evaluation order of CommuniGate Pro routing rules is preserved during manipulation.
 //   - Pattern-Based Insertion: Methods like [RouterList.InsertBefore] and
 //     [RouterList.InsertAfter] allow for precise rule placement without
 //     overwriting the entire table manually.
@@ -26,7 +26,7 @@ import (
 	"strings"
 )
 
-// RouterEntry represents a single line in the CGP Routing Table.
+// RouterEntry represents a single line in the CommuniGate Pro Routing Table.
 type RouterEntry struct {
 	Rule    string // The routing rule (e.g., "<*@domain.com> = user@other.com").
 	Comment string // Optional text after the semicolon.

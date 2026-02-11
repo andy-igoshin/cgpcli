@@ -20,7 +20,7 @@
 //
 // Use these methods to build automated configuration auditors,
 // disaster recovery scripts, or centralized management consoles for
-// large-scale CGP deployments.
+// large-scale CommuniGate Pro deployments.
 package cgpcli
 
 import (

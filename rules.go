@@ -11,7 +11,7 @@
 //     rules, where the library transparently manages delays and event codes
 //     (e.g., Error, Busy, No Answer).
 //   - Flexible Conditions & Actions: Rules are represented as structured
-//     slices, allowing for complex nested logic as defined in CGP.
+//     slices, allowing for complex nested logic as defined in CommuniGate Pro.
 //   - Generics-Powered Operations: Unified internal logic for setting and
 //     updating rules using Go Generics to ensure type safety across
 //     different rule levels.

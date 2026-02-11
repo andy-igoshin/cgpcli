@@ -8,7 +8,7 @@
 // Key capabilities include:
 //   - Smart String Quoting: Automatically determines if a string is "safe"
 //     to send as an unquoted token or if it requires escaping and double quotes.
-//   - Unit Transformation: Converts numeric values into CGP size units
+//   - Unit Transformation: Converts numeric values into CommuniGate Pro CLI size units
 //     (K, M, G, T) and durations into time units (s, m, h, d) automatically
 //     based on the context (key name).
 //   - Native Binary Support: Efficiently encodes byte slices into
@@ -132,7 +132,7 @@ func formatCGPSize(v int64) string {
 }
 
 // MarshalTo serializes v directly into a buffered writer. This is the
-// preferred method for high-performance operations or large data sets
+// preferred function for high-performance operations or large data sets
 // to avoid intermediate string allocations.
 //
 // Parameters:
@@ -152,7 +152,7 @@ func MarshalTo(w *bufio.Writer, v any) error {
 //     bool, time.Time), a map[string]any, or a slice.
 //
 // Returns:
-//   - A string ready to be sent to the CGP CLI.
+//   - A string ready to be sent to the CommuniGate Pro CLI.
 //   - An error if the data structure contains types that cannot be serialized.
 func MarshalToString(v any) (string, error) {
 	var b bytes.Buffer
