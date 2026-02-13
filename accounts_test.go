@@ -123,7 +123,7 @@ func TestAccountPasswords(t *testing.T) {
 		if err := cli.SetAccountPassword(testAcc, testPass, "", "", true); err != nil {
 			t.Fatalf("SetAccountPassword failed: %v", err)
 		}
-		if err := cli.VerifyAccountPassword(testAcc, testPass); err != nil {
+		if _, err := cli.VerifyAccountPassword(testAcc, testPass); err != nil {
 			t.Errorf("VerifyAccountPassword failed: %v", err)
 		}
 	})
