@@ -4,7 +4,7 @@
 // CommuniGate Pro. It handles the low-level communication protocol, ensuring
 // reliable and secure data exchange between the Go application and the CommuniGate Pro CLI.
 //
-// Key features include:
+// Key capabilities include:
 //   - Session Lifecycle: Automatic connection establishment, authentication,
 //     and graceful termination via [Cli.Close].
 //   - Persistence: Transparent re-connection logic if the session exceeds
@@ -13,9 +13,6 @@
 //     authentication, with optional TLS (STARTTLS) encryption.
 //   - Efficiency: Mandatory use of CommuniGate Pro CLI "INLINE" mode, which, combined with
 //     the library's custom parser, ensures high-performance data processing.
-//
-// For most administrative tasks, use the [Cli.Query] or [Cli.QueryNV] methods,
-// as they handle command marshaling and response unmarshaling automatically.
 package cgpcli
 
 import (
