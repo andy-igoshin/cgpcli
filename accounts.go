@@ -895,9 +895,10 @@ func (cli *Cli) SetAccountAccessModes(account string, modes []string) error {
 //   - aliases: A slice of strings containing the new Account alias names.
 //
 // Behavior:
-//   This is an "all-or-nothing" operation. All existing aliases for the
-//   Account are removed and replaced with the ones provided in the aliases
-//   array. To clear all aliases, pass an empty (but non-nil) slice.
+//
+//	This is an "all-or-nothing" operation. All existing aliases for the
+//	Account are removed and replaced with the ones provided in the aliases
+//	array. To clear all aliases, pass an empty (but non-nil) slice.
 //
 // This method executes the SETACCOUNTALIASES CLI command.
 //
@@ -918,10 +919,11 @@ func (cli *Cli) SetAccountAliases(account string, aliases []string) error {
 //   - rules: A slice of [MailRule] structures containing the new rules.
 //
 // Behavior:
-//   This command replaces all existing Mail Rules for the account with the
-//   provided set. To clear all rules, pass an empty (but non-nil) slice.
-//   Mail Rules are processed by the Enqueuer component when a message
-//   is delivered to the account's INBOX.
+//
+//	This command replaces all existing Mail Rules for the account with the
+//	provided set. To clear all rules, pass an empty (but non-nil) slice.
+//	Mail Rules are processed by the Enqueuer component when a message
+//	is delivered to the account's INBOX.
 //
 // Note: Any user can use this method to modify rules for their own account.
 //
@@ -982,9 +984,10 @@ func (cli *Cli) SetAccountPassword(account, password, method, tag string, check 
 //   - settings: A dictionary (map[string]any) containing the new preference settings.
 //
 // Features:
-//   This command completely replaces all old account preferences with the new ones provided.
-//   Preferences typically include user interface settings (WebUser), language
-//   parameters, time zones, and client-specific configurations.
+//
+//	This command completely replaces all old account preferences with the new ones provided.
+//	Preferences typically include user interface settings (WebUser), language
+//	parameters, time zones, and client-specific configurations.
 //
 // This method executes the SETACCOUNTPREFS CLI command.
 //
@@ -1005,8 +1008,9 @@ func (cli *Cli) SetAccountPrefs(account string, settings map[string]any) error {
 //   - records: A dictionary containing the Account RIMAP records.
 //
 // Behavior:
-//   All old Account RIMAP records are removed. The new records are set
-//   from the provided dictionary.
+//
+//	All old Account RIMAP records are removed. The new records are set
+//	from the provided dictionary.
 //
 // This method executes the SETACCOUNTRIMAPS CLI command.
 //
@@ -1027,8 +1031,9 @@ func (cli *Cli) SetAccountRIMAPs(account string, records map[string]any) error {
 //   - records: A dictionary containing the Account RPOP records.
 //
 // Behavior:
-//   All old Account RPOP records are removed. The new records are set
-//   from the provided dictionary.
+//
+//	All old Account RPOP records are removed. The new records are set
+//	from the provided dictionary.
 //
 // This method executes the SETACCOUNTRPOPS CLI command.
 //
@@ -1049,8 +1054,9 @@ func (cli *Cli) SetAccountRPOPs(account string, records map[string]any) error {
 //   - records: A dictionary containing the Account RSIP records.
 //
 // Behavior:
-//   All old Account RSIP records are removed. The new records are set
-//   from the provided dictionary.
+//
+//	All old Account RSIP records are removed. The new records are set
+//	from the provided dictionary.
 //
 // This method executes the SETACCOUNTRSIPS CLI command.
 //
@@ -1070,8 +1076,9 @@ func (cli *Cli) SetAccountRSIPs(account string, records map[string]any) error {
 //   - settings: A dictionary used to replace the Account settings dictionary.
 //
 // Behavior:
-//   All old Account settings are removed. The settings are replaced with
-//   the ones provided in the settings dictionary.
+//
+//	All old Account settings are removed. The settings are replaced with
+//	the ones provided in the settings dictionary.
 //
 // This method executes the SETACCOUNTSETTINGS CLI command.
 //
@@ -1092,8 +1099,9 @@ func (cli *Cli) SetAccountSettings(account string, settings map[string]any) erro
 //   - rules: An array of [SignalRule] structures containing the new Signal Rules.
 //
 // Behavior:
-//   All old Account Signal Rules are removed. The new rules are set
-//   from the provided array.
+//
+//	All old Account Signal Rules are removed. The new rules are set
+//	from the provided array.
 //
 // This method executes the SETACCOUNTSIGNALRULES CLI command.
 //
@@ -1114,8 +1122,9 @@ func (cli *Cli) SetAccountSignalRules(account string, rules []SignalRule) error 
 //   - telnums: An array containing the telephone number strings.
 //
 // Behavior:
-//   All old numbers assigned to the Account are removed. The new numbers
-//   are set from the provided array.
+//
+//	All old numbers assigned to the Account are removed. The new numbers
+//	are set from the provided array.
 //
 // This method executes the SETACCOUNTTELNUMS CLI command.
 //
@@ -1136,9 +1145,10 @@ func (cli *Cli) SetAccountTelnums(account string, telnums []string) error {
 //   - accType: This parameter specifies the new Account type (e.g., MultiMailbox, AGrade, etc.).
 //
 // Behavior:
-//   The command updates the storage and management type of the account.
-//   Note that the current Account type must also belong to the target
-//   type set for the operation to succeed.
+//
+//	The command updates the storage and management type of the account.
+//	Note that the current Account type must also belong to the target
+//	type set for the operation to succeed.
 //
 // This method executes the SETACCOUNTTYPE CLI command.
 //
@@ -1160,10 +1170,11 @@ func (cli *Cli) SetAccountType(account string, accType AccountType) error {
 //     updated or added.
 //
 // Behavior:
-//   This method performs a partial update of the Account "info" dictionary.
-//   It modifies only the keys provided in the info dictionary,
-//   while leaving other existing keys in the Account Information dictionary
-//   unchanged.
+//
+//	This method performs a partial update of the Account "info" dictionary.
+//	It modifies only the keys provided in the info dictionary,
+//	while leaving other existing keys in the Account Information dictionary
+//	unchanged.
 //
 // This method executes the UPDATEACCOUNTINFO CLI command.
 //
@@ -1184,13 +1195,14 @@ func (cli *Cli) UpdateAccountInfo(account string, info map[string]any) error {
 //   - rule: A [MailRule] structure containing the rule definition.
 //
 // Behavior:
-//   The behavior depends on the content of the rule structure:
-//   - If only priority and name are provided (fewer than 4 rule elements):
-//     The method updates the priority of an existing rule with the given name.
-//     If the rule does not exist, an error is returned.
-//   - If 4 or more elements are provided (conditions and actions included):
-//     The entire rule is stored. If a rule with the same name already exists,
-//     it is replaced by this new definition.
+//
+//	The behavior depends on the content of the rule structure:
+//	- If only priority and name are provided (fewer than 4 rule elements):
+//	  The method updates the priority of an existing rule with the given name.
+//	  If the rule does not exist, an error is returned.
+//	- If 4 or more elements are provided (conditions and actions included):
+//	  The entire rule is stored. If a rule with the same name already exists,
+//	  it is replaced by this new definition.
 //
 // This method executes the UPDATEACCOUNTMAILRULE CLI command.
 //
@@ -1210,10 +1222,11 @@ func (cli *Cli) UpdateAccountMailRule(account string, rule MailRule) error {
 //   - settings: A dictionary containing the preference settings to update.
 //
 // Behavior:
-//   This method performs a partial update of the Account Preferences.
-//   Omitted elements remain unmodified. If a value is set to the string
-//   "default", that specific preference is removed, causing the account
-//   to inherit the default value from its Domain or the System.
+//
+//	This method performs a partial update of the Account Preferences.
+//	Omitted elements remain unmodified. If a value is set to the string
+//	"default", that specific preference is removed, causing the account
+//	to inherit the default value from its Domain or the System.
 //
 // This method executes the UPDATEACCOUNTPREFS CLI command.
 //
@@ -1234,11 +1247,12 @@ func (cli *Cli) UpdateAccountPrefs(account string, settings map[string]any) erro
 //   - settings: A dictionary containing the settings to be updated.
 //
 // Behavior:
-//   This method performs a partial update of the Account settings dictionary.
-//   Omitted settings remain unmodified. If a setting value is specified
-//   as the string "default", the specific Account setting is removed,
-//   allowing the account to use the default value (typically inherited
-//   from the Domain or Class).
+//
+//	This method performs a partial update of the Account settings dictionary.
+//	Omitted settings remain unmodified. If a setting value is specified
+//	as the string "default", the specific Account setting is removed,
+//	allowing the account to use the default value (typically inherited
+//	from the Domain or Class).
 //
 // This method executes the UPDATEACCOUNTSETTINGS CLI command.
 //
@@ -1259,13 +1273,14 @@ func (cli *Cli) UpdateAccountSettings(account string, settings map[string]any) e
 //   - rule: A [SignalRule] structure containing the rule definition.
 //
 // Behavior:
-//   The behavior depends on the content of the rule structure:
-//   - If only priority and name are provided (fewer than 4 rule elements):
-//     The method updates the priority of an existing Signal Rule with the
-//     given name. If the rule does not exist, an error is returned.
-//   - If 4 or more elements are provided (conditions and actions included):
-//     The entire rule is stored as a new Signal Rule. If a rule with the
-//     same name already exists, it is replaced.
+//
+//	The behavior depends on the content of the rule structure:
+//	- If only priority and name are provided (fewer than 4 rule elements):
+//	  The method updates the priority of an existing Signal Rule with the
+//	  given name. If the rule does not exist, an error is returned.
+//	- If 4 or more elements are provided (conditions and actions included):
+//	  The entire rule is stored as a new Signal Rule. If a rule with the
+//	  same name already exists, it is replaced.
 //
 // This method executes the UPDATEACCOUNTSIGNALRULE CLI command.
 //
