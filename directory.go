@@ -33,6 +33,18 @@ type DirAccessRight struct {
 	ModifyAttrs  []string // List of attributes allowed for modification.
 }
 
+// CreateDirectoryUnit creates a new Directory Unit.
+//
+// Parameters:
+//   - unit: This parameter specifies the new Unit name.
+//   - mountPoint: This parameter specifies the new Unit mount point (mount DN).
+//   - shared: If true, a cluster-wide Directory Unit is created.
+//   - remote: If true, a Remote (LDAP-based) Directory Unit is created,
+//     otherwise a Local (File-based) Directory Unit is created.
+//
+// Returns:
+//   - error: An error if the unit name or mount point is empty, or if
+//     the server fails to create the unit.
 func (cli *Cli) CreateDirectoryUnit(unit, mountPoint string, shared, remote bool) error {
 	if unit == "" || mountPoint == "" {
 		return fmt.Errorf("unit name and mount point are required")
@@ -50,6 +62,15 @@ func (cli *Cli) CreateDirectoryUnit(unit, mountPoint string, shared, remote bool
 	return cli.QueryNV("CREATEDIRECTORYUNIT", args...)
 }
 
+// DeleteDirectoryUnit removes an existing Directory Unit.
+//
+// Parameters:
+//   - unit: This parameter specifies the Directory Unit name.
+//   - shared: If true, this is a cluster-wide Directory Unit name.
+//
+// Returns:
+//   - error: An error if the unit name is empty or if the server
+//     fails to execute the command.
 func (cli *Cli) DeleteDirectoryUnit(unit string, shared bool) (err error) {
 	if unit == "" {
 		return fmt.Errorf("unit name is required")
@@ -64,6 +85,14 @@ func (cli *Cli) DeleteDirectoryUnit(unit string, shared bool) (err error) {
 	return
 }
 
+// GetDirectoryAccessRights retrieves the Directory Access Rights.
+//
+// Parameters:
+//   - shared: If true, the cluster-wide Access Rights are retrieved.
+//
+// Returns:
+//   - []DirAccessRight: A slice of Access Rights rules.
+//   - error: An error if the server fails to retrieve or parse the data.
 func (cli *Cli) GetDirectoryAccessRights(shared bool) ([]DirAccessRight, error) {
 	const cmd = "GETDIRECTORYACCESSRIGHTS"
 	var res []any
@@ -116,6 +145,16 @@ func (cli *Cli) GetDirectoryAccessRights(shared bool) ([]DirAccessRight, error) 
 	return rights, nil
 }
 
+// GetDirectoryUnit retrieves the settings for a specific Directory Unit.
+//
+// Parameters:
+//   - unit: This parameter specifies the Directory Unit name.
+//   - shared: If true, this is a cluster-wide Directory Unit name.
+//
+// Returns:
+//   - map[string]any: A dictionary with the Directory Unit settings.
+//   - error: An error if the unit name is empty or the server fails
+//     to retrieve the data.
 func (cli *Cli) GetDirectoryUnit(unit string, shared bool) (res map[string]any, err error) {
 	if unit == "" {
 		return nil, fmt.Errorf("unit name is required")
@@ -130,6 +169,15 @@ func (cli *Cli) GetDirectoryUnit(unit string, shared bool) (res map[string]any, 
 	return
 }
 
+// ListDirectoryUnits retrieves the list of all created Directory units.
+//
+// Parameters:
+//   - shared: If true, the cluster-wide Units are listed.
+//
+// Returns:
+//   - map[string]string: A dictionary where keys are Directory Unit mount points
+//     and values are Directory Unit names.
+//   - error: An error if the server fails to execute the command.
 func (cli *Cli) ListDirectoryUnits(shared bool) (map[string]string, error) {
 	const cmd = "LISTDIRECTORYUNITS"
 	var res map[string]any
@@ -152,6 +200,16 @@ func (cli *Cli) ListDirectoryUnits(shared bool) (map[string]string, error) {
 	return units, nil
 }
 
+// RelocateDirectoryUnit re-mounts an existing Directory Unit on a different mount point.
+//
+// Parameters:
+//   - unit: This parameter specifies the Directory Unit name.
+//   - mountPoint: This parameter specifies the new mount point (mount DN).
+//   - shared: If true, this is a cluster-wide Directory Unit name.
+//
+// Returns:
+//   - error: An error if the unit name or mount point is empty, or if
+//     the server fails to relocate the unit.
 func (cli *Cli) RelocateDirectoryUnit(unit, mountPoint string, shared bool) (err error) {
 	if unit == "" || mountPoint == "" {
 		return fmt.Errorf("unit name and new mount point are required")
@@ -166,6 +224,15 @@ func (cli *Cli) RelocateDirectoryUnit(unit, mountPoint string, shared bool) (err
 	return
 }
 
+// SetDirectoryAccessRights sets the Directory Access Rights.
+//
+// Parameters:
+//   - shared: If true, the cluster-wide Access Rights are set.
+//   - rights: A slice of [DirAccessRight] structures specifying the new ACLs.
+//
+// Returns:
+//   - error: An error if the rights array is nil or if the server
+//     fails to apply the new settings.
 func (cli *Cli) SetDirectoryAccessRights(shared bool, rights []DirAccessRight) (err error) {
 	if rights == nil {
 		return fmt.Errorf("rights array is required")
@@ -188,6 +255,16 @@ func (cli *Cli) SetDirectoryAccessRights(shared bool, rights []DirAccessRight) (
 	return
 }
 
+// SetDirectoryUnit changes the Directory Unit settings.
+//
+// Parameters:
+//   - unit: This parameter specifies the Directory Unit name.
+//   - shared: If true, this is a cluster-wide Directory Unit name.
+//   - settings: A dictionary specifying the new Directory Unit settings.
+//
+// Returns:
+//   - error: An error if the unit name or settings dictionary is empty,
+//     or if the server fails to update the unit.
 func (cli *Cli) SetDirectoryUnit(unit string, shared bool, settings map[string]any) (err error) {
 	if unit == "" || settings == nil {
 		return fmt.Errorf("unit name and settings dictionary are required")
