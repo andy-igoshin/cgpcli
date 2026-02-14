@@ -87,7 +87,7 @@ func (cli *Cli) PostAccountAlert(account, alert string) error {
 	return cli.QueryNV("POSTACCOUNTALERT", Atom(account), "ALERT", alert)
 }
 
-// PostServerAlert posts a cluster-wide Alert message.
+// PostClusterAlert posts a cluster-wide Alert message.
 //
 // Parameters:
 //   - alert: This string specifies the text of the alert to be posted.
@@ -103,7 +103,7 @@ func (cli *Cli) PostClusterAlert(alert string) error {
 	return cli.QueryNV("POSTCLUSTERALERT", alert)
 }
 
-// PostServerAlert posts a domain-wide Alert message.
+// PostDomainAlert posts a domain-wide Alert message.
 //
 // Parameters:
 //   - domain: This parameter specifies the name of an existing Domain.
