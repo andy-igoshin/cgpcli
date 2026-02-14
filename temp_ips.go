@@ -10,9 +10,6 @@
 //     with its remaining time-to-live (TTL) or a permanent status flag.
 //   - Efficient Lookups: [TempIPList] uses a fixed-size [IPKey] ([16]byte)
 //     based map for O(1) IP address lookups, handling both IPv4 and IPv6 transparently.
-//   - Native Protocol Support: Implementation of [writeCGP] ensures that the
-//     complex string format used by CommuniGate Pro CLI (e.g., "[1.2.3.4]-3600,[5.6.7.8]-*")
-//     is generated correctly.
 //   - Robust Parsing: Optimized parsing logic in [parseTempIPsToMap] that
 //     extracts IPs and their durations from raw protocol strings with
 //     minimal allocations.
