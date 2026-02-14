@@ -10,7 +10,7 @@
 //     with its remaining time-to-live (TTL) or a permanent status flag.
 //   - Efficient Lookups: [TempIPList] uses a fixed-size [IPKey] ([16]byte)
 //     based map for O(1) IP address lookups, handling both IPv4 and IPv6 transparently.
-//   - Native Protocol Support: Implementation of [WriteCGP] ensures that the
+//   - Native Protocol Support: Implementation of [writeCGP] ensures that the
 //     complex string format used by CommuniGate Pro CLI (e.g., "[1.2.3.4]-3600,[5.6.7.8]-*")
 //     is generated correctly.
 //   - Robust Parsing: Optimized parsing logic in [parseTempIPsToMap] that
@@ -120,48 +120,6 @@ func (l *TempIPList) Len() int {
 	return len(l.items)
 }
 
-func (l *TempIPList) WriteCGP(w encodeWriter) (err error) {
-	if err = w.WriteByte('"'); err != nil {
-		return
-	}
-
-	first := true
-	for _, item := range l.items {
-		if !first {
-			if err = w.WriteByte(','); err != nil {
-				return
-			}
-		}
-		first = false
-
-		if err = w.WriteByte('['); err != nil {
-			return
-		}
-		if _, err = w.WriteString(item.IP.String()); err != nil {
-			return
-		}
-		if err = w.WriteByte(']'); err != nil {
-			return
-		}
-
-		if item.Permanent {
-			if _, err = w.WriteString("-*"); err != nil {
-				return
-			}
-		} else if item.TimeLeft > 0 {
-			if err = w.WriteByte('-'); err != nil {
-				return
-			}
-			seconds := int64(item.TimeLeft.Seconds())
-			if _, err = w.WriteString(strconv.FormatInt(seconds, 10)); err != nil {
-				return
-			}
-		}
-	}
-
-	return w.WriteByte('"')
-}
-
 func (l *TempIPList) parseInput(input any) (net.IP, IPKey, error) {
 	var ip net.IP
 	switch v := input.(type) {
@@ -253,4 +211,46 @@ func parseTempIPsToMap(raw string) map[IPKey]TempIP {
 		i++ // Пропускаем запятую для следующей итерации
 	}
 	return res
+}
+
+func (l *TempIPList) writeCGP(w encodeWriter) (err error) {
+	if err = w.WriteByte('"'); err != nil {
+		return
+	}
+
+	first := true
+	for _, item := range l.items {
+		if !first {
+			if err = w.WriteByte(','); err != nil {
+				return
+			}
+		}
+		first = false
+
+		if err = w.WriteByte('['); err != nil {
+			return
+		}
+		if _, err = w.WriteString(item.IP.String()); err != nil {
+			return
+		}
+		if err = w.WriteByte(']'); err != nil {
+			return
+		}
+
+		if item.Permanent {
+			if _, err = w.WriteString("-*"); err != nil {
+				return
+			}
+		} else if item.TimeLeft > 0 {
+			if err = w.WriteByte('-'); err != nil {
+				return
+			}
+			seconds := int64(item.TimeLeft.Seconds())
+			if _, err = w.WriteString(strconv.FormatInt(seconds, 10)); err != nil {
+				return
+			}
+		}
+	}
+
+	return w.WriteByte('"')
 }

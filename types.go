@@ -66,8 +66,8 @@ func (c CGPIP) String() string {
 	return c.IP.String()
 }
 
-// WriteCGP формирует данные для отправки на сервер CGP напрямую в буфер.
-func (c CGPIP) WriteCGP(w encodeWriter) (err error) {
+// writeCGP формирует данные для отправки на сервер CGP напрямую в буфер.
+func (c CGPIP) writeCGP(w encodeWriter) (err error) {
 	if c.IsZero() {
 		_, err = w.WriteString("#NULL#")
 		return

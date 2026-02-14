@@ -7,11 +7,11 @@ import (
 	"testing"
 )
 
-// helper для получения строки из WriteCGP в тестах
+// helper для получения строки из writeCGP в тестах
 func marshalIPList(t *testing.T, l IPList) string {
 	var b bytes.Buffer
-	if err := l.WriteCGP(&b); err != nil {
-		t.Fatalf("WriteCGP failed: %v", err)
+	if err := l.writeCGP(&b); err != nil {
+		t.Fatalf("writeCGP failed: %v", err)
 	}
 	// Убираем обрамляющие кавычки для удобства сравнения в тестах
 	res := b.String()

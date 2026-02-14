@@ -51,7 +51,7 @@ type encodeWriter interface {
 }
 
 type cgpWriterTo interface {
-	WriteCGP(w encodeWriter) error
+	writeCGP(w encodeWriter) error
 }
 
 var cgpSafeTable = [256]byte{
@@ -163,7 +163,7 @@ func MarshalToString(v any) (string, error) {
 func marshal(w encodeWriter, v any, keyName string) (err error) {
 	// 1. Прямая запись (самый быстрый путь для кастомных типов)
 	if m, ok := v.(cgpWriterTo); ok {
-		return m.WriteCGP(w)
+		return m.writeCGP(w)
 	}
 
 	// 2. Трансформация исключений (меняет тип на cgp*)

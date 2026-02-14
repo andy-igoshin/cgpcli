@@ -173,53 +173,6 @@ func (l *IPList) InsertBefore(marker string, input string, comment string, align
 	return l.Insert(idx, input, comment, alignPos)
 }
 
-func (l IPList) WriteCGP(w encodeWriter) (err error) {
-	if err = w.WriteByte('"'); err != nil {
-		return
-	}
-
-	for i, entry := range l {
-		if i > 0 {
-			if _, err = w.WriteString(`\e`); err != nil {
-				return
-			}
-		}
-
-		if entry.IsNegative {
-			if err = w.WriteByte('!'); err != nil {
-				return
-			}
-		}
-
-		if err = writeDataToString(w, entry.Value); err != nil {
-			return
-		}
-
-		if entry.Comment != "" {
-			dataStrLen := len(dataToString(entry.Value))
-			if entry.IsNegative {
-				dataStrLen++
-			}
-
-			if entry.CommentPos > dataStrLen {
-				w.WriteString(strings.Repeat(" ", entry.CommentPos-dataStrLen))
-			} else {
-				w.WriteByte(' ')
-			}
-
-			if err = w.WriteByte(';'); err != nil {
-				return
-			}
-
-			if _, err = w.WriteString(replaceSpecChars(entry.Comment)); err != nil {
-				return
-			}
-		}
-	}
-
-	return w.WriteByte('"')
-}
-
 func dataToString(val any) string {
 	switch v := val.(type) {
 	case IPCIDR:
@@ -351,6 +304,53 @@ func parseIPList(raw string) IPList {
 		}
 	}
 	return list
+}
+
+func (l IPList) writeCGP(w encodeWriter) (err error) {
+	if err = w.WriteByte('"'); err != nil {
+		return
+	}
+
+	for i, entry := range l {
+		if i > 0 {
+			if _, err = w.WriteString(`\e`); err != nil {
+				return
+			}
+		}
+
+		if entry.IsNegative {
+			if err = w.WriteByte('!'); err != nil {
+				return
+			}
+		}
+
+		if err = writeDataToString(w, entry.Value); err != nil {
+			return
+		}
+
+		if entry.Comment != "" {
+			dataStrLen := len(dataToString(entry.Value))
+			if entry.IsNegative {
+				dataStrLen++
+			}
+
+			if entry.CommentPos > dataStrLen {
+				w.WriteString(strings.Repeat(" ", entry.CommentPos-dataStrLen))
+			} else {
+				w.WriteByte(' ')
+			}
+
+			if err = w.WriteByte(';'); err != nil {
+				return
+			}
+
+			if _, err = w.WriteString(replaceSpecChars(entry.Comment)); err != nil {
+				return
+			}
+		}
+	}
+
+	return w.WriteByte('"')
 }
 
 // writeDataToString пишет строковое представление IP-данных напрямую в writer

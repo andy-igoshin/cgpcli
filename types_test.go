@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestCGPIP_WriteCGP(t *testing.T) {
+func TestCGPIP_writeCGP(t *testing.T) {
 	tests := []struct {
 		name string
 		ip   net.IP
@@ -29,15 +29,15 @@ func TestCGPIP_WriteCGP(t *testing.T) {
 			// Используем bufio.Writer, так как он удовлетворяет интерфейсу encodeWriter
 			w := bufio.NewWriter(&b)
 
-			err := c.WriteCGP(w)
+			err := c.writeCGP(w)
 			w.Flush() // Важно сбросить буфер в bytes.Buffer
 
 			if err != nil {
-				t.Fatalf("WriteCGP() error = %v", err)
+				t.Fatalf("writeCGP() error = %v", err)
 			}
 
 			if got := b.String(); got != tt.want {
-				t.Errorf("WriteCGP() output = %v, want %v", got, tt.want)
+				t.Errorf("writeCGP() output = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -88,35 +88,6 @@ func (l *RouterList) InsertBefore(pattern, rule, comment string, alignPos int) e
 	return nil
 }
 
-func (l RouterList) WriteCGP(w encodeWriter) error {
-	w.WriteByte('"')
-	for i, entry := range l {
-		if i > 0 {
-			w.WriteString(`\e`)
-		}
-
-		// Обрабатываем Rule и Comment через нашу прозрачную функцию
-		w.WriteString(replaceSpecChars(entry.Rule))
-
-		if entry.Comment != "" {
-			// Если правило есть, нужно разделение. Если правила нет (пустая строка/заголовок),
-			// пишем ';' сразу, без ведущего пробела.
-			if entry.Rule != "" {
-				pad := entry.Pos - len(entry.Rule)
-				if pad > 0 {
-					w.WriteString(strings.Repeat(" ", pad))
-				} else {
-					w.WriteByte(' ')
-				}
-			}
-			w.WriteByte(';')
-			w.WriteString(replaceSpecChars(entry.Comment))
-		}
-	}
-	w.WriteByte('"')
-	return nil
-}
-
 // parseRouterLine разбирает одну строку, выделяя правило, комментарий и его позицию.
 func parseRouterLine(line string) RouterEntry {
 	idx := strings.IndexByte(line, ';')
@@ -145,4 +116,33 @@ func parseRouterTable(raw string) RouterList {
 		res = append(res, parseRouterLine(l))
 	}
 	return res
+}
+
+func (l RouterList) writeCGP(w encodeWriter) error {
+	w.WriteByte('"')
+	for i, entry := range l {
+		if i > 0 {
+			w.WriteString(`\e`)
+		}
+
+		// Обрабатываем Rule и Comment через нашу прозрачную функцию
+		w.WriteString(replaceSpecChars(entry.Rule))
+
+		if entry.Comment != "" {
+			// Если правило есть, нужно разделение. Если правила нет (пустая строка/заголовок),
+			// пишем ';' сразу, без ведущего пробела.
+			if entry.Rule != "" {
+				pad := entry.Pos - len(entry.Rule)
+				if pad > 0 {
+					w.WriteString(strings.Repeat(" ", pad))
+				} else {
+					w.WriteByte(' ')
+				}
+			}
+			w.WriteByte(';')
+			w.WriteString(replaceSpecChars(entry.Comment))
+		}
+	}
+	w.WriteByte('"')
+	return nil
 }

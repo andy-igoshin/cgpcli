@@ -147,8 +147,8 @@ func TestTempIPList_RoundTrip(t *testing.T) {
 	var b bytes.Buffer
 	mw := mockEncodeWriter{bufio.NewWriter(&b)}
 
-	if err := list.WriteCGP(mw); err != nil {
-		t.Fatalf("WriteCGP failed: %v", err)
+	if err := list.writeCGP(mw); err != nil {
+		t.Fatalf("writeCGP failed: %v", err)
 	}
 	mw.Flush()
 
@@ -156,7 +156,7 @@ func TestTempIPList_RoundTrip(t *testing.T) {
 	// Ожидаем: "[192.168.250.250]-300" в кавычках
 	expected := `"[192.168.250.250]-300"`
 	if gotRaw != expected {
-		t.Errorf("WriteCGP output mismatch.\nGot:      %s\nExpected: %s", gotRaw, expected)
+		t.Errorf("writeCGP output mismatch.\nGot:      %s\nExpected: %s", gotRaw, expected)
 	}
 
 	// Проверяем, что парсер понимает наш собственный вывод (без кавычек)

@@ -29,11 +29,11 @@ func TestRouterRoundTrip(t *testing.T) {
 		t.Errorf("expected header comment, got '%s'", table[2].Comment)
 	}
 
-	// Проверка через WriteCGP
+	// Проверка через writeCGP
 	var b bytes.Buffer
 	w := bufio.NewWriter(&b)
-	if err := table.WriteCGP(w); err != nil {
-		t.Fatalf("WriteCGP failed: %v", err)
+	if err := table.writeCGP(w); err != nil {
+		t.Fatalf("writeCGP failed: %v", err)
 	}
 	w.Flush()
 
@@ -56,7 +56,7 @@ func TestRouterInsertAndPos(t *testing.T) {
 
 	var b bytes.Buffer
 	w := bufio.NewWriter(&b)
-	if err := table.WriteCGP(w); err != nil {
+	if err := table.writeCGP(w); err != nil {
 		t.Fatal(err)
 	}
 	w.Flush()
