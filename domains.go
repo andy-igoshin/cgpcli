@@ -272,7 +272,7 @@ func (cli *Cli) ListAdminDomains(domain string) ([]string, error) {
 // Parameters:
 //   - domain: This parameter specifies the Domain name.
 //   - limit: The maximum number of objects to list in one batch.
-//   - filter: Optional substring to filter object names.
+//   - filter: (Optional) The substring to filter object names.
 //   - what: Bitmask [ObjectType] specifying which objects (Accounts, Aliases, Forwarders) to list.
 //   - cookie: Pagination token. Use an empty string for the first request.
 //
@@ -353,7 +353,7 @@ func (cli *Cli) ListDomainObjects(domain string, limit int, filter string, what 
 //
 // Parameters:
 //   - domain: This parameter specifies the Domain name.
-//   - filter: Optional substring to filter telnum numbers.
+//   - filter: (Optional) The substring to filter telnum numbers.
 //   - limit: Maximum number of numbers to return.
 //
 // Returns:
