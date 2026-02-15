@@ -99,7 +99,7 @@ func (cli *Cli) CheckAccountPassword(account, password string) (bool, error) {
 //   - accType: This optional parameter specifies the type of the Account to create
 //     (e.g., MultiMailbox, MailDirMailbox). If [TypeDefault] is used,
 //     a MultiMailbox-type Account is created.
-//   - path: This optional parameter specifies the "storage mount point"
+//   - storage: This optional parameter specifies the "storage mount point"
 //     directory for the Account data (without the .mnt suffix).
 //   - legacy: This optional flag tells the system to create an Account
 //     with a Legacy (visible for legacy mailers) INBOX.
@@ -108,17 +108,18 @@ func (cli *Cli) CheckAccountPassword(account, password string) (bool, error) {
 //
 // Returns an error if the account name is empty or if the server
 // fails to execute the command.
-func (cli *Cli) CreateAccount(account string, settings map[string]any, accType AccountType, path string, legacy bool) error {
+func (cli *Cli) CreateAccount(account string, settings map[string]any, accType AccountType, storage string, legacy bool) error {
 	if account == "" {
 		return fmt.Errorf("account name is required")
 	}
+
 	args := make([]any, 0, 6)
 	args = append(args, account)
 	if accType != TypeDefault {
 		args = append(args, accType.String())
 	}
-	if path != "" {
-		args = append(args, "PATH", path)
+	if storage != "" {
+		args = append(args, "PATH", storage)
 	}
 	if legacy {
 		args = append(args, "LEGACY")
@@ -794,7 +795,7 @@ func (cli *Cli) ModifyAccountTelnums(account string, params map[string]any) (map
 // Parameters:
 //   - oldName: The current name of the account (can include domain).
 //   - newName: The new name for the account (can include domain).
-//   - path: (Optional) Specifies the "storage mount Point" directory for the
+//   - storage: (Optional) Specifies the "storage mount Point" directory for the
 //     moved account data. The name should be specified without the .mnt suffix.
 //
 // This command is used to rename accounts within the same domain or across
@@ -804,14 +805,14 @@ func (cli *Cli) ModifyAccountTelnums(account string, params map[string]any) (map
 //
 // Returns an error if names are empty or if the server fails to complete
 // the rename/move operation.
-func (cli *Cli) RenameAccount(oldName, newName, path string) (err error) {
+func (cli *Cli) RenameAccount(oldName, newName, storage string) (err error) {
 	if oldName == "" || newName == "" {
 		return fmt.Errorf("both old and new names are required")
 	}
 
 	const cmd = "RENAMEACCOUNT"
-	if path != "" {
-		err = cli.QueryNV(cmd, oldName, "INTO", newName, "PATH", path)
+	if storage != "" {
+		err = cli.QueryNV(cmd, oldName, "INTO", newName, "PATH", storage)
 	} else {
 		err = cli.QueryNV(cmd, oldName, "INTO", newName)
 	}
