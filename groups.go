@@ -28,7 +28,14 @@ type GroupResult struct {
 	Members  []string       // List of addresses or object names belonging to the group.
 }
 
-// CreateGroup создает новую группу.
+// CreateGroup creates new Groups.
+//
+// Parameters:
+//   - group: This parameter specifies the name for the new Group. The name can contain the @ symbol followed by the Domain name, in this case the Group is created in the specified Domain. If the Domain name is not specified, the command applies to the administrator Domain.
+//   - settings: (Optional) This optional parameter specifies the initial Group settings and the members list.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) CreateGroup(group string, settings map[string]any) (err error) {
 	if group == "" {
 		return fmt.Errorf("group name is required")
@@ -43,7 +50,13 @@ func (cli *Cli) CreateGroup(group string, settings map[string]any) (err error) {
 	return
 }
 
-// DeleteGroup удаляет группу.
+// DeleteGroup removes Groups.
+//
+// Parameters:
+//   - group: This parameter specifies the name of an existing Group. The name can include the Domain name.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) DeleteGroup(group string) error {
 	if group == "" {
 		return fmt.Errorf("group name is required")
@@ -51,7 +64,14 @@ func (cli *Cli) DeleteGroup(group string) error {
 	return cli.QueryNV("DELETEGROUP", group)
 }
 
-// GetGroup возвращает настройки группы и список её участников (Members).
+// GetGroup retrieves the Group settings.
+//
+// Parameters:
+//   - group: This parameter specifies the name of an existing Group. The name can include the Domain name.
+//
+// Returns:
+//   - *[GroupResult]: A structure containing the Group settings and members.
+//   - error: An error if the command fails.
 func (cli *Cli) GetGroup(group string) (*GroupResult, error) {
 	if group == "" {
 		return nil, fmt.Errorf("group name is required")
@@ -80,7 +100,14 @@ func (cli *Cli) GetGroup(group string) (*GroupResult, error) {
 	return result, nil
 }
 
-// IsGroupExists проверяет, существует ли группа.
+// IsGroupExists checks if a group exists by attempting to retrieve its settings.
+//
+// Parameters:
+//   - group: This parameter specifies the name of an existing Group. The name can include the Domain name.
+//
+// Returns:
+//   - bool: True if the group exists.
+//   - error: An error if the check fails (excluding 'not found' errors).
 func (cli *Cli) IsGroupExists(group string) (bool, error) {
 	if group == "" {
 		return false, fmt.Errorf("group name is required")
@@ -93,12 +120,26 @@ func (cli *Cli) IsGroupExists(group string) (bool, error) {
 	return true, nil
 }
 
-// ListGroups возвращает список имен всех групп в указанном домене.
+// ListGroups retrieves the list of all Groups in the Domain.
+//
+// Parameters:
+//   - domain: (Optional) This optional parameter specifies the Domain name. If the Domain name is not specified, the command applies to the administrator Domain.
+//
+// Returns:
+//   - []string: An array with the names of all Groups in the specified (or default) Domain.
+//   - error: An error if the command fails.
 func (cli *Cli) ListGroups(domain string) ([]string, error) {
 	return cli.getSliceString("LISTGROUPS", Atom(domain))
 }
 
-// RenameGroup переименовывает группу или переносит её в другой домен.
+// RenameGroup renames Groups.
+//
+// Parameters:
+//   - oldName: This parameter specifies the name of an existing Group. The name can include the Domain name.
+//   - newName: This parameter specifies the new Group name. The name can include the Domain name.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) RenameGroup(oldName, newName string) error {
 	if oldName == "" || newName == "" {
 		return fmt.Errorf("old and new group names are required")
@@ -106,7 +147,15 @@ func (cli *Cli) RenameGroup(oldName, newName string) error {
 	return cli.QueryNV("RENAMEGROUP", oldName, "INTO", newName)
 }
 
-// SetGroup заменяет все настройки и список участников группы.
+// SetGroup sets the Group settings.
+//
+// Parameters:
+//   - group: This parameter specifies the name of an existing Group. The name can include the Domain name.
+//   - settings: This dictionary is used to replace the Group settings dictionary.
+//   - members: (Optional) The list of group members to be included in the settings dictionary.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) SetGroup(group string, settings map[string]any, members []string) error {
 	if group == "" {
 		return fmt.Errorf("group name is required")
