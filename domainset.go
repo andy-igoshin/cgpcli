@@ -364,7 +364,7 @@ func (cli *Cli) SetClusterDomainDefaults(settings map[string]any) error {
 // SetClusterTrustedCerts replaces the cluster-wide list of Trusted Certificates.
 //
 // Parameters:
-//   - certs: An array of Base64-encoded X.509 certificate data.
+//   - certs: An array of Base64-encoded X.509 certificate data or PEM.
 //
 // Returns:
 //   - error: An error if the input is nil or the command fails.
@@ -434,7 +434,7 @@ func (cli *Cli) SetServerAccountPrefs(settings map[string]any) error {
 // SetServerTrustedCerts replaces the server-wide list of Trusted Certificates.
 //
 // Parameters:
-//   - certs: An array of Base64-encoded X.509 certificate data.
+//   - certs: An array of Base64-encoded X.509 certificate data or PEM.
 //
 // Returns:
 //   - error: An error if the input is nil or the command fails.
