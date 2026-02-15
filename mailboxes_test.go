@@ -33,11 +33,11 @@ func TestMailboxes(t *testing.T) {
 
 		// 3. SetMailboxACL & GetMailboxRights
 		// Устанавливаем базовое право
-		if err := cli.SetMailboxACL(testAcc, mbox, "", map[string]string{"anyone": "l"}); err != nil {
+		if err := cli.SetMailboxACL(testAcc, mbox, map[string]string{"anyone": "l"}, ""); err != nil {
 			t.Errorf("Initial ACL set failed: %v", err)
 		}
 		// Инкрементальное добавление
-		if err := cli.SetMailboxACL(testAcc, mbox, "", map[string]string{"anyone": "+r"}); err != nil {
+		if err := cli.SetMailboxACL(testAcc, mbox, map[string]string{"anyone": "+r"}, ""); err != nil {
 			t.Errorf("Incremental ACL update failed: %v", err)
 		}
 
@@ -112,11 +112,11 @@ func TestMailboxes(t *testing.T) {
 			"anyone":     "l",
 			"postmaster": "lrswipdka",
 		}
-		if err := cli.SetMailboxACL(testAcc, mbox, "", targetACL); err != nil {
+		if err := cli.SetMailboxACL(testAcc, mbox, targetACL, ""); err != nil {
 			t.Fatalf("SetMailboxACL failed: %v", err)
 		}
 
-		// 2. Проверяем GetMailboxACL (тот самый непокрытый метод)
+		// 2. Проверяем GetMailboxACL
 		acl, err := cli.GetMailboxACL(testAcc, mbox, "")
 		if err != nil {
 			t.Fatalf("GetMailboxACL failed: %v", err)
