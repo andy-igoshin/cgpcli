@@ -26,19 +26,28 @@ import (
 	"time"
 )
 
-// StorageFileInfo represents cumulative statistics for a storage path.
-type StorageFileInfo struct {
-	TotalSize  int64 // Total size in bytes of all files in the path.
-	FilesCount int64 // Total number of files in the path.
-}
-
 // StorageFileContent holds the raw data and metadata of a storage file.
 type StorageFileContent struct {
-	Data         []byte    // Raw file content.
-	ModifiedTime time.Time // Last modification timestamp.
-	CurrentSize  int64     // Total size of the file on the server.
+	Data         []byte    // Raw file content retrieved from the storage.
+	ModifiedTime time.Time // Last modification timestamp of the file.
+	CurrentSize  int64     // Total size of the file on the server in bytes.
 }
 
+// StorageFileInfo represents cumulative statistics for a storage path.
+type StorageFileInfo struct {
+	TotalSize  int64 // Total size in bytes of all files in the specified path.
+	FilesCount int64 // Total number of files found in the specified path.
+}
+
+// DeleteStorageFile removes a file or a file directory from the Account File Storage.
+//
+// Parameters:
+//   - account: The name of an existing Account. Use "*" for current authenticated Account.
+//   - file: The name of the existing File Storage file or directory.
+//   - authAccount: (Optional) The name of an Account on whose behalf the operation is executed.
+//
+// Returns:
+//   - error: An error if mandatory parameters are missing or the server fails to delete the file.
 func (cli *Cli) DeleteStorageFile(account, file, authAccount string) (err error) {
 	if account == "" || file == "" {
 		return fmt.Errorf("account name and file name are required")
@@ -53,6 +62,14 @@ func (cli *Cli) DeleteStorageFile(account, file, authAccount string) (err error)
 	return
 }
 
+// GetFileSubscription retrieves the list of Account "subscribed files".
+//
+// Parameters:
+//   - account: The name of an existing Account. Use "*" for current authenticated Account.
+//
+// Returns:
+//   - []string: An array containing the list of subscribed file names.
+//   - error: An error if the command fails.
 func (cli *Cli) GetFileSubscription(account string) ([]string, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -60,6 +77,16 @@ func (cli *Cli) GetFileSubscription(account string) ([]string, error) {
 	return cli.getSliceString("GETFILESUBSCRIPTION", Atom(account))
 }
 
+// GetStorageFileInfo retrieves statistical information about all files in the Account File Storage.
+//
+// Parameters:
+//   - account: The name of an existing Account. Use "*" for current authenticated Account.
+//   - path: (Optional) The name of the File Storage subdirectory.
+//   - authAccount: (Optional) The name of an Account on whose behalf the operation is executed.
+//
+// Returns:
+//   - *[StorageFileInfo]: A structure with total size and file count.
+//   - error: An error if the command fails or parsing of numeric elements fails.
 func (cli *Cli) GetStorageFileInfo(account, path, authAccount string) (*StorageFileInfo, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -91,6 +118,16 @@ func (cli *Cli) GetStorageFileInfo(account, path, authAccount string) (*StorageF
 	}, nil
 }
 
+// ListStorageFiles lists all files in the File Storage directory or its subdirectories.
+//
+// Parameters:
+//   - account: The name of an existing Account. Use "*" for current authenticated Account.
+//   - path: (Optional) The name of the File Storage subdirectory.
+//   - authAccount: (Optional) The name of an Account on whose behalf the operation is executed.
+//
+// Returns:
+//   - map[string]any: A dictionary where keys are file names and values contain file details.
+//   - error: An error if the command fails.
 func (cli *Cli) ListStorageFiles(account, path, authAccount string) (map[string]any, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -108,6 +145,18 @@ func (cli *Cli) ListStorageFiles(account, path, authAccount string) (map[string]
 	return cli.getMapAny(cmd, args...)
 }
 
+// ReadStorageFile retrieves a file or its slice from the Account File Storage.
+//
+// Parameters:
+//   - account: The name of an existing Account. Use "*" for current authenticated Account.
+//   - file: The name of the File Storage file to be retrieved.
+//   - offset: File position to start reading from.
+//   - size: Maximum number of data bytes to return. Use 0 for no limit.
+//   - authAccount: (Optional) The name of an Account on whose behalf the operation is executed.
+//
+// Returns:
+//   - *[StorageFileContent]: Structure containing data, modification time, and current size.
+//   - error: An error if retrieval fails or data format is unexpected.
 func (cli *Cli) ReadStorageFile(account, file string, offset, size int64, authAccount string) (*StorageFileContent, error) {
 	if account == "" || file == "" {
 		return nil, fmt.Errorf("account name and file name are required")
@@ -153,6 +202,17 @@ func (cli *Cli) ReadStorageFile(account, file string, offset, size int64, authAc
 	}, nil
 }
 
+// ReadStorageFileAttr reads attributes of an Account File Storage file or directory.
+//
+// Parameters:
+//   - account: The name of an existing Account. Use "*" for current authenticated Account.
+//   - file: The name of the file or directory.
+//   - attrs: (Optional) An array of attribute names to retrieve.
+//   - authAccount: (Optional) The name of an Account on whose behalf the operation is executed.
+//
+// Returns:
+//   - []any: An array of XML elements containing the requested attributes.
+//   - error: An error if the command fails.
 func (cli *Cli) ReadStorageFileAttr(account, file string, attrs []string, authAccount string) ([]any, error) {
 	if account == "" || file == "" {
 		return nil, fmt.Errorf("account name and file name are required")
@@ -169,6 +229,16 @@ func (cli *Cli) ReadStorageFileAttr(account, file string, attrs []string, authAc
 	return cli.getSliceAny("READSTORAGEFILEATTR", args...)
 }
 
+// RenameStorageFile renames a file or a file directory in the Account File Storage.
+//
+// Parameters:
+//   - account: The name of an existing Account. Use "*" for current authenticated Account.
+//   - oldName: The name of the existing File Storage file or directory.
+//   - newName: The new name for the file or directory.
+//   - authAccount: (Optional) The name of an Account on whose behalf the operation is executed.
+//
+// Returns:
+//   - error: An error if names are missing or the server fails to rename the object.
 func (cli *Cli) RenameStorageFile(account, oldName, newName, authAccount string) (err error) {
 	if account == "" || oldName == "" || newName == "" {
 		return fmt.Errorf("account name, old and new file names are required")
@@ -183,6 +253,14 @@ func (cli *Cli) RenameStorageFile(account, oldName, newName, authAccount string)
 	return
 }
 
+// SetFileSubscription sets the Account "subscribed files" list.
+//
+// Parameters:
+//   - account: The name of an existing Account. Use "*" for current authenticated Account.
+//   - subs: An array of strings where each element is a file name.
+//
+// Returns:
+//   - error: An error if the command fails or input is nil.
 func (cli *Cli) SetFileSubscription(account string, subs []string) error {
 	if account == "" || subs == nil {
 		return fmt.Errorf("account name and subscription are required")
@@ -190,6 +268,16 @@ func (cli *Cli) SetFileSubscription(account string, subs []string) error {
 	return cli.QueryNV("SETFILESUBSCRIPTION", Atom(account), subs)
 }
 
+// UpdateStorageFileAttr updates attributes of an Account File Storage file or directory.
+//
+// Parameters:
+//   - account: The name of an existing Account. Use "*" for current authenticated Account.
+//   - file: The name of an existing file or directory.
+//   - attrs: An array of XML elements representing the new attribute values.
+//   - authAccount: (Optional) The name of an Account on whose behalf the operation is executed.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) UpdateStorageFileAttr(account, file string, attrs []any, authAccount string) (err error) {
 	if account == "" || file == "" || attrs == nil {
 		return fmt.Errorf("account name, file name and attributes are required")
@@ -204,6 +292,17 @@ func (cli *Cli) UpdateStorageFileAttr(account, file string, attrs []any, authAcc
 	return
 }
 
+// WriteStorageFile stores a file or creates a directory in the Account File Storage.
+//
+// Parameters:
+//   - account: The name of an existing Account. Use "*" for current authenticated Account.
+//   - file: The name for the File Storage file (ends with "/" to create a directory).
+//   - offset: Write position. Can be int (position), or string ("BEG", "END", "NEW").
+//   - data: Datablock containing the file content. Must be empty for directory creation.
+//   - authAccount: (Optional) The name of an Account on whose behalf the operation is executed.
+//
+// Returns:
+//   - error: An error if mandatory parameters are missing or writing fails.
 func (cli *Cli) WriteStorageFile(account, file string, offset any, data []byte, authAccount string) error {
 	if account == "" || file == "" || data == nil {
 		return fmt.Errorf("account name, file name and file data are required")
