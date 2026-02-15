@@ -53,8 +53,8 @@ func (cli *Cli) CreateDirectoryDomain(domain string, settings map[string]any) (e
 // Parameters:
 //   - domain: This parameter specifies the Domain name to create.
 //   - shared: If true, creates a Cluster-wide Domain (Dynamic Cluster only).
-//   - storage: Optional "storage mount Point" directory name (without .mnt suffix).
-//   - settings: An optional dictionary specifying the initial Domain settings.
+//   - storage: (Optional) The "storage mount Point" directory name (without .mnt suffix).
+//   - settings: (Optional) A dictionary specifying the initial Domain settings.
 //
 // Returns:
 //   - error: An error if the domain name is empty or the server fails to create the domain.
@@ -214,7 +214,7 @@ func (cli *Cli) GetServerTrustedCerts() ([]string, error) {
 // ListClusterTelnums reads Telnum numbers created in shared Cluster Domains.
 //
 // Parameters:
-//   - filter: (Optional) substring filter for telnum numbers.
+//   - filter: (Optional) The substring filter for telnum numbers.
 //   - limit: Maximum number of Telnum numbers to return.
 //
 // Returns:
@@ -254,7 +254,7 @@ func (cli *Cli) ListDomains() ([]string, error) {
 // ListServerTelnums reads Telnum numbers created in all non-clustered Domains.
 //
 // Parameters:
-//   - filter: (Optional) substring filter for telnum numbers.
+//   - filter: (Optional) The substring filter for telnum numbers.
 //   - limit: Maximum number of Telnum numbers to return.
 //
 // Returns:
@@ -287,7 +287,7 @@ func (cli *Cli) ReloadDirectoryDomains() error {
 // Parameters:
 //   - oldName: The name of an existing secondary Domain.
 //   - newName: The new name for the Domain.
-//   - storage: Optional new "storage mount Point" directory for the Domain data.
+//   - storage: (Optional) The new "storage mount Point" directory for the Domain data.
 //
 // Returns:
 //   - error: An error if names are missing or the server fails to rename the domain.
