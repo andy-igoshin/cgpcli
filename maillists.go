@@ -29,18 +29,25 @@ import (
 
 // SubscriberInfo contains detailed metadata about a mailing list member.
 type SubscriberInfo struct {
-	Sub            string    // Subscriber's email address.
-	RealName       string    // Subscriber's display name.
-	Mode           string    // Posting mode (e.g., "feed", "digest", "moderated").
-	SubscribeTime  time.Time // Time when the subscription was initiated.
-	TimeSubscribed time.Time // Exact time when the subscription was confirmed.
-	Posts          int64     // Number of messages posted by this subscriber.
-	Bounces        int64     // Number of delivery errors encountered.
-	LastBounceTime time.Time // Timestamp of the most recent delivery error.
-	ConfirmationID int64     // ID used for subscription confirmation tracking.
+	Sub            string    // Subscriber's email address string.
+	RealName       string    // An optional string with Real name.
+	Mode           string    // A string with subscription mode (index, digest, null, etc.).
+	SubscribeTime  time.Time // Timestamp data specifying the moment when this user subscribed.
+	TimeSubscribed time.Time // Exact time when the address was subscribed (in the ACAP date/time format).
+	Posts          int64     // Number of postings on this list.
+	Bounces        int64     // Optional numeric data specifying the number of failed delivery reports received for this user.
+	LastBounceTime time.Time // Optional timestamp data specifying the last time when messages sent to this user failed.
+	ConfirmationID int64     // This element contains the subscriber's Confirmation ID string.
 }
 
-// CreateList создает новый список рассылки для указанного аккаунта-владельца.
+// CreateList creates a mailing list.
+//
+// Parameters:
+//   - list: This parameter specifies the name of a mailing list to create. It can include the Domain name. If the Domain name is not specified, the user Domain is used by default.
+//   - account: This parameter specifies the name of the mailing list owner. It should be the name of an already existing Account in the mailing list Domain.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) CreateList(list, account string) error {
 	if list == "" || account == "" {
 		return fmt.Errorf("list name and account name are required")
@@ -53,7 +60,13 @@ func (cli *Cli) CreateList(list, account string) error {
 	return cli.QueryNV("CREATELIST", list, "FOR", owner)
 }
 
-// DeleteList удаляет список рассылки.
+// DeleteList removes a mailing list.
+//
+// Parameters:
+//   - list: This parameter specifies the name of an existing mailing list. It can include the Domain name. If the Domain name is not specified, the user Domain is used by default.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) DeleteList(list string) error {
 	if list == "" {
 		return fmt.Errorf("list name is required")
@@ -61,7 +74,14 @@ func (cli *Cli) DeleteList(list string) error {
 	return cli.QueryNV("DELETELIST", list)
 }
 
-// GetAccountLists возвращает списки рассылки, принадлежащие конкретному аккаунту.
+// GetAccountLists retrieves the list of all mailing lists belonging to the specified Account.
+//
+// Parameters:
+//   - account: This parameter specifies the list's owner Account name.
+//
+// Returns:
+//   - map[string]int: A dictionary where each key is the name of a mailing list and the value is the number of subscribers.
+//   - error: An error if the command fails.
 func (cli *Cli) GetAccountLists(account string) (map[string]int, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -78,7 +98,14 @@ func (cli *Cli) GetAccountLists(account string) (map[string]int, error) {
 	return list, nil
 }
 
-// GetDomainLists возвращает map "имя списка рассылки -> количество подписчиков".
+// GetDomainLists retrieves the list of all mailing lists in the Domain.
+//
+// Parameters:
+//   - domain: (Optional) This optional parameter specifies the Domain name.
+//
+// Returns:
+//   - map[string]int: A dictionary where each key is the name of a mailing list and the value is the number of subscribers.
+//   - error: An error if the command fails.
 func (cli *Cli) GetDomainLists(domain string) (map[string]int, error) {
 	res, err := cli.getMapAny("GETDOMAINLISTS", Atom(domain))
 	if err != nil {
@@ -91,7 +118,14 @@ func (cli *Cli) GetDomainLists(domain string) (map[string]int, error) {
 	return list, nil
 }
 
-// GetList получает настройки списка. Все текстовые поля конвертируются из \e в \n.
+// GetList retrieves list settings.
+//
+// Parameters:
+//   - list: This parameter specifies the name of an existing mailing list. It can include the Domain name. If the Domain name is not specified, the user Domain is used by default.
+//
+// Returns:
+//   - map[string]any: A dictionary with the mailing list settings.
+//   - error: An error if the command fails.
 func (cli *Cli) GetList(list string) (map[string]any, error) {
 	if list == "" {
 		return nil, fmt.Errorf("list name is required")
@@ -99,7 +133,15 @@ func (cli *Cli) GetList(list string) (map[string]any, error) {
 	return cli.getMapAny("GETLIST", list)
 }
 
-// GetSubscriberInfo возвращает полную информацию о конкретном подписчике.
+// GetSubscriberInfo retrieves information about a list subscriber.
+//
+// Parameters:
+//   - list: This parameter specifies the name of an existing mailing list. It can include the Domain name. If the Domain name is not specified, the user Domain is used by default.
+//   - subscriber: This parameter specifies the E-mail address of the list subscriber.
+//
+// Returns:
+//   - *[SubscriberInfo]: A structure with subscriber information.
+//   - error: An error if the command fails.
 func (cli *Cli) GetSubscriberInfo(list, subscriber string) (*SubscriberInfo, error) {
 	if list == "" || subscriber == "" {
 		return nil, fmt.Errorf("list name and subscriber address are required")
@@ -113,7 +155,17 @@ func (cli *Cli) GetSubscriberInfo(list, subscriber string) (*SubscriberInfo, err
 	return &s, nil
 }
 
-// List выполняет операции над подписчиками (subscribe, unsubscribe, feed и др.).
+// List updates the subscribers list.
+//
+// Parameters:
+//   - list: This parameter specifies the name of an existing mailing list. It can include the Domain name. If the Domain name is not specified, the user Domain is used by default.
+//   - operation: This parameter specifies the operation (subscribe, feed, digest, index, null, banned, unsubscribe).
+//   - subscriber: The subscriber address. It can include the comment part used as the subscriber's real name.
+//   - silently: (Optional) This parameter tells the server not to send the Welcome/Bye message to the subscriber.
+//   - confirm: (Optional) This parameter tells the server to send a confirmation request to the subscriber.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) List(list, operation, subscriber string, silently, confirm bool) error {
 	if list == "" || operation == "" || subscriber == "" {
 		return fmt.Errorf("list name, operation and subscriber are required")
@@ -131,12 +183,28 @@ func (cli *Cli) List(list, operation, subscriber string, silently, confirm bool)
 	return cli.QueryNV("LIST", args...)
 }
 
-// ListLists возвращает список имен всех рассылок в домене.
+// ListLists retrieves the list of all mailing lists in the Domain.
+//
+// Parameters:
+//   - domain: (Optional) This optional parameter specifies the Domain name.
+//
+// Returns:
+//   - []string: An array of strings where each string is the name of a mailing list in the specified (or default) Domain.
+//   - error: An error if the command fails.
 func (cli *Cli) ListLists(domain string) ([]string, error) {
 	return cli.getSliceString("LISTLISTS", domain)
 }
 
-// ListSubscribers возвращает только список адресов подписчиков.
+// ListSubscribers retrieves list subscribers.
+//
+// Parameters:
+//   - list: This parameter specifies the name of an existing mailing list. It can include the Domain name. If the Domain name is not specified, the user Domain is used by default.
+//   - filter: (Optional) If this parameter is specified, only the addresses containing the specified string are returned.
+//   - limit: (Optional) This parameter limits the number of subscriber addresses returned.
+//
+// Returns:
+//   - []string: An array with subscribers' E-mail addresses.
+//   - error: An error if the command fails.
 func (cli *Cli) ListSubscribers(list, filter string, limit int) ([]string, error) {
 	if list == "" {
 		return nil, fmt.Errorf("list name is required")
@@ -153,7 +221,15 @@ func (cli *Cli) ListSubscribers(list, filter string, limit int) ([]string, error
 	return cli.getSliceString("LISTSUBSCRIBERS", args...)
 }
 
-// ProcessBounce инициирует процедуру обработки ошибки доставки (bounce) для адреса.
+// ProcessBounce performs the same action the List Manager performs when it receives a bounce message for the subscriber address.
+//
+// Parameters:
+//   - list: This parameter specifies the name of an existing mailing list. It can include the Domain name. If the Domain name is not specified, the user Domain is used by default.
+//   - subscriber: This parameter specifies the E-mail address of the list subscriber.
+//   - fatal: Use the FATAL keyword to emulate a "fatal" bounce. Otherwise the command emulates a non-fatal bounce.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) ProcessBounce(list, subscriber string, fatal bool) (err error) {
 	if list == "" || subscriber == "" {
 		return fmt.Errorf("list name and subscriber address are required")
@@ -168,7 +244,16 @@ func (cli *Cli) ProcessBounce(list, subscriber string, fatal bool) (err error) {
 	return
 }
 
-// ReadSubscribers возвращает общее число подписчиков и массив структур SubscriberInfo.
+// ReadSubscribers retrieves list subscribers with detailed information.
+//
+// Parameters:
+//   - list: This parameter specifies the name of an existing mailing list. It can include the Domain name. If the Domain name is not specified, the user Domain is used by default.
+//   - filter: (Optional) If this optional parameter is specified, only subscribers with addresses containing the specified string are returned.
+//   - limit: (Optional) This optional parameter limits the number of subscriber dictionaries returned.
+//
+// Returns:
+//   - [][SubscriberInfo]: An array of subscriber descriptor structures.
+//   - error: An error if the command fails.
 func (cli *Cli) ReadSubscribers(list, filter string, limit int) ([]SubscriberInfo, error) {
 	if list == "" {
 		return nil, fmt.Errorf("list name is required")
@@ -202,20 +287,35 @@ func (cli *Cli) ReadSubscribers(list, filter string, limit int) ([]SubscriberInf
 	return subs, nil
 }
 
-// RenameList переименовывает список рассылки (без доменной части в новом имени).
-func (cli *Cli) RenameList(list, newName string) error {
-	if list == "" || newName == "" {
-		return fmt.Errorf("list name and new list name are required")
+// RenameList renames a mailing list.
+//
+// Parameters:
+//   - oldName: This parameter specifies the name of an existing mailing list. It can include the Domain name. If the Domain name is not specified, the user Domain is used by default.
+//   - newName: This parameter specifies the new name for the mailing list.
+//
+// Returns:
+//   - error: An error if the command fails.
+func (cli *Cli) RenameList(oldName, newName string) error {
+	if oldName == "" || newName == "" {
+		return fmt.Errorf("old and new list names are required")
 	}
 
 	new := newName
 	if idx := strings.IndexByte(newName, '@'); idx != -1 {
 		new = newName[:idx]
 	}
-	return cli.QueryNV("RENAMELIST", list, "INTO", new)
+	return cli.QueryNV("RENAMELIST", oldName, "INTO", new)
 }
 
-// SetPostingMode устанавливает режим модерации/прав публикации для подписчика.
+// SetPostingMode sets the posting mode for the specified subscriber.
+//
+// Parameters:
+//   - list: This parameter specifies the name of an existing mailing list. It can include the Domain name. If the Domain name is not specified, the user Domain is used by default.
+//   - subscriber: This parameter specifies the E-mail address of the list subscriber.
+//   - mode: (Optional) This parameter can be UNMODERATED, MODERATEALL, PROHIBITED, SPECIAL, or a number (numberOfModerated).
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) SetPostingMode(list, subscriber string, mode any) (err error) {
 	if list == "" || subscriber == "" {
 		return fmt.Errorf("list name and subscriber address are required")
@@ -229,7 +329,14 @@ func (cli *Cli) SetPostingMode(list, subscriber string, mode any) (err error) {
 	return
 }
 
-// UpdateList модифицирует настройки списка. Текст с \n автоматически конвертируется в \e.
+// UpdateList modifies list settings.
+//
+// Parameters:
+//   - list: This parameter specifies the name of an existing mailing list. It can include the Domain name. If the Domain name is not specified, the user Domain is used by default.
+//   - settings: This dictionary is used to update the mailing list settings dictionary. The omitted settings will be left unmodified.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) UpdateList(list string, settings map[string]any) error {
 	if list == "" || len(settings) == 0 {
 		return fmt.Errorf("list name and settings are required")
