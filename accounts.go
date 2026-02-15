@@ -823,10 +823,10 @@ func (cli *Cli) RenameAccount(oldName, newName, storage string) (err error) {
 //
 // Parameters:
 //   - account: Name of the target Account. Use "*" for the current authenticated user.
-//   - authAccount: (Optional) Name of an Account on whose behalf the operation
-//     is executed. Requires 'Admin' rights for the target account.
 //   - acl: A dictionary where keys are identifiers (e.g., "anyone" or "user@domain")
 //     and values are strings with access right symbols.
+//   - authAccount: (Optional) Name of an Account on whose behalf the operation
+//     is executed. Requires 'Admin' rights for the target account.
 //
 // Modification Rules (Value strings):
 //   - Starts with "+": Rights are added to the existing set.
@@ -837,7 +837,7 @@ func (cli *Cli) RenameAccount(oldName, newName, storage string) (err error) {
 // This method executes the SETACCOUNTACL CLI command.
 //
 // Returns an error if account or acl are missing, or if the server operation fails.
-func (cli *Cli) SetAccountACL(account, authAccount string, acl map[string]any) (err error) {
+func (cli *Cli) SetAccountACL(account string, acl map[string]any, authAccount string) (err error) {
 	if account == "" || acl == nil {
 		return fmt.Errorf("account name and acl dictionary are required")
 	}

@@ -245,7 +245,7 @@ func TestAccountACL(t *testing.T) {
 
 	t.Run("SetAndGetACL", func(t *testing.T) {
 		rights := map[string]any{"anyone": "i"}
-		if err := cli.SetAccountACL(testAcc, "", rights); err != nil {
+		if err := cli.SetAccountACL(testAcc, rights, ""); err != nil {
 			t.Fatalf("SetAccountACL failed: %v", err)
 		}
 
