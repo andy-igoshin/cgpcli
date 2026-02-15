@@ -43,7 +43,7 @@ func TestDomainSetAdministration(t *testing.T) {
 		tempName := fmt.Sprintf("test-dom-%d.local", time.Now().Unix())
 		newName := "renamed-" + tempName
 
-		if err := cli.CreateDomain(tempName, false, "", nil); err != nil {
+		if err := cli.CreateDomain(tempName, nil, "", false); err != nil {
 			t.Fatalf("CreateDomain failed: %v", err)
 		}
 

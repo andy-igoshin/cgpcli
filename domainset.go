@@ -25,7 +25,15 @@ import (
 	"strings"
 )
 
-// CreateDirectoryDomain создает новый домен на базе справочника.
+// CreateDirectoryDomain creates a new directory-based Domain.
+// This operation is allowed only when the Directory-based Domains are enabled.
+//
+// Parameters:
+//   - domain: This parameter specifies the Domain name to create.
+//   - settings: An optional dictionary specifying the Domain settings.
+//
+// Returns:
+//   - error: An error if the domain name is empty or the command fails.
 func (cli *Cli) CreateDirectoryDomain(domain string, settings map[string]any) (err error) {
 	if domain == "" {
 		return fmt.Errorf("domain name is required")
@@ -40,8 +48,17 @@ func (cli *Cli) CreateDirectoryDomain(domain string, settings map[string]any) (e
 	return
 }
 
-// CreateDomain создает новый домен.
-func (cli *Cli) CreateDomain(domain string, shared bool, storage string, settings map[string]any) error {
+// CreateDomain creates a new secondary Domain.
+//
+// Parameters:
+//   - domain: This parameter specifies the Domain name to create.
+//   - shared: If true, creates a Cluster-wide Domain (Dynamic Cluster only).
+//   - storage: Optional "storage mount Point" directory name (without .mnt suffix).
+//   - settings: An optional dictionary specifying the initial Domain settings.
+//
+// Returns:
+//   - error: An error if the domain name is empty or the server fails to create the domain.
+func (cli *Cli) CreateDomain(domain string, settings map[string]any, storage string, shared bool) error {
 	if domain == "" {
 		return fmt.Errorf("domain name is required")
 	}
@@ -60,7 +77,14 @@ func (cli *Cli) CreateDomain(domain string, shared bool, storage string, setting
 	return cli.QueryNV("CREATEDOMAIN", args...)
 }
 
-// CreateDomainStorage создает точку монтирования хранилища.
+// CreateDomainStorage creates a "storage mount point" for new Domains.
+//
+// Parameters:
+//   - storage: This parameter specifies the "storage mount Point" name.
+//   - shared: If true, creates a mount point for Cluster Domains in a Dynamic Cluster.
+//
+// Returns:
+//   - error: An error if the storage path is empty or the command fails.
 func (cli *Cli) CreateDomainStorage(storage string, shared bool) (err error) {
 	if storage == "" {
 		return fmt.Errorf("storage path is required")
@@ -75,7 +99,14 @@ func (cli *Cli) CreateDomainStorage(storage string, shared bool) (err error) {
 	return
 }
 
-// DeleteDomain удаляет домен.
+// DeleteDomain removes an existing Domain.
+//
+// Parameters:
+//   - domain: This parameter specifies the name of the Domain to be removed.
+//   - force: If true, removes the Domain even if it contains accounts or other objects.
+//
+// Returns:
+//   - error: An error if the domain name is empty or the server fails to remove the domain.
 func (cli *Cli) DeleteDomain(domain string, force bool) (err error) {
 	if domain == "" {
 		return fmt.Errorf("domain name is required")
@@ -90,62 +121,117 @@ func (cli *Cli) DeleteDomain(domain string, force bool) (err error) {
 	return
 }
 
-// GetClusterAccountDefaults возвращает настройки аккаунтов кластера по умолчанию.
+// GetClusterAccountDefaults retrieves the cluster-wide Default Account settings.
+//
+// Returns:
+//   - map[string]any: A dictionary with the cluster default Account settings.
+//   - error: An error if the command fails or is not executed in a Dynamic Cluster.
 func (cli *Cli) GetClusterAccountDefaults() (map[string]any, error) {
 	return cli.getMapAny("GETCLUSTERACCOUNTDEFAULTS")
 }
 
-// GetClusterAccountPrefs возвращает предпочтения аккаунтов кластера по умолчанию.
+// GetClusterAccountPrefs retrieves the cluster-wide Default Account Preferences.
+//
+// Returns:
+//   - map[string]any: A dictionary with the cluster default Preferences.
+//   - error: An error if the command fails or is not executed in a Dynamic Cluster.
 func (cli *Cli) GetClusterAccountPrefs() (map[string]any, error) {
 	return cli.getMapAny("GETCLUSTERACCOUNTPREFS")
 }
 
-// GetClusterDirectoryIntegration возвращает настройки интеграции справочника кластера.
+// GetClusterDirectoryIntegration retrieves the cluster-wide Directory Integration settings.
+//
+// Returns:
+//   - map[string]any: A dictionary with the cluster Directory Integration settings.
+//   - error: An error if the command fails or is not executed in a Dynamic Cluster.
 func (cli *Cli) GetClusterDirectoryIntegration() (map[string]any, error) {
 	return cli.getMapAny("GETCLUSTERDIRECTORYINTEGRATION")
 }
 
-// GetClusterDomainDefaults возвращает настройки доменов кластера по умолчанию.
+// GetClusterDomainDefaults retrieves the cluster-wide default Domain Settings.
+//
+// Returns:
+//   - map[string]any: A dictionary with the cluster-wide default Domain Settings.
+//   - error: An error if the command fails or is not executed in a Dynamic Cluster.
 func (cli *Cli) GetClusterDomainDefaults() (map[string]any, error) {
 	return cli.getMapAny("GETCLUSTERDOMAINDEFAULTS")
 }
 
-// GetClusterTrustedCerts возвращает список доверенных сертификатов кластера.
+// GetClusterTrustedCerts retrieves the cluster-wide set of Trusted Certificates.
+//
+// Returns:
+//   - []string: A slice of Base64-encoded X.509 certificate data.
+//   - error: An error if the command fails.
 func (cli *Cli) GetClusterTrustedCerts() ([]string, error) {
 	return cli.getTrustedCerts("GETCLUSTERTRUSTEDCERTS")
 }
 
-// GetDirectoryIntegration возвращает настройки интеграции справочника сервера.
+// GetDirectoryIntegration retrieves the server-wide Directory Integration settings.
+//
+// Returns:
+//   - map[string]any: A dictionary with the Directory Integration settings.
+//   - error: An error if the command fails.
 func (cli *Cli) GetDirectoryIntegration() (map[string]any, error) {
 	return cli.getMapAny("GETDIRECTORYINTEGRATION")
 }
 
-// GetDomainDefaults возвращает настройки доменов сервера по умолчанию.
+// GetDomainDefaults retrieves the server-wide default Domain Settings.
+//
+// Returns:
+//   - map[string]any: A dictionary with the default Domain Settings.
+//   - error: An error if the command fails.
 func (cli *Cli) GetDomainDefaults() (map[string]any, error) {
 	return cli.getMapAny("GETDOMAINDEFAULTS")
 }
 
-// GetServerAccountDefaults возвращает настройки аккаунтов сервера по умолчанию.
+// GetServerAccountDefaults retrieves the server-wide Default Account settings.
+//
+// Returns:
+//   - map[string]any: A dictionary with the default Account settings.
+//   - error: An error if the command fails.
 func (cli *Cli) GetServerAccountDefaults() (map[string]any, error) {
 	return cli.getMapAny("GETSERVERACCOUNTDEFAULTS")
 }
 
-// GetServerAccountPrefs возвращает предпочтения аккаунтов сервера по умолчанию.
+// GetServerAccountPrefs retrieves the server-wide Default Account Preferences.
+//
+// Returns:
+//   - map[string]any: A dictionary with the default Preferences.
+//   - error: An error if the command fails.
 func (cli *Cli) GetServerAccountPrefs() (map[string]any, error) {
 	return cli.getMapAny("GETSERVERACCOUNTPREFS")
 }
 
-// GetServerTrustedCerts возвращает список доверенных сертификатов сервера.
+// GetServerTrustedCerts retrieves the server-wide set of Trusted Certificates.
+//
+// Returns:
+//   - []string: An array of Base64-encoded X.509 certificate data.
+//   - error: An error if the command fails.
 func (cli *Cli) GetServerTrustedCerts() ([]string, error) {
 	return cli.getTrustedCerts("GETSERVERTRUSTEDCERTS")
 }
 
-// ListClusterTelnums возвращает телефонные номера кластера.
-func (cli *Cli) ListClusterTelnums(f string, l int) (map[string]string, error) {
-	return cli.listTelnums("LISTCLUSTERTELNUMS", f, l)
+// ListClusterTelnums reads Telnum numbers created in shared Cluster Domains.
+//
+// Parameters:
+//   - filter: (Optional) substring filter for telnum numbers.
+//   - limit: Maximum number of Telnum numbers to return.
+//
+// Returns:
+//   - map[string]string: A dictionary mapping Telnums to Account names.
+//   - error: An error if the command fails.
+func (cli *Cli) ListClusterTelnums(filter string, limit int) (map[string]string, error) {
+	return cli.listTelnums("LISTCLUSTERTELNUMS", filter, limit)
 }
 
-// ListDomainStorage возвращает список путей хранилища.
+// ListDomainStorage retrieves the list of "storage mount points" for Domains.
+//
+// Parameters:
+//   - shared: If true, lists mount points for Cluster Domains.
+//
+// Returns:
+//   - []string: An array containing the "storage mount points" names.
+//   - error: An error if the command fails.
 func (cli *Cli) ListDomainStorage(shared bool) (res []string, err error) {
 	const cmd = "LISTDOMAINSTORAGE"
 	if shared {
@@ -156,30 +242,58 @@ func (cli *Cli) ListDomainStorage(shared bool) (res []string, err error) {
 	return
 }
 
-// ListDomains возвращает список всех доменов.
+// ListDomains retrieves the names of all server domains.
+//
+// Returns:
+//   - []string: An array with the names of all server domains.
+//   - error: An error if the command fails.
 func (cli *Cli) ListDomains() ([]string, error) {
 	return cli.getSliceString("LISTDOMAINS")
 }
 
-// ListServerTelnums возвращает телефонные номера сервера.
+// ListServerTelnums reads Telnum numbers created in all non-clustered Domains.
+//
+// Parameters:
+//   - filter: (Optional) substring filter for telnum numbers.
+//   - limit: Maximum number of Telnum numbers to return.
+//
+// Returns:
+//   - map[string]string: A dictionary mapping Telnums to Account names.
+//   - error: An error if the command fails.
 func (cli *Cli) ListServerTelnums(filter string, limit int) (map[string]string, error) {
 	return cli.listTelnums("LISTSERVERTELNUMS", filter, limit)
 }
 
-// MainDomainName возвращает имя основного домена.
+// MainDomainName retrieves the name of the Main Domain.
+//
+// Returns:
+//   - string: The Main Domain name.
+//   - error: An error if the command fails.
 func (cli *Cli) MainDomainName() (string, error) {
 	return cli.getString("MAINDOMAINNAME")
 }
 
-// ReloadDirectoryDomains перезагружает домены из справочника.
+// ReloadDirectoryDomains forces the server to scan the Domains Directory subtree.
+// This allows finding additional Directory-based Domains created bypassing the CLI.
+//
+// Returns:
+//   - error: An error if the operation is not enabled or fails.
 func (cli *Cli) ReloadDirectoryDomains() error {
 	return cli.QueryNV("RELOADDIRECTORYDOMAINS")
 }
 
-// RenameDomain переименовывает домен.
+// RenameDomain changes the name of an existing secondary Domain.
+//
+// Parameters:
+//   - oldName: The name of an existing secondary Domain.
+//   - newName: The new name for the Domain.
+//   - storage: Optional new "storage mount Point" directory for the Domain data.
+//
+// Returns:
+//   - error: An error if names are missing or the server fails to rename the domain.
 func (cli *Cli) RenameDomain(oldName, newName string, storage string) (err error) {
 	if oldName == "" || newName == "" {
-		return fmt.Errorf("old and new names are required")
+		return fmt.Errorf("old and new domain names are required")
 	}
 
 	const cmd = "RENAMEDOMAIN"
@@ -191,7 +305,13 @@ func (cli *Cli) RenameDomain(oldName, newName string, storage string) (err error
 	return
 }
 
-// SetClusterAccountDefaults устанавливает настройки аккаунтов кластера.
+// SetClusterAccountDefaults replaces the cluster-wide Default Account settings.
+//
+// Parameters:
+//   - settings: A dictionary used to replace the Default Account settings.
+//
+// Returns:
+//   - error: An error if settings are nil or the command fails.
 func (cli *Cli) SetClusterAccountDefaults(settings map[string]any) error {
 	if settings == nil {
 		return fmt.Errorf("settings dictionary is required")
@@ -199,7 +319,13 @@ func (cli *Cli) SetClusterAccountDefaults(settings map[string]any) error {
 	return cli.QueryNV("SETCLUSTERACCOUNTDEFAULTS", settings)
 }
 
-// SetClusterAccountPrefs устанавливает предпочтения аккаунтов кластера.
+// SetClusterAccountPrefs replaces the cluster-wide Default Account Preferences.
+//
+// Parameters:
+//   - settings: A dictionary used to replace the Default Account Preferences.
+//
+// Returns:
+//   - error: An error if settings are nil or the command fails.
 func (cli *Cli) SetClusterAccountPrefs(settings map[string]any) error {
 	if settings == nil {
 		return fmt.Errorf("settings dictionary is required")
@@ -207,7 +333,13 @@ func (cli *Cli) SetClusterAccountPrefs(settings map[string]any) error {
 	return cli.QueryNV("SETCLUSTERACCOUNTPREFS", settings)
 }
 
-// SetClusterDirectoryIntegration устанавливает настройки интеграции справочника кластера.
+// SetClusterDirectoryIntegration replaces the cluster-wide Directory Integration settings.
+//
+// Parameters:
+//   - settings: A dictionary used to replace the Directory Integration settings.
+//
+// Returns:
+//   - error: An error if settings are nil or the command fails.
 func (cli *Cli) SetClusterDirectoryIntegration(settings map[string]any) error {
 	if settings == nil {
 		return fmt.Errorf("settings dictionary is required")
@@ -215,7 +347,13 @@ func (cli *Cli) SetClusterDirectoryIntegration(settings map[string]any) error {
 	return cli.QueryNV("SETCLUSTERDIRECTORYINTEGRATION", settings)
 }
 
-// SetClusterDomainDefaults устанавливает настройки доменов кластера.
+// SetClusterDomainDefaults replaces the cluster-wide default Domain settings.
+//
+// Parameters:
+//   - settings: A dictionary used to replace the default Domain settings.
+//
+// Returns:
+//   - error: An error if settings are nil or the command fails.
 func (cli *Cli) SetClusterDomainDefaults(settings map[string]any) error {
 	if settings == nil {
 		return fmt.Errorf("settings dictionary is required")
@@ -223,7 +361,13 @@ func (cli *Cli) SetClusterDomainDefaults(settings map[string]any) error {
 	return cli.QueryNV("SETCLUSTERDOMAINDEFAULTS", settings)
 }
 
-// SetClusterTrustedCerts устанавливает доверенные сертификаты кластера.
+// SetClusterTrustedCerts replaces the cluster-wide list of Trusted Certificates.
+//
+// Parameters:
+//   - certs: An array of Base64-encoded X.509 certificate data.
+//
+// Returns:
+//   - error: An error if the input is nil or the command fails.
 func (cli *Cli) SetClusterTrustedCerts(certs []string) error {
 	if certs == nil {
 		return fmt.Errorf("certs array is required")
@@ -231,7 +375,13 @@ func (cli *Cli) SetClusterTrustedCerts(certs []string) error {
 	return cli.setTrustedCerts("SETCLUSTERTRUSTEDCERTS", certs)
 }
 
-// SetDirectoryIntegration устанавливает настройки интеграции справочника сервера.
+// SetDirectoryIntegration replaces the server-wide Directory Integration settings.
+//
+// Parameters:
+//   - settings: A dictionary used to replace the Directory Integration settings.
+//
+// Returns:
+//   - error: An error if settings are nil or the command fails.
 func (cli *Cli) SetDirectoryIntegration(settings map[string]any) error {
 	if settings == nil {
 		return fmt.Errorf("settings dictionary is required")
@@ -239,7 +389,13 @@ func (cli *Cli) SetDirectoryIntegration(settings map[string]any) error {
 	return cli.QueryNV("SETDIRECTORYINTEGRATION", settings)
 }
 
-// SetDomainDefaults устанавливает настройки доменов сервера.
+// SetDomainDefaults replaces the server-wide default Domain settings.
+//
+// Parameters:
+//   - settings: A dictionary used to replace the default Domain settings.
+//
+// Returns:
+//   - error: An error if settings are nil or the command fails.
 func (cli *Cli) SetDomainDefaults(settings map[string]any) error {
 	if settings == nil {
 		return fmt.Errorf("settings dictionary is required")
@@ -247,7 +403,13 @@ func (cli *Cli) SetDomainDefaults(settings map[string]any) error {
 	return cli.QueryNV("SETDOMAINDEFAULTS", settings)
 }
 
-// SetServerAccountDefaults устанавливает настройки аккаунтов сервера.
+// SetServerAccountDefaults replaces the server-wide Default Account settings.
+//
+// Parameters:
+//   - settings: A dictionary used to replace the Default Account settings.
+//
+// Returns:
+//   - error: An error if settings are nil or the command fails.
 func (cli *Cli) SetServerAccountDefaults(settings map[string]any) error {
 	if settings == nil {
 		return fmt.Errorf("settings dictionary is required")
@@ -255,7 +417,13 @@ func (cli *Cli) SetServerAccountDefaults(settings map[string]any) error {
 	return cli.QueryNV("SETSERVERACCOUNTDEFAULTS", settings)
 }
 
-// SetServerAccountPrefs устанавливает предпочтения аккаунтов сервера.
+// SetServerAccountPrefs replaces the server-wide Default Account Preferences.
+//
+// Parameters:
+//   - settings: A dictionary used to replace the Default Account Preferences.
+//
+// Returns:
+//   - error: An error if settings are nil or the command fails.
 func (cli *Cli) SetServerAccountPrefs(settings map[string]any) error {
 	if settings == nil {
 		return fmt.Errorf("settings dictionary is required")
@@ -263,7 +431,13 @@ func (cli *Cli) SetServerAccountPrefs(settings map[string]any) error {
 	return cli.QueryNV("SETSERVERACCOUNTPREFS", settings)
 }
 
-// SetServerTrustedCerts устанавливает доверенные сертификаты сервера.
+// SetServerTrustedCerts replaces the server-wide list of Trusted Certificates.
+//
+// Parameters:
+//   - certs: An array of Base64-encoded X.509 certificate data.
+//
+// Returns:
+//   - error: An error if the input is nil or the command fails.
 func (cli *Cli) SetServerTrustedCerts(certs []string) error {
 	if certs == nil {
 		return fmt.Errorf("certs array is required")
@@ -271,7 +445,13 @@ func (cli *Cli) SetServerTrustedCerts(certs []string) error {
 	return cli.setTrustedCerts("SETSERVERTRUSTEDCERTS", certs)
 }
 
-// UpdateClusterAccountDefaults обновляет настройки аккаунтов кластера.
+// UpdateClusterAccountDefaults modifies specific cluster-wide Default Account settings.
+//
+// Parameters:
+//   - settings: A dictionary containing settings to update.
+//
+// Returns:
+//   - error: An error if settings are empty or the command fails.
 func (cli *Cli) UpdateClusterAccountDefaults(settings map[string]any) error {
 	if len(settings) == 0 {
 		return fmt.Errorf("settings dictionary is required")
@@ -279,7 +459,13 @@ func (cli *Cli) UpdateClusterAccountDefaults(settings map[string]any) error {
 	return cli.QueryNV("UPDATECLUSTERACCOUNTDEFAULTS", settings)
 }
 
-// UpdateClusterAccountPrefs обновляет предпочтения аккаунтов кластера.
+// UpdateClusterAccountPrefs modifies specific cluster-wide Default Account Preferences.
+//
+// Parameters:
+//   - settings: A dictionary containing preferences to update.
+//
+// Returns:
+//   - error: An error if settings are empty or the command fails.
 func (cli *Cli) UpdateClusterAccountPrefs(settings map[string]any) error {
 	if len(settings) == 0 {
 		return fmt.Errorf("settings dictionary is required")
@@ -287,7 +473,13 @@ func (cli *Cli) UpdateClusterAccountPrefs(settings map[string]any) error {
 	return cli.QueryNV("UPDATECLUSTERACCOUNTPREFS", settings)
 }
 
-// UpdateClusterDomainDefaults обновляет настройки доменов кластера.
+// UpdateClusterDomainDefaults modifies specific cluster-wide default Domain settings.
+//
+// Parameters:
+//   - settings: A dictionary containing settings to update.
+//
+// Returns:
+//   - error: An error if settings are empty or the command fails.
 func (cli *Cli) UpdateClusterDomainDefaults(settings map[string]any) error {
 	if len(settings) == 0 {
 		return fmt.Errorf("settings dictionary is required")
@@ -295,7 +487,13 @@ func (cli *Cli) UpdateClusterDomainDefaults(settings map[string]any) error {
 	return cli.QueryNV("UPDATECLUSTERDOMAINDEFAULTS", settings)
 }
 
-// UpdateDomainDefaults обновляет настройки доменов сервера.
+// UpdateDomainDefaults modifies specific server-wide default Domain settings.
+//
+// Parameters:
+//   - settings: A dictionary containing settings to update.
+//
+// Returns:
+//   - error: An error if settings are empty or the command fails.
 func (cli *Cli) UpdateDomainDefaults(settings map[string]any) error {
 	if len(settings) == 0 {
 		return fmt.Errorf("settings dictionary is required")
@@ -303,7 +501,13 @@ func (cli *Cli) UpdateDomainDefaults(settings map[string]any) error {
 	return cli.QueryNV("UPDATEDOMAINDEFAULTS", settings)
 }
 
-// UpdateServerAccountDefaults обновляет настройки аккаунтов сервера.
+// UpdateServerAccountDefaults modifies specific server-wide Default Account settings.
+//
+// Parameters:
+//   - settings: A dictionary containing settings to update.
+//
+// Returns:
+//   - error: An error if settings are empty or the command fails.
 func (cli *Cli) UpdateServerAccountDefaults(settings map[string]any) error {
 	if len(settings) == 0 {
 		return fmt.Errorf("settings dictionary is required")
@@ -311,7 +515,13 @@ func (cli *Cli) UpdateServerAccountDefaults(settings map[string]any) error {
 	return cli.QueryNV("UPDATESERVERACCOUNTDEFAULTS", settings)
 }
 
-// UpdateServerAccountPrefs обновляет предпочтения аккаунтов сервера.
+// UpdateServerAccountPrefs modifies specific server-wide Default Account Preferences.
+//
+// Parameters:
+//   - settings: A dictionary containing preferences to update.
+//
+// Returns:
+//   - error: An error if settings are empty or the command fails.
 func (cli *Cli) UpdateServerAccountPrefs(settings map[string]any) error {
 	if len(settings) == 0 {
 		return fmt.Errorf("settings dictionary is required")
