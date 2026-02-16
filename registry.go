@@ -64,7 +64,7 @@ const (
 	TypeSize
 
 	// TypeString forces the value to be treated as a raw string,
-	// bypassing any automatic numeric or boolean conversion.
+	// bypassing any automatic conversion.
 	TypeString
 )
 
