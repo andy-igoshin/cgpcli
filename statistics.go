@@ -58,18 +58,17 @@ func (cli *Cli) GetAccountStat(account string, key string) (any, error) {
 //   - any: a string with the specified statistical information, or (if the
 //     key is not specified) a dictionary with all available statistical data.
 //   - error: an error if the command fails.
-func (cli *Cli) GetDomainStat(domain string, key string) (res any, err error) {
+func (cli *Cli) GetDomainStat(domain string, key string) (any, error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain name is required")
 	}
 
 	const cmd = "GETDOMAINSTAT"
 	if key != "" {
-		res, err = cli.Query(cmd, Atom(domain), "KEY", key)
+		return cli.Query(cmd, Atom(domain), "KEY", key)
 	} else {
-		res, err = cli.Query(cmd, Atom(domain))
+		return cli.Query(cmd, Atom(domain))
 	}
-	return
 }
 
 // ResetAccountStat resets statistics data about the specified Account.
@@ -105,16 +104,15 @@ func (cli *Cli) ResetAccountStat(account string, key string) error {
 //
 // Returns:
 //   - error: an error if the command fails.
-func (cli *Cli) ResetDomainStat(domain string, key string) (err error) {
+func (cli *Cli) ResetDomainStat(domain string, key string) error {
 	if domain == "" {
 		return fmt.Errorf("domain name is required")
 	}
 
 	const cmd = "RESETDOMAINSTAT"
 	if key != "" {
-		err = cli.QueryNV(cmd, Atom(domain), "KEY", key)
+		return cli.QueryNV(cmd, Atom(domain), "KEY", key)
 	} else {
-		err = cli.QueryNV(cmd, Atom(domain))
+		return cli.QueryNV(cmd, Atom(domain))
 	}
-	return
 }
