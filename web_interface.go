@@ -26,6 +26,14 @@ import (
 	"fmt"
 )
 
+type SessionOffset int
+
+const (
+	OffsetBeg SessionOffset = -1
+	OffsetEnd SessionOffset = -2
+	OffsetNew SessionOffset = -3
+)
+
 // BlessSession завершает второй этап двухфакторной аутентификации (2FA).
 func (cli *Cli) BlessSession(sessionID string, secret, account string) error {
 	if sessionID == "" {

@@ -35,27 +35,33 @@ var (
 	TimeFuture = time.Date(2099, 12, 31, 23, 59, 59, 0, time.UTC)
 )
 
-// Atom представляет собой строку, которая всегда передается без кавычек.
+// Atom represents a string that is always transmitted without quotes.
+// It is used for commands, keywords, and object identifiers where
+// standard CLI quoting would result in a syntax error.
 type Atom string
 
-// DataBlock представляет собой бинарные данные (сертификаты и т.д.).
-// При маршалинге оборачивается в [] и считается, что данные ВНУТРИ
-// уже закодированы в Base64.
+// DataBlock represents binary data, such as SSL certificates or keys.
+// When marshaled, it is enclosed in square brackets [].
+//
+// Unlike the standard []byte type, the data inside a DataBlock MUST already
+// be Base64-encoded. This type serves as a transparent container and does
+// not perform any automatic encoding.
 type DataBlock []byte
 
-// CGPIP представляет специфический для CGP тип данных IP Address.
-// Формат в протоколе: #I[address] или #I[address]:port
+// CGPIP represents the specific CommuniGate Pro IP Address data type.
+// It follows the protocol format: #I[address] or #I[address]:port.
 type CGPIP struct {
-	IP   net.IP
-	Port int // 0 означает отсутствие порта
+	IP   net.IP // IP is the network address (IPv4 or IPv6).
+	Port int    // Port is the optional port number (0 means no port).
 }
 
-// IsZero возвращает true, если IP не задан.
+// IsZero returns true if the IP address is not set.
 func (c CGPIP) IsZero() bool {
 	return len(c.IP) == 0
 }
 
-// String возвращает привычное представление: 1.2.3.4:25 или 2001::1
+// String returns the standard human-readable representation of the IP.
+// For example: "1.2.3.4:25" or "2001::1".
 func (c CGPIP) String() string {
 	if c.IsZero() {
 		return "<nil>"
@@ -93,11 +99,3 @@ func (c CGPIP) writeCGP(w encodeWriter) (err error) {
 	}
 	return
 }
-
-type SessionOffset int
-
-const (
-	OffsetBeg SessionOffset = -1
-	OffsetEnd SessionOffset = -2
-	OffsetNew SessionOffset = -3
-)
