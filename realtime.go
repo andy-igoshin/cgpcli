@@ -25,6 +25,13 @@ import (
 	"fmt"
 )
 
+// CreateClusterPBX creates the cluster-wide Real-Time Application Environment or its national subset.
+//
+// Parameters:
+//   - language: This parameter specifies a national subset name.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) CreateClusterPBX(language string) error {
 	if language == "" {
 		return fmt.Errorf("language is required")
@@ -32,7 +39,14 @@ func (cli *Cli) CreateClusterPBX(language string) error {
 	return cli.QueryNV("CREATECLUSTERPBX", language)
 }
 
-// CreateDomainPBX создает среду RTA для домена или её национальное подмножество.
+// CreateDomainPBX creates the Domain Real-Time Application Environment or its national subset.
+//
+// Parameters:
+//   - domain: This parameter specifies the Domain name.
+//   - language: (Optional) This optional parameter specifies a national subset name.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) CreateDomainPBX(domain, language string) (err error) {
 	if domain == "" {
 		return fmt.Errorf("domain is required")
@@ -47,6 +61,13 @@ func (cli *Cli) CreateDomainPBX(domain, language string) (err error) {
 	return
 }
 
+// CreateServerPBX creates the Server-wide Real-Time Application Environment or its national subset.
+//
+// Parameters:
+//   - language: This parameter specifies a national subset name.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) CreateServerPBX(language string) error {
 	if language == "" {
 		return fmt.Errorf("language is required")
@@ -54,6 +75,13 @@ func (cli *Cli) CreateServerPBX(language string) error {
 	return cli.QueryNV("CREATESERVERPBX", language)
 }
 
+// DeleteClusterPBX removes a national subset from the cluster-wide Real-Time Application Environment.
+//
+// Parameters:
+//   - language: This parameter specifies a national subset name.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) DeleteClusterPBX(language string) error {
 	if language == "" {
 		return fmt.Errorf("language is required")
@@ -61,7 +89,14 @@ func (cli *Cli) DeleteClusterPBX(language string) error {
 	return cli.QueryNV("DELETECLUSTERPBX", language)
 }
 
-// DeleteDomainPBX удаляет национальное подмножество среды RTA домена.
+// DeleteDomainPBX removes a national subset from the Domain Real-Time Application Environment.
+//
+// Parameters:
+//   - domain: This parameter specifies the Domain name.
+//   - language: This parameter specifies a national subset name.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) DeleteDomainPBX(domain, language string) error {
 	if domain == "" || language == "" {
 		return fmt.Errorf("domain and language are required")
@@ -69,6 +104,13 @@ func (cli *Cli) DeleteDomainPBX(domain, language string) error {
 	return cli.QueryNV("DELETEDOMAINPBX", domain, "FILE", language)
 }
 
+// DeleteServerPBX removes a national subset from the Server-wide Real-Time Application Environment.
+//
+// Parameters:
+//   - language: This parameter specifies a national subset name.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) DeleteServerPBX(language string) error {
 	if language == "" {
 		return fmt.Errorf("language is required")
@@ -76,11 +118,27 @@ func (cli *Cli) DeleteServerPBX(language string) error {
 	return cli.QueryNV("DELETESERVERPBX", language)
 }
 
+// ListClusterPBXFiles lists files in the cluster-wide Real-Time Application Environment.
+//
+// Parameters:
+//   - language: (Optional) This optional parameter specifies a national subset name.
+//
+// Returns:
+//   - map[string]any: A dictionary with file names as keys. Values are dictionaries with file attributes.
+//   - error: An error if the command fails.
 func (cli *Cli) ListClusterPBXFiles(language string) (map[string]any, error) {
 	return cli.getMapAny("LISTCLUSTERPBXFILES", Atom(language))
 }
 
-// ListDomainPBXFiles возвращает список файлов в среде RTA домена.
+// ListDomainPBXFiles lists files in the Domain Real-Time Application Environment.
+//
+// Parameters:
+//   - domain: (Optional) This optional parameter specifies the Domain name. If not specified, the administrator Domain is used.
+//   - language: (Optional) This optional parameter specifies a national subset name.
+//
+// Returns:
+//   - map[string]any: A dictionary with file names as keys. Values are dictionaries with file attributes.
+//   - error: An error if the command fails.
 func (cli *Cli) ListDomainPBXFiles(domain, language string) (map[string]any, error) {
 	args := make([]any, 0, 3)
 	if domain != "" {
@@ -92,14 +150,38 @@ func (cli *Cli) ListDomainPBXFiles(domain, language string) (map[string]any, err
 	return cli.getMapAny("LISTDOMAINPBXFILES", args...)
 }
 
+// ListServerPBXFiles lists files in the Server-wide Real-Time Application Environment.
+//
+// Parameters:
+//   - language: (Optional) This optional parameter specifies a national subset name.
+//
+// Returns:
+//   - map[string]any: A dictionary with file names as keys. Values are dictionaries with file attributes.
+//   - error: An error if the command fails.
 func (cli *Cli) ListServerPBXFiles(language string) (map[string]any, error) {
 	return cli.getMapAny("LISTSERVERPBXFILES", Atom(language))
 }
 
+// ListStockPBXFiles lists files in the stock (built-in) Real-Time Application Environment.
+//
+// Parameters:
+//   - language: (Optional) This optional parameter specifies a national subset name.
+//
+// Returns:
+//   - map[string]any: A dictionary with file names as keys. Values are dictionaries with file attributes.
+//   - error: An error if the command fails.
 func (cli *Cli) ListStockPBXFiles(language string) (map[string]any, error) {
 	return cli.getMapAny("LISTSTOCKPBXFILES", Atom(language))
 }
 
+// ReadClusterPBXFile reads a file from the cluster-wide Real-Time Application Environment.
+//
+// Parameters:
+//   - file: The file name. For national subsets, specify "language/fileName".
+//
+// Returns:
+//   - []byte: A datablock with the file contents.
+//   - error: An error if the command fails.
 func (cli *Cli) ReadClusterPBXFile(file string) ([]byte, error) {
 	if file == "" {
 		return nil, fmt.Errorf("file is required")
@@ -117,7 +199,15 @@ func (cli *Cli) ReadClusterPBXFile(file string) ([]byte, error) {
 	return data, nil
 }
 
-// ReadDomainPBXFile читает файл из среды RTA домена.
+// ReadDomainPBXFile reads a file from the Domain Real-Time Application Environment.
+//
+// Parameters:
+//   - domain: This parameter specifies the Domain name.
+//   - file: The file name. For national subsets, specify "language/fileName".
+//
+// Returns:
+//   - []byte: A datablock with the file contents.
+//   - error: An error if the command fails.
 func (cli *Cli) ReadDomainPBXFile(domain, file string) ([]byte, error) {
 	if domain == "" || file == "" {
 		return nil, fmt.Errorf("domain and file are required")
@@ -135,6 +225,14 @@ func (cli *Cli) ReadDomainPBXFile(domain, file string) ([]byte, error) {
 	return data, nil
 }
 
+// ReadServerPBXFile reads a file from the Server-wide Real-Time Application Environment.
+//
+// Parameters:
+//   - file: The file name. For national subsets, specify "language/fileName".
+//
+// Returns:
+//   - []byte: A datablock with the file contents.
+//   - error: An error if the command fails.
 func (cli *Cli) ReadServerPBXFile(file string) ([]byte, error) {
 	if file == "" {
 		return nil, fmt.Errorf("file is required")
@@ -152,6 +250,14 @@ func (cli *Cli) ReadServerPBXFile(file string) ([]byte, error) {
 	return data, nil
 }
 
+// ReadStockPBXFile reads a file from the stock (built-in) Real-Time Application Environment.
+//
+// Parameters:
+//   - file: The file name. For national subsets, specify "language/fileName".
+//
+// Returns:
+//   - []byte: A datablock with the file contents.
+//   - error: An error if the command fails.
 func (cli *Cli) ReadStockPBXFile(file string) ([]byte, error) {
 	if file == "" {
 		return nil, fmt.Errorf("file is required")
@@ -169,6 +275,14 @@ func (cli *Cli) ReadStockPBXFile(file string) ([]byte, error) {
 	return data, nil
 }
 
+// StoreClusterPBXFile stores a file into or deletes it from the cluster-wide Real-Time Application Environment.
+//
+// Parameters:
+//   - file: The file name. For national subsets, specify "language/fileName".
+//   - data: If not nil, stores the file (DATA). If nil, removes the file (DELETE).
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) StoreClusterPBXFile(file string, data []byte) (err error) {
 	if file == "" {
 		return fmt.Errorf("file is required")
@@ -183,7 +297,15 @@ func (cli *Cli) StoreClusterPBXFile(file string, data []byte) (err error) {
 	return
 }
 
-// StoreDomainPBXFile сохраняет или удаляет файл в среде RTA домена.
+// StoreDomainPBXFile stores a file into or deletes it from the Domain Real-Time Application Environment.
+//
+// Parameters:
+//   - domain: This parameter specifies the Domain name.
+//   - file: The file name. For national subsets, specify "language/fileName".
+//   - data: If not nil, stores the file (DATA). If nil, removes the file (DELETE).
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) StoreDomainPBXFile(domain, file string, data []byte) (err error) {
 	if domain == "" || file == "" {
 		return fmt.Errorf("domain and file are required")
@@ -198,6 +320,14 @@ func (cli *Cli) StoreDomainPBXFile(domain, file string, data []byte) (err error)
 	return
 }
 
+// StoreServerPBXFile stores a file into or deletes it from the Server-wide Real-Time Application Environment.
+//
+// Parameters:
+//   - file: The file name. For national subsets, specify "language/fileName".
+//   - data: If not nil, stores the file (DATA). If nil, removes the file (DELETE).
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) StoreServerPBXFile(file string, data []byte) (err error) {
 	if file == "" {
 		return fmt.Errorf("file is required")
