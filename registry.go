@@ -121,7 +121,22 @@ var FieldExceptions = map[string]FieldType{
 }
 
 // RegisterFieldType adds or overrides a field mapping in the global registry [FieldExceptions].
-// Use this to support new CommuniGate Pro fields or change how existing fields are interpreted.
+// Use this to support new CommuniGate Pro fields or change how existing fields
+// are interpreted by the library's transformation engine.
+//
+// Parameters:
+//   - name: The exact key name as it appears in the CommuniGate Pro protocol (e.g., "MyCustomTimeout").
+//   - t: The target [FieldType] which defines the transformation logic.
+//
+// Note: This function must be called before initializing any new CLI sessions
+// via [New]. The recommended approach is to call [RegisterFieldType] within
+// an init() function in your application. You can call it as many times
+// as necessary to register all required field exceptions.
+//
+// Example:
+//   func init() {
+//       cgpcli.RegisterFieldType("CustomQuota", cgpcli.TypeSize)
+//   }
 func RegisterFieldType(name string, t FieldType) {
 	FieldExceptions[name] = t
 }
