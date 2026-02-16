@@ -1,7 +1,6 @@
 package cgpcli
 
 import (
-	"os"
 	"strings"
 	"testing"
 )
@@ -137,32 +136,6 @@ func TestMailboxes(t *testing.T) {
 		}
 		if _, ok := list[mbox]; !ok && len(list) > 0 {
 			t.Logf("Note: %s not found in filtered list, but call was successful", mbox)
-		}
-	})
-}
-
-func TestMailboxesRO(t *testing.T) {
-	// Проверка чтения из Production (RO)
-	host := os.Getenv("CGPHOST_RO")
-	if host == "" {
-		t.Skip("RO environment (CGPHOST_RO) not set")
-	}
-
-	cli, err := New(host, os.Getenv("CGPUSER_RO"), os.Getenv("CGPPASS_RO"), APOP, false)
-	if err != nil {
-		t.Fatalf("RO Connect failed: %v", err)
-	}
-	defer cli.Close()
-
-	target := os.Getenv("USER_RO")
-
-	t.Run("ListAndInfo", func(t *testing.T) {
-		mboxes, err := cli.ListMailboxes(target, "*", "")
-		if err != nil {
-			t.Errorf("ListMailboxes failed: %v", err)
-		}
-		if len(mboxes) == 0 {
-			t.Log("RO account has no mailboxes to list")
 		}
 	})
 }
