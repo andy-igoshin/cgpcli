@@ -22,6 +22,21 @@ import (
 	"fmt"
 )
 
+// RunScript executes a synchronous script (CG/PL) on the server.
+// Unlike PBX tasks, this command blocks until the script completes
+// and returns the result object directly.
+//
+// Parameters:
+//   - account: The name of the Account. The script is started on this Account behalf.
+//     The name can include the Domain name. If the Domain name is not specified, the current user Domain is used.
+//   - prog: The name of the script file (the .scgp file) to start.
+//   - entry: (Optional) The script entry point. If empty, "main" is used.
+//   - param: (Optional) A map of parameters passed to the script.
+//     Accessible via Vars().startParameter in CG/PL.
+//
+// Returns:
+//   - any: The object returned by the script (string, map, array, etc.).
+//   - error: An error if the command fails or the script execution encounters an error.
 func (cli *Cli) RunScript(account, prog, entry string, param map[string]any) (any, error) {
 	if account == "" || prog == "" {
 		return nil, fmt.Errorf("account name and prog name are required")
