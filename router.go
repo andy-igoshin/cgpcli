@@ -34,10 +34,19 @@ type RouterEntry struct {
 }
 
 // RouterList is an ordered slice of [RouterEntry] providing high-level
-// manipulation methods.
+// manipulation methods. Since CommuniGate Pro evaluates rules from
+// top to bottom, this structure ensures the order remains intact.
 type RouterList []RouterEntry
 
-// Add добавляет правило в конец таблицы.
+// Add appends a new rule to the end of the routing table.
+//
+// Parameters:
+//   - rule: The routing rule string (e.g., "<*@domain.com> = user@other.com").
+//   - comment: Optional text to be placed after the semicolon.
+//   - alignPos: The character position where the semicolon should be placed.
+//
+// Returns:
+//   - None.
 func (l *RouterList) Add(rule, comment string, alignPos int) {
 	*l = append(*l, RouterEntry{
 		Rule:    rule,
@@ -46,7 +55,13 @@ func (l *RouterList) Add(rule, comment string, alignPos int) {
 	})
 }
 
-// Find возвращает индекс первого вхождения правила, содержащего pattern.
+// Find returns the index of the first entry where the rule contains the pattern.
+//
+// Parameters:
+//   - pattern: The substring to search for within the routing rules.
+//
+// Returns:
+//   - int: The zero-based index of the first match, or -1 if no match is found.
 func (l RouterList) Find(pattern string) int {
 	for i, entry := range l {
 		if strings.Contains(entry.Rule, pattern) {
@@ -56,7 +71,17 @@ func (l RouterList) Find(pattern string) int {
 	return -1
 }
 
-// InsertAfter вставляет новое правило после найденного по паттерну.
+// InsertAfter inserts a new rule immediately after the first entry that
+// matches the specified pattern.
+//
+// Parameters:
+//   - pattern: The substring to locate the anchor rule.
+//   - rule: The new routing rule string to insert.
+//   - comment: Optional text for the new rule's comment.
+//   - alignPos: The character position for semicolon alignment in the new rule.
+//
+// Returns:
+//   - error: An error if the anchor pattern is not found in the list.
 func (l *RouterList) InsertAfter(pattern, rule, comment string, alignPos int) error {
 	idx := l.Find(pattern)
 	if idx == -1 {
@@ -72,7 +97,17 @@ func (l *RouterList) InsertAfter(pattern, rule, comment string, alignPos int) er
 	return nil
 }
 
-// InsertBefore вставляет новое правило перед найденным по паттерну.
+// InsertBefore inserts a new rule immediately before the first entry that
+// matches the specified pattern.
+//
+// Parameters:
+//   - pattern: The substring to locate the anchor rule.
+//   - rule: The new routing rule string to insert.
+//   - comment: Optional text for the new rule's comment.
+//   - alignPos: The character position for semicolon alignment in the new rule.
+//
+// Returns:
+//   - error: An error if the anchor pattern is not found in the list.
 func (l *RouterList) InsertBefore(pattern, rule, comment string, alignPos int) error {
 	idx := l.Find(pattern)
 	if idx == -1 {

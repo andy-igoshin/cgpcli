@@ -134,9 +134,10 @@ var FieldExceptions = map[string]FieldType{
 // as necessary to register all required field exceptions.
 //
 // Example:
-//   func init() {
-//       cgpcli.RegisterFieldType("CustomQuota", cgpcli.TypeSize)
-//   }
+//
+//	func init() {
+//	    cgpcli.RegisterFieldType("CustomQuota", cgpcli.TypeSize)
+//	}
 func RegisterFieldType(name string, t FieldType) {
 	FieldExceptions[name] = t
 }
