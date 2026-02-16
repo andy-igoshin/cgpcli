@@ -28,8 +28,20 @@ import (
 	"time"
 )
 
+// IPKey is a fixed-size byte array representing an IP address.
+// It is used as a map key to provide efficient O(1) lookups and
+// minimal memory footprint compared to string keys.
 type IPKey [16]byte
 
+// ToKey converts a net.IP address into an IPKey.
+// It transparently handles both IPv4 and IPv6 by converting
+// addresses to their 16-byte representation.
+//
+// Parameters:
+//   - ip: the net.IP address to convert.
+//
+// Returns:
+//   - IPKey: a 16-byte array suitable for use as a map key.
 func ToKey(ip net.IP) IPKey {
 	var key IPKey
 	if ip != nil {
@@ -38,17 +50,30 @@ func ToKey(ip net.IP) IPKey {
 	return key
 }
 
+// TempIP represents an entry in a temporary IP list.
+// It combines the network address with its expiration logic.
 type TempIP struct {
-	IP        net.IP
-	TimeLeft  time.Duration
-	Permanent bool
+	IP        net.IP        // IP is the network address (IPv4 or IPv6).
+	TimeLeft  time.Duration // TimeLeft specifies the remaining duration before expiration.
+	Permanent bool          // Permanent indicates if the IP should remain in the list indefinitely.
 }
 
+// TempIPList manages a collection of temporary IP addresses.
+// It provides methods for local manipulation of the list before
+// it is serialized and sent to the CommuniGate Pro server.
 type TempIPList struct {
 	items map[IPKey]TempIP
 }
 
-// Add обновляет локальный черновик.
+// Add updates the local draft by adding or updating an IP address.
+//
+// Parameters:
+//   - input: the IP address to add (supported types: string or net.IP).
+//   - duration: the time-to-live for the entry.
+//   - permanent: if true, the entry is marked as permanent (TimeLeft is ignored).
+//
+// Returns:
+//   - error: an error if the input type is unsupported or the IP is invalid.
 func (l *TempIPList) Add(input any, duration time.Duration, permanent bool) error {
 	ip, key, err := l.parseInput(input)
 	if err != nil {
@@ -65,7 +90,13 @@ func (l *TempIPList) Add(input any, duration time.Duration, permanent bool) erro
 	return nil
 }
 
-// Delete удаляет из локального черновика.
+// Delete removes an IP address from the local draft.
+//
+// Parameters:
+//   - input: the IP address to remove (supported types: string or net.IP).
+//
+// Returns:
+//   - error: an error if the input type is unsupported or the IP is invalid.
 func (l *TempIPList) Delete(input any) error {
 	_, key, err := l.parseInput(input)
 	if err != nil {
@@ -78,13 +109,28 @@ func (l *TempIPList) Delete(input any) error {
 	return nil
 }
 
-// Exists — короткая проверка наличия.
+// Exists provides a quick check for the presence of an IP in the list.
+//
+// Parameters:
+//   - input: the IP address to check (supported types: string or net.IP).
+//
+// Returns:
+//   - bool: true if the IP exists in the current list.
+//   - error: an error if the input IP is invalid.
 func (l *TempIPList) Exists(input any) (bool, error) {
 	_, ok, err := l.Get(input)
 	return ok, err
 }
 
-// Get возвращает данные, признак наличия и ошибку валидации входа.
+// Get retrieves the details of a specific IP entry.
+//
+// Parameters:
+//   - input: the IP address to look up (supported types: string or net.IP).
+//
+// Returns:
+//   - [TempIP]: the structure containing IP, TimeLeft, and Permanent status.
+//   - bool: true if the entry was found.
+//   - error: an error if the input IP is invalid.
 func (l *TempIPList) Get(input any) (TempIP, bool, error) {
 	_, key, err := l.parseInput(input)
 	if err != nil {
@@ -97,7 +143,10 @@ func (l *TempIPList) Get(input any) (TempIP, bool, error) {
 	return item, ok, nil
 }
 
-// IPs экспортирует слайс IP.
+// IPs exports all IP addresses currently present in the list as a slice.
+//
+// Returns:
+//   - []net.IP: a slice of IP addresses. Returns nil if the list is empty.
 func (l *TempIPList) IPs() []net.IP {
 	if l == nil || l.items == nil {
 		return nil
@@ -109,7 +158,10 @@ func (l *TempIPList) IPs() []net.IP {
 	return res
 }
 
-// Len возвращает количество записей в списке.
+// Len returns the number of entries in the current list.
+//
+// Returns:
+//   - int: the total count of IP entries.
 func (l *TempIPList) Len() int {
 	if l == nil || l.items == nil {
 		return 0
