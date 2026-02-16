@@ -47,6 +47,21 @@ func (cli *Cli) getSliceAny(cmd string, args ...any) ([]any, error) {
 	return s, nil
 }
 
+// getSliceByte — получение слайса ([]byte) от сервера.
+func (cli *Cli) getSliceByte(cmd string, args ...any) ([]byte, error) {
+	res, err := cli.Query(cmd, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	s, ok := res.([]byte)
+	if !ok {
+		return nil, fmt.Errorf("%s: expected []byte, got %T", cmd, res)
+	}
+
+	return s, nil
+}
+
 // getSliceString — получение слайса ([]string) от сервера.
 func (cli *Cli) getSliceString(cmd string, args ...any) ([]string, error) {
 	raw, err := cli.getSliceAny(cmd, args...)
