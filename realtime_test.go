@@ -44,8 +44,8 @@ func TestPBX_Integration(t *testing.T) {
 		}
 
 		// Delete
-		if err := cli.StoreDomainPBXFile(testDomain, testFile, nil); err != nil {
-			t.Errorf("Delete (Store with nil) failed: %v", err)
+		if err := cli.DeleteDomainPBXFile(testDomain, testFile); err != nil {
+			t.Errorf("Delete failed: %v", err)
 		}
 	})
 
@@ -56,7 +56,7 @@ func TestPBX_Integration(t *testing.T) {
 		if err := cli.StoreServerPBXFile(testFile, testData); err != nil {
 			t.Logf("Note: StoreServerPBXFile might fail without permissions: %v", err)
 		} else {
-			defer cli.StoreServerPBXFile(testFile, nil)
+			defer cli.DeleteServerPBXFile(testFile)
 
 			readData, err := cli.ReadServerPBXFile(testFile)
 			if err == nil && !bytes.Equal(readData, testData) {
@@ -114,6 +114,9 @@ func TestPBX_Extended(t *testing.T) {
 
 		// Read (даже если файла нет, вызов ReadClusterPBXFile будет покрыт)
 		_, _ = cli.ReadClusterPBXFile(testFile)
+
+		// Delete file
+		_ = cli.DeleteClusterPBXFile(testFile)
 
 		// Delete
 		_ = cli.DeleteClusterPBX(testLang)
