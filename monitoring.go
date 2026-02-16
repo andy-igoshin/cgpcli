@@ -20,7 +20,6 @@
 package cgpcli
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -30,15 +29,27 @@ import (
 // Значение 2048 покрывает стандартный набор OID большинства инсталляций без переаллокаций.
 const statsCapacity = 2048
 
-// ErrStatNotFound — внутренняя ошибка для идентификации конца списка или отсутствия элемента.
-var ErrStatNotFound = errors.New("statistics element is not found")
-
-// GetDialogInfo возвращает данные о состоянии Signal Dialog по его ID.
+// GetDialogInfo retrieves the information about a Signal Dialog object.
+//
+// Parameters:
+//   - dialogID: The numeric Dialog ID.
+//
+// Returns:
+//   - map[string]any: A dictionary with the Dialog status data.
+//   - error: An error if the command fails.
 func (cli *Cli) GetDialogInfo(dialogID int64) (map[string]any, error) {
 	return cli.getMapAny("GETDIALOGINFO", dialogID)
 }
 
-// GetNextStatName возвращает имя следующего элемента статистики.
+// GetNextStatName is used to enumerate available Server statistics (SNMP) elements.
+//
+// Parameters:
+//   - objectID: An empty string to get the first element, or the ID of the
+//     previously found element.
+//
+// Returns:
+//   - string: The ObjectID of the next statistics element.
+//   - error: Returns io.EOF if the current element is the last one available.
 func (cli *Cli) GetNextStatName(objectID string) (s string, err error) {
 	s, err = cli.getString("GETNEXTSTATNAME", objectID)
 	if err != nil {
@@ -50,7 +61,14 @@ func (cli *Cli) GetNextStatName(objectID string) (s string, err error) {
 	return
 }
 
-// GetStatElement возвращает текущее значение элемента статистики (SNMP).
+// GetStatElement retrieves the current value of a Server statistics (SNMP) element.
+//
+// Parameters:
+//   - objectID: The object ID of the Server statistics element.
+//
+// Returns:
+//   - any: A number, string, or other object representing the element value.
+//   - error: An error if the ObjectID is not found.
 func (cli *Cli) GetStatElement(objectID string) (any, error) {
 	if objectID == "" {
 		return nil, fmt.Errorf("objectID is required")
@@ -58,7 +76,12 @@ func (cli *Cli) GetStatElement(objectID string) (any, error) {
 	return cli.Query("GETSTATELEMENT", objectID)
 }
 
-// ListAllStats собирает все доступные имена элементов статистики в один слайс.
+// ListAllStats is a helper method that iterates through the entire statistics tree
+// and returns a slice of all available OIDs.
+//
+// Returns:
+//   - []string: A slice containing all discovered statistic names.
+//   - error: An error if any part of the iteration fails.
 func (cli *Cli) ListAllStats() ([]string, error) {
 	stats := make([]string, 0, statsCapacity)
 	var current string
@@ -77,7 +100,15 @@ func (cli *Cli) ListAllStats() ([]string, error) {
 	return stats, nil
 }
 
-// SetStatElement обновляет значение "Custom" элемента статистики.
+// SetStatElement updates the current value of a "Custom" Server statistics element.
+//
+// Parameters:
+//   - objectID: The object ID of the Server statistics element.
+//   - op: The operation to perform: "INC" (increment) or "SET" (assignment).
+//   - val: The numeric value to be used in the operation.
+//
+// Returns:
+//   - error: An error if the element is not "Custom" or the command fails.
 func (cli *Cli) SetStatElement(objectID, op string, val int64) error {
 	if objectID == "" {
 		return fmt.Errorf("objectID is required")
@@ -88,7 +119,10 @@ func (cli *Cli) SetStatElement(objectID, op string, val int64) error {
 	return cli.QueryNV("SETSTATELEMENT", objectID, op, val)
 }
 
-// Shutdown инициирует остановку сервера CommuniGate Pro.
+// Shutdown initiates the stop sequence for the CommuniGate Pro Server.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) Shutdown() error {
 	return cli.QueryNV("SHUTDOWN")
 }
