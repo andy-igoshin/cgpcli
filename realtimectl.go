@@ -24,7 +24,13 @@ import (
 	"fmt"
 )
 
-// KillNode принудительно завершает выполнение PBX-задачи.
+// KillNode kills an existing PBX Task.
+//
+// Parameters:
+//   - taskID: This parameter specifies the unique Task ID.
+//
+// Returns:
+//   - error: An error if the task cannot be found or the command fails.
 func (cli *Cli) KillNode(taskID string) error {
 	if taskID == "" {
 		return fmt.Errorf("taskID is required")
@@ -32,7 +38,14 @@ func (cli *Cli) KillNode(taskID string) error {
 	return cli.QueryNV("KILLNODE", taskID)
 }
 
-// ReadNodeStatus возвращает текущий статус приложения для указанной задачи.
+// ReadNodeStatus reads the current application status of an existing PBX Task.
+//
+// Parameters:
+//   - taskID: This parameter specifies the Task ID.
+//
+// Returns:
+//   - any: The application status object returned by the task.
+//   - error: An error if the command fails.
 func (cli *Cli) ReadNodeStatus(taskID string) (any, error) {
 	if taskID == "" {
 		return nil, fmt.Errorf("taskID is required")
@@ -40,22 +53,41 @@ func (cli *Cli) ReadNodeStatus(taskID string) (any, error) {
 	return cli.Query("READNODESTATUS", taskID)
 }
 
-// SendTaskEvent отправляет событие в существующую PBX-задачу.
-func (cli *Cli) SendTaskEvent(taskID, event string, param any) (err error) {
+// SendTaskEvent sends an Event to an existing PBX Task.
+//
+// Parameters:
+//   - taskID: This parameter specifies the Task ID.
+//   - event: The name of the Event to send.
+//   - param: (Optional) This parameter specifies the Event parameter.
+//
+// Returns:
+//   - error: An error if the command fails.
+func (cli *Cli) SendTaskEvent(taskID, event string, param any) error {
 	if taskID == "" || event == "" {
 		return fmt.Errorf("taskID and event name are required")
 	}
 
 	const cmd = "SENDTASKEVENT"
 	if param != nil {
-		err = cli.QueryNV(cmd, taskID, "EVENT", event, "PARAM", param)
+		return cli.QueryNV(cmd, taskID, "EVENT", event, "PARAM", param)
 	} else {
-		err = cli.QueryNV(cmd, taskID, "EVENT", event)
+		return cli.QueryNV(cmd, taskID, "EVENT", event)
 	}
-	return
 }
 
-// StartPBXTask запускает новую PBX-задачу для указанного аккаунта.
+// StartPBXTask starts a new PBX Task on behalf of the specified Account.
+//
+// Parameters:
+//   - account: The name of the Account. The name can include the Domain name.
+//     If the Domain name is not specified, the current user Domain is used.
+//   - program: The name of the program (the .sppr file) to start.
+//   - entry: (Optional) The program entry point. If empty, "main" is used.
+//   - param: (Optional) Specifies the program parameter.
+//     Accessible within the program via Vars().startParameter.
+//
+// Returns:
+//   - string: A string with the new Task ID.
+//   - error: An error if the command fails.
 func (cli *Cli) StartPBXTask(account, program, entry string, param any) (string, error) {
 	if account == "" || program == "" {
 		return "", fmt.Errorf("account and program name are required")
