@@ -44,18 +44,20 @@ func (cli *Cli) Balance(account string, params map[string]any) (map[string]any, 
 // Dataset manages Account "datasets".
 //
 // Parameters:
-//   - account: The name of an existing Account (use "*" for current user).
+//
+//   - account: This parameter specifies the name of an existing Account.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - params: A dictionary containing:
-//     subsetName - (string) Target dataset or dataset subset;
-//     what - (string) The operation to apply:
-//     listSubsets - Lists all subsets of the specified dataset;
-//     createSet - Creates the specified dataset;
-//     removeSet - Removes the specified dataset;
-//     listEntries - Lists subset entries;
-//     setEntry - Creates or updates an entry;
-//     deleteEntry - Removes the specified entry;
-//     addRandomEntry - Adds a new entry with a generated name;
-//     findAddress - Finds an entry by "addressbook.Email" attribute.
+//     subsetName: (string) Target dataset or dataset subset;
+//     what: (string) The operation to apply:
+//     listSubsets: Lists all subsets of the specified dataset;
+//     createSet: Creates the specified dataset;
+//     removeSet: Removes the specified dataset;
+//     listEntries: Lists subset entries;
+//     setEntry: Creates or updates an entry;
+//     deleteEntry: Removes the specified entry;
+//     addRandomEntry: Adds a new entry with a generated name;
+//     findAddress: Finds an entry by "addressbook.Email" attribute.
 //
 // Returns:
 //   - map[string]any: A dictionary with the operation results.
