@@ -34,10 +34,6 @@ const (
 	EventNoAnswer = 5 // 500
 )
 
-// -----------------------------------------------------------------------------
-// Types & Interfaces
-// -----------------------------------------------------------------------------
-
 // MailRule represents a standard email processing rule.
 type MailRule struct {
 	Priority   int    // Execution order (0 to 99).
@@ -51,7 +47,7 @@ type MailRule struct {
 type SignalRule struct {
 	Priority   int    // Base priority (0 to 99).
 	Delay      int    // Delay in seconds before the rule is applied.
-	EventCode  int    // Specific event trigger (Busy, No Answer, etc.).
+	EventCode  int    // Specific event trigger (EventError, EventBusy, EventNoAnswer).
 	Name       string // Unique rule identifier.
 	Conditions []any  // Signal-specific conditions.
 	Actions    []any  // Signaling actions (e.g., ["Redirect", "target"]).
@@ -64,9 +60,27 @@ type ruleConstraint interface {
 	GetName() string
 }
 
-func (r MailRule) GetName() string   { return r.Name }
-func (r SignalRule) GetName() string { return r.Name }
+// GetName returns the unique identifier of the rule.
+//
+// Returns:
+//   - string: The name of the [MailRule].
+func (r MailRule) GetName() string {
+	return r.Name
+}
 
+// GetName returns the unique identifier of the rule.
+//
+// Returns:
+//   - string: The name of the [SignalRule].
+func (r SignalRule) GetName() string {
+	return r.Name
+}
+
+// ToSlice converts the rule structure into a raw slice format compatible
+// with the CommuniGate Pro CLI protocol.
+//
+// Returns:
+//   - []any: A slice containing [Priority, Name, Conditions, Actions, (Comment)].
 func (r MailRule) ToSlice() []any {
 	slice := []any{r.Priority, r.Name, r.Conditions, r.Actions}
 	if r.Comment != "" {
@@ -75,6 +89,14 @@ func (r MailRule) ToSlice() []any {
 	return slice
 }
 
+// ToSlice converts the rule structure into a raw slice format compatible
+// with the CommuniGate Pro CLI protocol.
+//
+// For [SignalRules], this method automatically performs priority packing
+// (combining priority, delay, and event code).
+//
+// Returns:
+//   - []any: A slice containing [Priority, Name, Conditions, Actions, (Comment)].
 func (r SignalRule) ToSlice() []any {
 	packed := packSignalPriority(r.Name, r.Priority, r.Delay, r.EventCode)
 	slice := []any{packed, r.Name, r.Conditions, r.Actions}
