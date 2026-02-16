@@ -46,11 +46,21 @@ const (
 type TraceFacility string
 
 const (
-	TraceFileIO TraceFacility = "FileIO"
-	TraceFileOp TraceFacility = "FileOp"
+	TraceFileIO TraceFacility = "FileIO" // Record all file read/write/truncate operations
+	TraceFileOp TraceFacility = "FileOp" // Record all file create/rename/remove operations
 )
 
-// DumpAllObjects пишет список всех объектов данных.
+// DumpAllObjects writes the list of all application data objects.
+//
+// Parameters:
+//   - file: If true, the objects_dump.txt file is created in the Server base directory.
+//     If false, the list is written into the OS syslog.
+//
+// Note: This list may contain millions of objects and can overload the OS syslog.
+// It also effectively suspends CommuniGate Pro Server activities till all objects are listed.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) DumpAllObjects(file bool) (err error) {
 	const cmd = "DUMPALLOBJECTS"
 	if file {
@@ -61,12 +71,23 @@ func (cli *Cli) DumpAllObjects(file bool) (err error) {
 	return
 }
 
-// Echo возвращает переданный объект без изменений.
+// Echo produces an output which is a copy of the command parameter object.
+//
+// Parameters:
+//   - obj: The object (string, dictionary, array, etc.) to be echoed back by the server.
+//
+// Returns:
+//   - any: The exact copy of the input object as returned by the server.
+//   - error: An error if the command fails.
 func (cli *Cli) Echo(obj any) (any, error) {
 	return cli.Query("ECHO", obj)
 }
 
-// GetCurrentController возвращает IP-адрес текущего контроллера динамического кластера.
+// GetCurrentController retrieves the IP address of the current Dynamic Cluster Controller.
+//
+// Returns:
+//   - net.IP: The Cluster Controller IP Address.
+//   - error: An error if the command fails.
 func (cli *Cli) GetCurrentController() (net.IP, error) {
 	s, err := cli.getString("GETCURRENTCONTROLLER")
 	if err != nil {
@@ -78,7 +99,11 @@ func (cli *Cli) GetCurrentController() (net.IP, error) {
 	return net.ParseIP(s), nil
 }
 
-// GetCurrentTime возвращает текущее внутреннее время сервера.
+// GetCurrentTime retrieves the current internal timer value of the CommuniGate Pro Server.
+//
+// Returns:
+//   - time.Time: A timestamp with the Server internal timer value.
+//   - error: An error if the command fails.
 func (cli *Cli) GetCurrentTime() (time.Time, error) {
 	const cmd = "GETCURRENTTIME"
 	res, err := cli.Query(cmd)
@@ -92,7 +117,15 @@ func (cli *Cli) GetCurrentTime() (time.Time, error) {
 	return t, nil
 }
 
-// GetMessageQueueInfo возвращает информацию об очереди модуля.
+// GetMessageQueueInfo reads information about a module message Queue.
+//
+// Parameters:
+//   - module: This parameter specifies the module name.
+//   - queue: This parameter specifies the module queue name.
+//
+// Returns:
+//   - map[string]any: A dictionary with the specified queue information (nTotal, size, delayedTill, lastError).
+//   - error: An error if the command fails.
 func (cli *Cli) GetMessageQueueInfo(module, queue string) (map[string]any, error) {
 	if module == "" || queue == "" {
 		return nil, fmt.Errorf("module and queue are required")
@@ -100,7 +133,14 @@ func (cli *Cli) GetMessageQueueInfo(module, queue string) (map[string]any, error
 	return cli.getMapAny("GETMESSAGEQUEUEINFO", module, "QUEUE", queue)
 }
 
-// GetSystemInfo возвращает системную информацию сервера по ключу.
+// GetSystemInfo retrieves information returned by the CG/PL SystemInfo function called with the what parameter.
+//
+// Parameters:
+//   - what: This parameter specifies the system information key to retrieve.
+//
+// Returns:
+//   - any: An object returned by the SystemInfo function.
+//   - error: An error if the function returns a null-object.
 func (cli *Cli) GetSystemInfo(what SystemInfoKey) (any, error) {
 	if what == "" {
 		return nil, fmt.Errorf("system info key is required")
@@ -108,7 +148,11 @@ func (cli *Cli) GetSystemInfo(what SystemInfoKey) (any, error) {
 	return cli.Query("GETSYSTEMINFO", string(what))
 }
 
-// GetTempBlacklistedIPs возвращает список временно заблокированных IP.
+// GetTempBlacklistedIPs retrieves the set of Temporarily Blocked Addresses.
+//
+// Returns:
+//   - *[TempIPList]: A list of Temporary Blocked IP addresses. Each address may have a suffix indicating the block duration.
+//   - error: An error if the command fails.
 func (cli *Cli) GetTempBlacklistedIPs() (*TempIPList, error) {
 	raw, err := cli.getString("GETTEMPBLACKLISTEDIPS")
 	if err != nil {
@@ -117,7 +161,11 @@ func (cli *Cli) GetTempBlacklistedIPs() (*TempIPList, error) {
 	return &TempIPList{items: parseTempIPsToMap(raw)}, nil
 }
 
-// GetTempClientIPs возвращает список временных клиентских IP.
+// GetTempClientIPs retrieves the set of temporary Client IP Addresses.
+//
+// Returns:
+//   - *[TempIPList]: A list of Temporary Client IP addresses.
+//   - error: An error if the command fails.
 func (cli *Cli) GetTempClientIPs() (*TempIPList, error) {
 	raw, err := cli.getString("GETTEMPCLIENTIPS")
 	if err != nil {
@@ -126,7 +174,11 @@ func (cli *Cli) GetTempClientIPs() (*TempIPList, error) {
 	return &TempIPList{items: parseTempIPsToMap(raw)}, nil
 }
 
-// GetTempUnblockableIPs возвращает список адресов, защищенных от блокировки.
+// GetTempUnblockableIPs retrieves the set of Temporary UnBlockable IP Addresses.
+//
+// Returns:
+//   - *[TempIPList]: A list of Temporary UnBlockable IP addresses.
+//   - error: An error if the command fails.
 func (cli *Cli) GetTempUnblockableIPs() (*TempIPList, error) {
 	raw, err := cli.getString("GETTEMPUNBLOCKABLEIPS")
 	if err != nil {
@@ -135,27 +187,49 @@ func (cli *Cli) GetTempUnblockableIPs() (*TempIPList, error) {
 	return &TempIPList{items: parseTempIPsToMap(raw)}, nil
 }
 
-// GetVersion возвращает версию сервера.
+// GetVersion retrieves the current CommuniGate Pro Server version.
+//
+// Returns:
+//   - string: A string with the server version.
+//   - error: An error if the command fails.
 func (cli *Cli) GetVersion() (string, error) {
 	return cli.getString("GETVERSION")
 }
 
-// ListCLICommands возвращает список всех поддерживаемых команд.
+// ListCLICommands retrieves the list of all CLI commands supported by this version of CommuniGate Pro Server.
+//
+// Returns:
+//   - []string: An array of strings, where each string is a supported command name.
+//   - error: An error if the command fails.
 func (cli *Cli) ListCLICommands() ([]string, error) {
 	return cli.getSliceString("LISTCLICOMMANDS")
 }
 
-// Noop — пустая команда, всегда успешна.
+// Noop is a command that always completes successfully.
+//
+// Returns:
+//   - error: An error if the connection fails.
 func (cli *Cli) Noop() error {
 	return cli.QueryNV("NOOP")
 }
 
-// ReconnectClusterAdmin форсирует переподключение административных соединений кластера.
+// ReconnectClusterAdmin forces a Dynamic Cluster member to re-open all its inter-cluster Administrative connections.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) ReconnectClusterAdmin() error {
 	return cli.QueryNV("RECONNECTCLUSTERADMIN")
 }
 
-// RejectQueueMessage отклоняет сообщение из очереди.
+// RejectQueueMessage rejects a message from the Server Queue.
+//
+// Parameters:
+//   - id: This parameter specifies the message ID.
+//   - report: (Optional) This parameter specifies the text to be included into the bounce report.
+//     If the parameter is "NONDN", no DSN report message is generated.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) RejectQueueMessage(id int64, report string) (err error) {
 	if report != "" {
 		err = cli.QueryNV("REJECTQUEUEMESSAGE", id, "REPORT", report)
@@ -165,7 +239,17 @@ func (cli *Cli) RejectQueueMessage(id int64, report string) (err error) {
 	return
 }
 
-// RejectQueueMessages отклоняет все сообщения отправителя из очереди.
+// RejectQueueMessages rejects all messages sent by the specified sender from the Server Queue.
+//
+// Parameters:
+//   - sender: This parameter specifies the authenticated sender's name.
+//   - report: (Optional) This parameter specifies the text to be included into the bounce report.
+//     If the parameter is "NONDN", no DSN report message is generated.
+//
+// Note: In a Dynamic Cluster environment this command rejects messages from all server queues.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) RejectQueueMessages(sender, report string) (err error) {
 	if sender == "" {
 		return fmt.Errorf("sender is required")
@@ -179,7 +263,15 @@ func (cli *Cli) RejectQueueMessages(sender, report string) (err error) {
 	return
 }
 
-// ReleaseSMTPQueue освобождает SMTP очередь.
+// ReleaseSMTPQueue releases an SMTP queue.
+//
+// Parameters:
+//   - queue: This parameter specifies the queue (domain) name to release.
+//
+// Note: In a Dynamic Cluster environment this command releases the specified SMTP queue on all servers.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) ReleaseSMTPQueue(queue string) error {
 	if queue == "" {
 		return fmt.Errorf("queue name is required")
@@ -187,7 +279,13 @@ func (cli *Cli) ReleaseSMTPQueue(queue string) error {
 	return cli.QueryNV("RELEASESMTPQUEUE", queue)
 }
 
-// ReportFailedLoginAddress увеличивает счетчик неудачных попыток входа для IP-адреса.
+// ReportFailedLoginAddress increments the counter of failed Login attempts from the specified IP address.
+//
+// Parameters:
+//   - ip: The Network IP Address to report.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) ReportFailedLoginAddress(ip net.IP) error {
 	if ip == nil {
 		return fmt.Errorf("IP address is required")
@@ -195,7 +293,13 @@ func (cli *Cli) ReportFailedLoginAddress(ip net.IP) error {
 	return cli.QueryNV("REPORTFAILEDLOGINADDRESS", ip.String())
 }
 
-// SetLogAll включает или выключает режим "Log Everything".
+// SetLogAll switches on and off the "Log Everything" mode.
+//
+// Parameters:
+//   - on: Boolean to switch the mode ON or OFF.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) SetLogAll(on bool) error {
 	val := "OFF"
 	if on {
@@ -204,7 +308,13 @@ func (cli *Cli) SetLogAll(on bool) error {
 	return cli.QueryNV("SETLOGALL", val)
 }
 
-// SetTempBlacklistedIPs заменяет текущий список временно заблокированных адресов.
+// SetTempBlacklistedIPs adds addresses to the Temporary Blocked IP Addresses list.
+//
+// Parameters:
+//   - list: A list of IP addresses in the format of the GetTempBlacklistedIPs command.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) SetTempBlacklistedIPs(list *TempIPList) error {
 	if list == nil || list.Len() == 0 {
 		return cli.QueryNV("SETTEMPBLACKLISTEDIPS", "")
@@ -212,7 +322,13 @@ func (cli *Cli) SetTempBlacklistedIPs(list *TempIPList) error {
 	return cli.QueryNV("SETTEMPBLACKLISTEDIPS", list)
 }
 
-// SetTempUnblockableIPs заменяет текущий список временно не блокируемых адресов.
+// SetTempUnblockableIPs adds addresses to the Temporary UnBlockable IP Addresses set.
+//
+// Parameters:
+//   - list: A list of IP addresses in the format of the GetTempUnBlockableIPs command.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) SetTempUnblockableIPs(list *TempIPList) error {
 	if list == nil || list.Len() == 0 {
 		return cli.QueryNV("SETTEMPBLACKLISTEDIPS", "")
@@ -220,7 +336,14 @@ func (cli *Cli) SetTempUnblockableIPs(list *TempIPList) error {
 	return cli.QueryNV("SETTEMPUNBLOCKABLEIPS", list)
 }
 
-// SetTrace включает или выключает трассировку указанного модуля.
+// SetTrace switches on and off internal logging facilities that write to OS syslog.
+//
+// Parameters:
+//   - facility: The facility name.
+//   - on: Boolean to switch the facility ON or OFF.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) SetTrace(facility TraceFacility, on bool) error {
 	if facility == "" {
 		return fmt.Errorf("trace facility is required")
@@ -233,7 +356,14 @@ func (cli *Cli) SetTrace(facility TraceFacility, on bool) error {
 	return cli.QueryNV("SETTRACE", string(facility), val)
 }
 
-// TempBlacklistIP добавляет адрес в список или удаляет его.
+// TempBlacklistIP adds or removes an address from the Temporarily Blocked Addresses set.
+//
+// Parameters:
+//   - ip: The Network IP Address to add or remove.
+//   - timeout: The time period the address should be blocked for. Use 0 or DELETE to remove.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) TempBlacklistIP(ip net.IP, timeout time.Duration) (err error) {
 	if ip == nil {
 		return fmt.Errorf("IP address is required")
@@ -247,7 +377,14 @@ func (cli *Cli) TempBlacklistIP(ip net.IP, timeout time.Duration) (err error) {
 	return
 }
 
-// TempUnblockIP добавляет адрес в список исключений или удаляет его.
+// TempUnblockIP adds or removes an address from the Temporary UnBlockable IP Addresses set.
+//
+// Parameters:
+//   - ip: The Network IP Address to add or remove.
+//   - timeout: The time period the address should be in the set. Use 0 or DELETE to remove.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) TempUnblockIP(ip net.IP, timeout time.Duration) (err error) {
 	if ip == nil {
 		return fmt.Errorf("IP address is required")
@@ -261,7 +398,14 @@ func (cli *Cli) TempUnblockIP(ip net.IP, timeout time.Duration) (err error) {
 	return
 }
 
-// TestLoop запускает цикл тестирования производительности CPU.
+// TestLoop tests the server CPU load by executing a calculation loop for the specified number of seconds.
+//
+// Parameters:
+//   - seconds: Duration of the test in seconds.
+//
+// Returns:
+//   - int: A number that indicates the average CLI thread CPU performance.
+//   - error: An error if the command fails.
 func (cli *Cli) TestLoop(seconds int) (int, error) {
 	res, err := cli.Query("TESTLOOP", seconds)
 	if err != nil {
@@ -270,7 +414,14 @@ func (cli *Cli) TestLoop(seconds int) (int, error) {
 	return toInt(res), nil
 }
 
-// WriteLog пишет запись в системный лог сервера.
+// WriteLog stores a record into the Server Log. Log records have the SYSTEM prefix.
+//
+// Parameters:
+//   - level: This parameter specifies the record log level.
+//   - record: This parameter specifies the string to be placed into the Server Log.
+//
+// Returns:
+//   - error: An error if the command fails.
 func (cli *Cli) WriteLog(level int, record string) error {
 	return cli.QueryNV("WRITELOG", level, record)
 }
