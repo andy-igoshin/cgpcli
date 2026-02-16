@@ -22,22 +22,42 @@ import (
 	"fmt"
 )
 
-// GetAccountStat возвращает статистику аккаунта.
-func (cli *Cli) GetAccountStat(account string, key string) (res any, err error) {
+// GetAccountStat retrieves statistics data about the specified Account.
+//
+// Parameters:
+//   - account: the name of an existing Account. The asterisk (*) symbol can
+//     be used to specify the current authenticated Account.
+//   - key: (Optional) specifies the name of the statistical entry to retrieve.
+//
+// Returns:
+//   - any: a number or a timeStamp with the specified statistical information,
+//     or (if the key is not specified) a dictionary with all available statistical data.
+//     If the statistical data for the specified key does not exist, an empty string is returned.
+//   - error: an error if the command fails.
+func (cli *Cli) GetAccountStat(account string, key string) (any, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
 
 	const cmd = "GETACCOUNTSTAT"
 	if key != "" {
-		res, err = cli.Query(cmd, Atom(account), "KEY", key)
+		return cli.Query(cmd, Atom(account), "KEY", key)
 	} else {
-		res, err = cli.Query(cmd, Atom(account))
+		return cli.Query(cmd, Atom(account))
 	}
-	return
 }
 
-// GetDomainStat возвращает статистику домена.
+// GetDomainStat retrieves statistics data about the specified Domain.
+//
+// Parameters:
+//   - domain: the name of an existing Domain. The asterisk (*) symbol can
+//     be used to specify the Domain of the current authenticated Account.
+//   - key: (Optional) specifies the name of the statistical entry to retrieve.
+//
+// Returns:
+//   - any: a string with the specified statistical information, or (if the
+//     key is not specified) a dictionary with all available statistical data.
+//   - error: an error if the command fails.
 func (cli *Cli) GetDomainStat(domain string, key string) (res any, err error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain name is required")
@@ -52,22 +72,39 @@ func (cli *Cli) GetDomainStat(domain string, key string) (res any, err error) {
 	return
 }
 
-// ResetAccountStat сбрасывает статистику аккаунта.
-func (cli *Cli) ResetAccountStat(account string, key string) (err error) {
+// ResetAccountStat resets statistics data about the specified Account.
+//
+// Parameters:
+//   - account: the name of an existing Account. The asterisk (*) symbol can
+//     be used to specify the current authenticated Account.
+//   - key: (Optional) specifies the name of the statistical entry to reset.
+//     If the key is not specified, all Account statistical entries are reset.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) ResetAccountStat(account string, key string) error {
 	if account == "" {
 		return fmt.Errorf("account name is required")
 	}
 
 	const cmd = "RESETACCOUNTSTAT"
 	if key != "" {
-		err = cli.QueryNV(cmd, Atom(account), "KEY", key)
+		return cli.QueryNV(cmd, Atom(account), "KEY", key)
 	} else {
-		err = cli.QueryNV(cmd, Atom(account))
+		return cli.QueryNV(cmd, Atom(account))
 	}
-	return
 }
 
-// ResetDomainStat сбрасывает статистику домена.
+// ResetDomainStat resets statistics data about the specified Domain.
+//
+// Parameters:
+//   - domain: the name of an existing Domain. The asterisk (*) symbol can
+//     be used to specify the Domain of the current authenticated Account.
+//   - key: (Optional) specifies the name of the statistical entry to reset.
+//     If the key is not specified, all Domain statistical entries are reset.
+//
+// Returns:
+//   - error: an error if the command fails.
 func (cli *Cli) ResetDomainStat(domain string, key string) (err error) {
 	if domain == "" {
 		return fmt.Errorf("domain name is required")
