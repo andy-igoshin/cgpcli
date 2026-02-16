@@ -28,7 +28,15 @@ import (
 	"time"
 )
 
-// PrettyPrint выводит структуру данных в удобном для чтения виде.
+// PrettyPrint prints a data structure to the standard output in a
+// human-readable format.
+//
+// It recursively traverses maps, slices, and basic types, providing
+// indentation and type annotations. This is especially useful for
+// inspecting complex dictionaries returned by the CommuniGate Pro CLI.
+//
+// Parameters:
+//   - v: the data structure to be printed.
 func PrettyPrint(v any) {
 	prettyPrintRecursive(v, 0)
 }
