@@ -71,18 +71,17 @@ func (cli *Cli) CreateDirectoryUnit(unit, mountPoint string, shared, remote bool
 // Returns:
 //   - error: An error if the unit name is empty or if the server
 //     fails to execute the command.
-func (cli *Cli) DeleteDirectoryUnit(unit string, shared bool) (err error) {
+func (cli *Cli) DeleteDirectoryUnit(unit string, shared bool) error {
 	if unit == "" {
 		return fmt.Errorf("unit name is required")
 	}
 
 	const cmd = "DELETEDIRECTORYUNIT"
 	if shared {
-		err = cli.QueryNV(cmd, unit, "SHARED")
+		return cli.QueryNV(cmd, unit, "SHARED")
 	} else {
-		err = cli.QueryNV(cmd, unit)
+		return cli.QueryNV(cmd, unit)
 	}
-	return
 }
 
 // GetDirectoryAccessRights retrieves the Directory Access Rights.
@@ -91,7 +90,7 @@ func (cli *Cli) DeleteDirectoryUnit(unit string, shared bool) (err error) {
 //   - shared: If true, the cluster-wide Access Rights are retrieved.
 //
 // Returns:
-//   - []DirAccessRight: A slice of Access Rights rules.
+//   - [][DirAccessRight]: A slice of Access Rights rules.
 //   - error: An error if the server fails to retrieve or parse the data.
 func (cli *Cli) GetDirectoryAccessRights(shared bool) ([]DirAccessRight, error) {
 	const cmd = "GETDIRECTORYACCESSRIGHTS"
@@ -155,18 +154,17 @@ func (cli *Cli) GetDirectoryAccessRights(shared bool) ([]DirAccessRight, error) 
 //   - map[string]any: A dictionary with the Directory Unit settings.
 //   - error: An error if the unit name is empty or the server fails
 //     to retrieve the data.
-func (cli *Cli) GetDirectoryUnit(unit string, shared bool) (res map[string]any, err error) {
+func (cli *Cli) GetDirectoryUnit(unit string, shared bool) (map[string]any, error) {
 	if unit == "" {
 		return nil, fmt.Errorf("unit name is required")
 	}
 
 	const cmd = "GETDIRECTORYUNIT"
 	if shared {
-		res, err = cli.getMapAny(cmd, unit, "SHARED")
+		return cli.getMapAny(cmd, unit, "SHARED")
 	} else {
-		res, err = cli.getMapAny(cmd, unit)
+		return cli.getMapAny(cmd, unit)
 	}
-	return
 }
 
 // ListDirectoryUnits retrieves the list of all created Directory units.
@@ -210,18 +208,17 @@ func (cli *Cli) ListDirectoryUnits(shared bool) (map[string]string, error) {
 // Returns:
 //   - error: An error if the unit name or mount point is empty, or if
 //     the server fails to relocate the unit.
-func (cli *Cli) RelocateDirectoryUnit(unit, mountPoint string, shared bool) (err error) {
+func (cli *Cli) RelocateDirectoryUnit(unit, mountPoint string, shared bool) error {
 	if unit == "" || mountPoint == "" {
 		return fmt.Errorf("unit name and new mount point are required")
 	}
 
 	const cmd = "RELOCATEDIRECTORYUNIT"
 	if shared {
-		err = cli.QueryNV(cmd, unit, "SHARED", mountPoint)
+		return cli.QueryNV(cmd, unit, "SHARED", mountPoint)
 	} else {
-		err = cli.QueryNV(cmd, unit, mountPoint)
+		return cli.QueryNV(cmd, unit, mountPoint)
 	}
-	return
 }
 
 // SetDirectoryAccessRights sets the Directory Access Rights.
@@ -233,7 +230,7 @@ func (cli *Cli) RelocateDirectoryUnit(unit, mountPoint string, shared bool) (err
 // Returns:
 //   - error: An error if the rights array is nil or if the server
 //     fails to apply the new settings.
-func (cli *Cli) SetDirectoryAccessRights(shared bool, rights []DirAccessRight) (err error) {
+func (cli *Cli) SetDirectoryAccessRights(shared bool, rights []DirAccessRight) error {
 	if rights == nil {
 		return fmt.Errorf("rights array is required")
 	}
@@ -248,11 +245,10 @@ func (cli *Cli) SetDirectoryAccessRights(shared bool, rights []DirAccessRight) (
 	}
 
 	if shared {
-		err = cli.QueryNV(cmd, "SHARED", ar)
+		return cli.QueryNV(cmd, "SHARED", ar)
 	} else {
-		err = cli.QueryNV(cmd, ar)
+		return cli.QueryNV(cmd, ar)
 	}
-	return
 }
 
 // SetDirectoryUnit changes the Directory Unit settings.
@@ -265,16 +261,15 @@ func (cli *Cli) SetDirectoryAccessRights(shared bool, rights []DirAccessRight) (
 // Returns:
 //   - error: An error if the unit name or settings dictionary is empty,
 //     or if the server fails to update the unit.
-func (cli *Cli) SetDirectoryUnit(unit string, shared bool, settings map[string]any) (err error) {
+func (cli *Cli) SetDirectoryUnit(unit string, shared bool, settings map[string]any) error {
 	if unit == "" || settings == nil {
 		return fmt.Errorf("unit name and settings dictionary are required")
 	}
 
 	const cmd = "SETDIRECTORYUNIT"
 	if shared {
-		err = cli.QueryNV(cmd, unit, "SHARED", settings)
+		return cli.QueryNV(cmd, unit, "SHARED", settings)
 	} else {
-		err = cli.QueryNV(cmd, unit, settings)
+		return cli.QueryNV(cmd, unit, settings)
 	}
-	return
 }
