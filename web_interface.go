@@ -26,6 +26,18 @@ import (
 	"fmt"
 )
 
+// SessionOffset specifies the file position or write mode for session file operations.
+//
+// Values:
+//   - (positive number): the File Storage file is rewritten/extended starting
+//     from the specified file position. The file should already exist.
+//   - OffsetBeg: the file is rewritten from the beginning, but its old data
+//     beyond the end of the new data is not removed.
+//   - OffsetEnd: the file data is appended to the end of the file. If the
+//     file does not exist, it is created.
+//   - OffsetNew: a new file is created and file data is stored in it. The
+//     file must not exist.
+//   - (zero/absent): the existing file is removed first, and a new file is created.
 type SessionOffset int
 
 const (
@@ -34,7 +46,17 @@ const (
 	OffsetNew SessionOffset = -3
 )
 
-// BlessSession завершает второй этап двухфакторной аутентификации (2FA).
+// BlessSession completes the second stage of a Two-factor authentication
+// process for the given session.
+//
+// Parameters:
+//   - sessionID: specifies the Session ID.
+//   - secret: (Optional) specifies the one-time secret used with Two-factor
+//     Authentication.
+//   - account: (Optional) specifies the name of the Account the session belongs to.
+//
+// Returns:
+//   - error: an error if the command fails.
 func (cli *Cli) BlessSession(sessionID string, secret, account string) error {
 	if sessionID == "" {
 		return fmt.Errorf("sessionID is required")
@@ -51,22 +73,41 @@ func (cli *Cli) BlessSession(sessionID string, secret, account string) error {
 	return cli.QueryNV("BLESSSESSION", args...)
 }
 
-// CreateLiteSession создает новую LITE-сессию.
-func (cli *Cli) CreateLiteSession(addr, origAddr string) (s string, err error) {
+// CreateLiteSession creates a LITE session.
+//
+// Parameters:
+//   - addr: specifies the IP address and port of the client browser.
+//   - origAddr: (Optional) specifies the original IP address of the client
+//     browser, if the client connects via a proxy.
+//
+// Returns:
+//   - string: the LITE Session ID.
+//   - error: an error if the command fails.
+func (cli *Cli) CreateLiteSession(addr, origAddr string) (string, error) {
 	if addr == "" {
 		return "", fmt.Errorf("addr is required")
 	}
 
 	const cmd = "CREATELITESESSION"
 	if origAddr != "" {
-		s, err = cli.getString(cmd, "ADDRESS", addr, "FOR", origAddr)
+		return cli.getString(cmd, "ADDRESS", addr, "FOR", origAddr)
 	} else {
-		s, err = cli.getString(cmd, "ADDRESS", addr)
+		return cli.getString(cmd, "ADDRESS", addr)
 	}
-	return
 }
 
-// CreateWebUserSession создает сессию WebUser для указанного аккаунта.
+// CreateWebUserSession creates a WebUser session for the specified Account.
+//
+// Parameters:
+//   - account: specifies the Account name.
+//   - addr: specifies the IP address and port of the client browser.
+//   - origAddr: (Optional) specifies the original IP address of the client
+//     browser, if the client connects via a proxy.
+//   - skin: (Optional) specifies the Skin to use for the newly created session.
+//
+// Returns:
+//   - string: the WebUser Session ID.
+//   - error: an error if the command fails.
 func (cli *Cli) CreateWebUserSession(account, addr, origAddr, skin string) (string, error) {
 	if account == "" || addr == "" {
 		return "", fmt.Errorf("account name and addr are required")
@@ -84,22 +125,44 @@ func (cli *Cli) CreateWebUserSession(account, addr, origAddr, skin string) (stri
 	return cli.getString(cmd, args...)
 }
 
-// CreateXimssSession создает сессию XIMSS для указанного аккаунта.
-func (cli *Cli) CreateXimssSession(account, addr, origAddr string) (s string, err error) {
+// CreateXimssSession creates a XIMSS session for the specified Account.
+//
+// Parameters:
+//   - account: specifies the Account name.
+//   - addr: specifies the IP address and port of the client browser.
+//   - origAddr: (Optional) specifies the original IP address of the client
+//     browser, if the client connects via a proxy.
+//
+// Returns:
+//   - string: the XIMSS Session ID.
+//   - error: an error if the command fails.
+func (cli *Cli) CreateXimssSession(account, addr, origAddr string) (string, error) {
 	if account == "" || addr == "" {
 		return "", fmt.Errorf("account name and addr are required")
 	}
 
 	const cmd = "CREATEXIMSSSESSION"
 	if origAddr != "" {
-		s, err = cli.getString(cmd, account, "ADDRESS", addr, "FOR", origAddr)
+		return cli.getString(cmd, account, "ADDRESS", addr, "FOR", origAddr)
 	} else {
-		s, err = cli.getString(cmd, account, "ADDRESS", addr)
+		return cli.getString(cmd, account, "ADDRESS", addr)
 	}
-	return
 }
 
-// FindAccountSession ищет существующую сессию аккаунта по заданным критериям.
+// FindAccountSession finds an existing session for the specified Account.
+//
+// Parameters:
+//   - account: specifies the Account name.
+//   - addr: (Optional) specifies the IP address of the client browser.
+//   - origAddr: (Optional) specifies the IP address of the client browser,
+//     if this browser is located behind an HTTP proxy.
+//   - protocol: (Optional) specifies the Session protocol (WebUser, XIMSS, XMPP, etc.).
+//   - transport: (Optional) specifies the Session transport (HTTP, XIMSS, XMPP, etc.).
+//   - client: (Optional) specifies the Session client.
+//
+// Returns:
+//   - string: the Session ID.
+//   - error: an error if the command fails.
 func (cli *Cli) FindAccountSession(account, addr, origAddr, protocol, transport, client string) (string, error) {
 	if account == "" {
 		return "", fmt.Errorf("account name is required")
@@ -125,36 +188,62 @@ func (cli *Cli) FindAccountSession(account, addr, origAddr, protocol, transport,
 	return cli.getString("FINDACCOUNTSESSION", args...)
 }
 
-// GetSession возвращает данные сессии в виде словаря.
-func (cli *Cli) GetSession(sessionID, domain string) (res map[string]any, err error) {
+// GetSession retrieves Session data.
+//
+// Parameters:
+//   - sessionID: specifies the Session ID.
+//   - domain: (Optional) specifies the name of Domain the session Account belongs to.
+//
+// Returns:
+//   - map[string]any: a dictionary with the session dataset.
+//   - error: an error if the command fails.
+func (cli *Cli) GetSession(sessionID, domain string) (map[string]any, error) {
 	if sessionID == "" {
 		return nil, fmt.Errorf("sessionID is required")
 	}
 
 	const cmd = "GETSESSION"
 	if domain != "" {
-		res, err = cli.getMapAny(cmd, sessionID, "DOMAIN", domain)
+		return cli.getMapAny(cmd, sessionID, "DOMAIN", domain)
 	} else {
-		res, err = cli.getMapAny(cmd, sessionID)
+		return cli.getMapAny(cmd, sessionID)
 	}
-	return
 }
 
-// KillSession принудительно завершает сессию.
-func (cli *Cli) KillSession(sessionID, domain string) (err error) {
+// KillSession terminates a Session.
+//
+// Parameters:
+//   - sessionID: specifies the Session ID.
+//   - domain: (Optional) specifies the name of Domain the session Account belongs to.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) KillSession(sessionID, domain string) error {
 	if sessionID == "" {
 		return fmt.Errorf("sessionID is required")
 	}
 
 	if domain != "" {
-		err = cli.QueryNV("KILLSESSION", sessionID, "DOMAIN", domain)
+		return cli.QueryNV("KILLSESSION", sessionID, "DOMAIN", domain)
 	} else {
-		err = cli.QueryNV("KILLSESSION", sessionID)
+		return cli.QueryNV("KILLSESSION", sessionID)
 	}
-	return
 }
 
-// ListAccountSessions возвращает список ID всех существующих сессий для аккаунта.
+// ListAccountSessions retrieves all existing sessions for the specified Account.
+//
+// Parameters:
+//   - account: specifies the Account name.
+//   - addr: (Optional) specifies the IP address of the client browser.
+//   - origAddr: (Optional) specifies the IP address of the client browser,
+//     if this browser is located behind an HTTP proxy.
+//   - protocol: (Optional) specifies the Session protocol (WebUser, XIMSS, XMPP, etc.).
+//   - transport: (Optional) specifies the Session transport (HTTP, XIMSS, XMPP, etc.).
+//   - client: (Optional) specifies the Session client.
+//
+// Returns:
+//   - []string: an array of Session IDs.
+//   - error: an error if the command fails.
 func (cli *Cli) ListAccountSessions(account, addr, origAddr, protocol, transport, client string) ([]string, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -180,7 +269,16 @@ func (cli *Cli) ListAccountSessions(account, addr, origAddr, protocol, transport
 	return cli.getSliceString("LISTACCOUNTSESSIONS", args...)
 }
 
-// ListLiteSessions возвращает список всех LITE-сессий.
+// ListLiteSessions retrieves all LITE sessions.
+//
+// Parameters:
+//   - addr: (Optional) specifies the IP address of the client browser.
+//   - origAddr: (Optional) specifies the IP address of the client browser,
+//     if this browser is located behind an HTTP proxy.
+//
+// Returns:
+//   - []string: an array of Session IDs.
+//   - error: an error if the command fails.
 func (cli *Cli) ListLiteSessions(addr, origAddr string) ([]string, error) {
 	args := make([]any, 0, 4)
 	if addr != "" {
@@ -192,8 +290,19 @@ func (cli *Cli) ListLiteSessions(addr, origAddr string) ([]string, error) {
 	return cli.getSliceString("LISTLITESESSIONS", args...)
 }
 
-// StoreSessionFile сохраняет файл из сессионного набора в File Storage.
-// offset: может быть позицией (>=0) или константами OffsetBeg, OffsetEnd, OffsetNew.
+// StoreSessionFile stores an uploaded file from the session "uploaded file set"
+// as a File Storage file.
+//
+// Parameters:
+//   - sessionID: specifies the Session ID.
+//   - domain: (Optional) specifies the name of Domain the session Account belongs to.
+//   - file: specifies the name for the File Storage file.
+//   - uploadID: identifies a file in the "uploaded file set".
+//   - offset: (Optional) specifies the file position. Can be a positive number,
+//     or constants OffsetBeg, OffsetEnd, OffsetNew.
+//
+// Returns:
+//   - error: an error if the command fails.
 func (cli *Cli) StoreSessionFile(sessionID, domain, file, uploadID string, offset SessionOffset) error {
 	if sessionID == "" || file == "" || uploadID == "" {
 		return fmt.Errorf("sessionID, file name and uploadID are required")
@@ -222,12 +331,20 @@ func (cli *Cli) StoreSessionFile(sessionID, domain, file, uploadID string, offse
 	return cli.QueryNV("STORESESSIONFILE", args...)
 }
 
-// UpdateSession изменяет кастомные параметры сессии.
-func (cli *Cli) UpdateSession(sessionID, domain string, data map[string]any) (err error) {
+// UpdateSession modifies custom parameters of a Session.
+//
+// Parameters:
+//   - sessionID: specifies the Session ID.
+//   - domain: (Optional) specifies the name of Domain the session Account belongs to.
+//   - data: specifies the dictionary that lists new values for the attributes
+//     to be updated.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) UpdateSession(sessionID, domain string, data map[string]any) error {
 	if domain != "" {
-		err = cli.QueryNV("UPDATESESSION", sessionID, "DOMAIN", domain, data)
+		return cli.QueryNV("UPDATESESSION", sessionID, "DOMAIN", domain, data)
 	} else {
-		err = cli.QueryNV("UPDATESESSION", sessionID, data)
+		return cli.QueryNV("UPDATESESSION", sessionID, data)
 	}
-	return
 }
