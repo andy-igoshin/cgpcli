@@ -292,7 +292,6 @@ func (cli *Cli) ReadClusterSkinFile(skin, file string) ([]byte, time.Time, error
 	return cli.readSkinFile("READCLUSTERSKINFILE", skin, "FILE", file)
 }
 
-
 // ReadDomainSkinFile reads a file from a custom Domain Skin.
 //
 // Parameters:
