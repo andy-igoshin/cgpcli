@@ -7,7 +7,7 @@ import (
 
 // cleanSkinFiles вычищает все файлы из скина перед его удалением
 func cleanSkinFiles(cli *Cli, level, domain, skin string) {
-	var files map[string]any
+	var files map[string]*FileInfo
 	var err error
 
 	switch level {
@@ -23,11 +23,11 @@ func cleanSkinFiles(cli *Cli, level, domain, skin string) {
 		for file := range files {
 			switch level {
 			case "server":
-				_ = cli.StoreServerSkinFile(skin, file, nil)
+				_ = cli.DeleteServerSkinFile(skin, file)
 			case "domain":
-				_ = cli.StoreDomainSkinFile(domain, skin, file, nil)
+				_ = cli.DeleteDomainSkinFile(domain, skin, file)
 			case "cluster":
-				_ = cli.StoreClusterSkinFile(skin, file, nil)
+				_ = cli.DeleteClusterSkinFile(skin, file)
 			}
 		}
 	}

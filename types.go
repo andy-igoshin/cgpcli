@@ -48,6 +48,15 @@ type Atom string
 // not perform any automatic encoding.
 type DataBlock []byte
 
+// FileInfo represents metadata for a file in the CommuniGate Pro storage
+// (Skins, PBX, etc.).
+type FileInfo struct {
+	Name     string    // File name
+	Size     int64     // File size in bytes (STFileSize)
+	Created  time.Time // File creation timestamp (STCreated)
+	Modified time.Time // Last modification timestamp (STModified)
+}
+
 // CGPIP represents the specific CommuniGate Pro IP Address data type.
 // It follows the protocol format: #I[address] or #I[address]:port.
 type CGPIP struct {

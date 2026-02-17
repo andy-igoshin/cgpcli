@@ -94,6 +94,25 @@ func (cli *Cli) getString(cmd string, args ...any) (string, error) {
 	return s, nil
 }
 
+// parseFileInfoMap converts a raw map from CGP (with ST* keys) into a map of FileInfo structures.
+func parseFileInfoMap(raw map[string]any) map[string]*FileInfo {
+	res := make(map[string]*FileInfo, len(raw))
+	for name, attrs := range raw {
+		attrMap, ok := attrs.(map[string]any)
+		if !ok {
+			continue
+		}
+
+		res[name] = &FileInfo{
+			Name:     name,
+			Size:     toInt64(attrMap["STFileSize"]),
+			Created:  toTime(attrMap["STCreated"]),
+			Modified: toTime(attrMap["STModified"]),
+		}
+	}
+	return res
+}
+
 func replaceSpecChars(s string) string {
 	var sb strings.Builder
 	sb.Grow(len(s) + 64)

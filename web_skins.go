@@ -27,7 +27,13 @@ import (
 	"time"
 )
 
-// CreateClusterSkin создает кастомный кластерный скин.
+// CreateClusterSkin creates a custom Cluster Skin.
+//
+// Parameters:
+//   - skin: specifies the name of the new Skin.
+//
+// Returns:
+//   - error: an error if the command fails.
 func (cli *Cli) CreateClusterSkin(skin string) error {
 	if skin == "" {
 		return fmt.Errorf("skin name is required")
@@ -35,18 +41,31 @@ func (cli *Cli) CreateClusterSkin(skin string) error {
 	return cli.QueryNV("CREATECLUSTERSKIN", skin)
 }
 
-// CreateDomainSkin создает кастомный скин домена.
-func (cli *Cli) CreateDomainSkin(domain, skin string) (err error) {
+// CreateDomainSkin creates a custom Domain Skin.
+//
+// Parameters:
+//   - domain: (Optional) specifies the Domain name.
+//   - skin: specifies the name of the new Skin. To create the unnamed Domain
+//     Skin, specify an empty string.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) CreateDomainSkin(domain, skin string) error {
 	const cmd = "CREATEDOMAINSKIN"
 	if domain != "" {
-		err = cli.QueryNV(cmd, domain, "SKIN", skin)
+		return cli.QueryNV(cmd, domain, "SKIN", skin)
 	} else {
-		err = cli.QueryNV(cmd, skin)
+		return cli.QueryNV(cmd, skin)
 	}
-	return
 }
 
-// CreateServerSkin создает кастомный серверный скин.
+// CreateServerSkin creates a custom Server Skin.
+//
+// Parameters:
+//   - skin: specifies the name of the new Skin.
+//
+// Returns:
+//   - error: an error if the command fails.
 func (cli *Cli) CreateServerSkin(skin string) error {
 	if skin == "" {
 		return fmt.Errorf("skin name is required")
@@ -54,7 +73,13 @@ func (cli *Cli) CreateServerSkin(skin string) error {
 	return cli.QueryNV("CREATESERVERSKIN", skin)
 }
 
-// DeleteClusterSkin удаляет кастомный кластерный скин.
+// DeleteClusterSkin deletes a custom Cluster Skin.
+//
+// Parameters:
+//   - skin: specifies the name of the Skin to be deleted.
+//
+// Returns:
+//   - error: an error if the command fails.
 func (cli *Cli) DeleteClusterSkin(skin string) error {
 	if skin == "" {
 		return fmt.Errorf("skin name is required")
@@ -62,18 +87,68 @@ func (cli *Cli) DeleteClusterSkin(skin string) error {
 	return cli.QueryNV("DELETECLUSTERSKIN", skin)
 }
 
-// DeleteDomainSkin удаляет кастомный скин домена.
-func (cli *Cli) DeleteDomainSkin(domain, skin string) (err error) {
-	const cmd = "DELETEDOMAINSKIN"
-	if domain != "" {
-		err = cli.QueryNV(cmd, domain, "SKIN", skin)
-	} else {
-		err = cli.QueryNV(cmd, skin)
+// DeleteClusterSkinFile removes a file from a custom Cluster Skin.
+//
+// Parameters:
+//   - skin: specifies the name of an existing Cluster Skin.
+//   - file: specifies the Skin file name to be deleted.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) DeleteClusterSkinFile(skin, file string) error {
+	if skin == "" || file == "" {
+		return fmt.Errorf("skin name and file name are required")
 	}
-	return
+	return cli.QueryNV("STORECLUSTERSKINFILE", skin, "FILE", file, "DELETE")
 }
 
-// DeleteServerSkin удаляет кастомный серверный скин.
+// DeleteDomainSkin deletes a custom Domain Skin.
+//
+// Parameters:
+//   - domain: (Optional) specifies the Domain name.
+//   - skin: specifies the name of the Skin to be deleted. To delete the
+//     unnamed Domain Skin, specify an empty string.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) DeleteDomainSkin(domain, skin string) error {
+	const cmd = "DELETEDOMAINSKIN"
+	if domain != "" {
+		return cli.QueryNV(cmd, domain, "SKIN", skin)
+	} else {
+		return cli.QueryNV(cmd, skin)
+	}
+}
+
+// DeleteDomainSkinFile removes a file from a custom Domain Skin.
+//
+// Parameters:
+//   - domain: (Optional) specifies the Domain name.
+//   - skin: specifies the name of an existing Domain Skin.
+//   - file: specifies the Skin file name to be deleted.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) DeleteDomainSkinFile(domain, skin, file string) error {
+	if file == "" {
+		return fmt.Errorf("file name is required")
+	}
+
+	const cmd = "STOREDOMAINSKINFILE"
+	if domain != "" {
+		return cli.QueryNV(cmd, domain, "SKIN", skin, "FILE", file, "DELETE")
+	} else {
+		return cli.QueryNV(cmd, skin, "FILE", file, "DELETE")
+	}
+}
+
+// DeleteServerSkin deletes a custom Server Skin.
+//
+// Parameters:
+//   - skin: specifies the name of the Skin to be deleted.
+//
+// Returns:
+//   - error: an error if the command fails.
 func (cli *Cli) DeleteServerSkin(skin string) error {
 	if skin == "" {
 		return fmt.Errorf("skin name is required")
@@ -81,79 +156,154 @@ func (cli *Cli) DeleteServerSkin(skin string) error {
 	return cli.QueryNV("DELETESERVERSKIN", skin)
 }
 
-// ListClusterSkinFiles возвращает словарь с атрибутами файлов в кластерном скине.
-func (cli *Cli) ListClusterSkinFiles(skin string) (map[string]any, error) {
-	if skin == "" {
-		return nil, fmt.Errorf("skin name is required")
+// DeleteServerSkinFile removes a file from a custom Server Skin.
+//
+// Parameters:
+//   - skin: specifies the name of an existing Server Skin.
+//   - file: specifies the Skin file name to be deleted.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) DeleteServerSkinFile(skin, file string) error {
+	if skin == "" || file == "" {
+		return fmt.Errorf("skin name and file name are required")
 	}
-	return cli.getMapAny("LISTCLUSTERSKINFILES", skin)
+	return cli.QueryNV("STORESERVERSKINFILE", skin, "FILE", file, "DELETE")
 }
 
-// ListClusterSkins возвращает список имен кастомных кластерных скинов.
+// ListClusterSkinFiles lists files in a custom Cluster Skin.
+//
+// Parameters:
+//   - skin: specifies the name of an existing Cluster Skin.
+//
+// Returns:
+//   - map[string]*[FileInfo]: a dictionary with Skin file names as keys.
+//   - error: an error if the command fails.
+func (cli *Cli) ListClusterSkinFiles(skin string) (map[string]*FileInfo, error) {
+	raw, err := cli.getMapAny("LISTCLUSTERSKINFILES", skin)
+	if err != nil {
+		return nil, err
+	}
+	return parseFileInfoMap(raw), nil
+}
+
+// ListClusterSkins lists custom Cluster Skins.
+//
+// Returns:
+//   - []string: an array with Skin names.
+//   - error: an error if the command fails.
 func (cli *Cli) ListClusterSkins() ([]string, error) {
 	return cli.getSliceString("LISTCLUSTERSKINS")
 }
 
-// ListDomainSkinFiles возвращает словарь с атрибутами файлов в скине домена.
-func (cli *Cli) ListDomainSkinFiles(domain, skin string) (res map[string]any, err error) {
+// ListDomainSkinFiles lists files in a custom Domain Skin.
+//
+// Parameters:
+//   - domain: (Optional) specifies the Domain name.
+//   - skin: specifies the name of an existing Domain Skin.
+//
+// Returns:
+//   - map[string]*[FileInfo]: a dictionary with Skin file names as keys.
+//   - error: an error if the command fails.
+func (cli *Cli) ListDomainSkinFiles(domain, skin string) (map[string]*FileInfo, error) {
 	const cmd = "LISTDOMAINSKINFILES"
+	var raw map[string]any
+	var err error
+
 	if domain != "" {
-		res, err = cli.getMapAny(cmd, domain, "SKIN", skin)
+		raw, err = cli.getMapAny(cmd, domain, "SKIN", skin)
 	} else {
-		res, err = cli.getMapAny(cmd, skin)
+		raw, err = cli.getMapAny(cmd, skin)
 	}
-	return
+
+	if err != nil {
+		return nil, err
+	}
+	return parseFileInfoMap(raw), nil
 }
 
-// ListDomainSkins возвращает список имен кастомных скинов домена.
+// ListDomainSkins lists custom Domain Skins.
+//
+// Parameters:
+//   - domain: (Optional) specifies the Domain name.
+//
+// Returns:
+//   - []string: an array with Skin names.
+//   - error: an error if the command fails.
 func (cli *Cli) ListDomainSkins(domain string) ([]string, error) {
-	return cli.getSliceString("LISTDOMAINSKINS", domain)
+	return cli.getSliceString("LISTDOMAINSKINS", Atom(domain))
 }
 
-// ListServerSkinFiles возвращает словарь с атрибутами файлов в серверном скине.
-func (cli *Cli) ListServerSkinFiles(skin string) (map[string]any, error) {
-	if skin == "" {
-		return nil, fmt.Errorf("skin name is required")
+// ListServerSkinFiles lists files in a custom Server Skin.
+//
+// Parameters:
+//   - skin: specifies the name of an existing Server Skin.
+//
+// Returns:
+//   - map[string]*[FileInfo]: a dictionary with Skin file names as keys.
+//   - error: an error if the command fails.
+func (cli *Cli) ListServerSkinFiles(skin string) (map[string]*FileInfo, error) {
+	raw, err := cli.getMapAny("LISTSERVERSKINFILES", skin)
+	if err != nil {
+		return nil, err
 	}
-	return cli.getMapAny("LISTSERVERSKINFILES", skin)
+	return parseFileInfoMap(raw), nil
 }
 
-// ListServerSkins возвращает список имен кастомных серверных скинов.
+// ListServerSkins lists custom Server Skins.
+//
+// Returns:
+//   - []string: an array with Skin names.
+//   - error: an error if the command fails.
 func (cli *Cli) ListServerSkins() ([]string, error) {
 	return cli.getSliceString("LISTSERVERSKINS")
 }
 
-// ListStockSkinFiles возвращает список файлов встроенного (stock) скина.
-func (cli *Cli) ListStockSkinFiles(skin string) (map[string]any, error) {
-	return cli.getMapAny("LISTSTOCKSKINFILES", skin)
+// ListStockSkinFiles lists files in a built-in (stock) Skin.
+//
+// Parameters:
+//   - skin: specifies the name of a built-in Skin.
+//
+// Returns:
+//   - map[string]*[FileInfo]: a dictionary with Skin file names as keys.
+//   - error: an error if the command fails.
+func (cli *Cli) ListStockSkinFiles(skin string) (map[string]*FileInfo, error) {
+	raw, err := cli.getMapAny("LISTSTOCKSKINFILES", skin)
+	if err != nil {
+		return nil, err
+	}
+	return parseFileInfoMap(raw), nil
 }
 
-// ReadClusterSkinFile читает файл из кастомного кластерного скина.
+// ReadClusterSkinFile reads a file from a custom Cluster Skin.
+//
+// Parameters:
+//   - skin: specifies the name of an existing Cluster Skin.
+//   - file: specifies the name of an existing file in the specified Cluster Skin.
+//
+// Returns:
+//   - []byte: the Skin file content.
+//   - time.Time: the file modification date.
+//   - error: an error if the command fails.
 func (cli *Cli) ReadClusterSkinFile(skin, file string) ([]byte, time.Time, error) {
 	if skin == "" || file == "" {
 		return nil, time.Time{}, fmt.Errorf("skin name and file name are required")
 	}
-
-	const cmd = "READCLUSTERSKINFILE"
-	res, err := cli.getSliceAny(cmd, skin, "FILE", file)
-	if err != nil {
-		return nil, time.Time{}, err
-	}
-
-	if len(res) < 2 {
-		return nil, time.Time{}, fmt.Errorf("%s: expected array, got %T", cmd, res)
-	}
-
-	data, ok1 := res[0].([]byte)
-	ts, ok2 := res[1].(time.Time)
-	if !ok1 || !ok2 {
-		return nil, time.Time{}, fmt.Errorf("%s: invalid data types in response", cmd)
-	}
-
-	return data, ts, nil
+	return cli.readSkinFile("READCLUSTERSKINFILE", skin, "FILE", file)
 }
 
-// ReadDomainSkinFile читает файл из кастомного скина домена.
+
+// ReadDomainSkinFile reads a file from a custom Domain Skin.
+//
+// Parameters:
+//   - domain: (Optional) specifies the Domain name.
+//   - skin: specifies the name of an existing Domain Skin.
+//   - file: specifies the name of an existing file in the Skin.
+//
+// Returns:
+//   - []byte: the Skin file content.
+//   - time.Time: the file modification date.
+//   - error: an error if the command fails.
 func (cli *Cli) ReadDomainSkinFile(domain, skin, file string) ([]byte, time.Time, error) {
 	if file == "" {
 		return nil, time.Time{}, fmt.Errorf("file name is required")
@@ -186,7 +336,16 @@ func (cli *Cli) ReadDomainSkinFile(domain, skin, file string) ([]byte, time.Time
 	return data, ts, nil
 }
 
-// ReadServerSkinFile читает файл из кастомного серверного скина.
+// ReadServerSkinFile reads a file from a custom Server Skin.
+//
+// Parameters:
+//   - skin: specifies the name of an existing Server Skin.
+//   - file: specifies the name of an existing file in the Skin.
+//
+// Returns:
+//   - []byte: the Skin file content.
+//   - time.Time: the file modification date.
+//   - error: an error if the command fails.
 func (cli *Cli) ReadServerSkinFile(skin, file string) ([]byte, time.Time, error) {
 	if skin == "" || file == "" {
 		return nil, time.Time{}, fmt.Errorf("skin name and file name are required")
@@ -211,7 +370,16 @@ func (cli *Cli) ReadServerSkinFile(skin, file string) ([]byte, time.Time, error)
 	return data, ts, nil
 }
 
-// ReadStockSkinFile читает файл из встроенного (stock) скина.
+// ReadStockSkinFile reads a file from a built-in (stock) Skin.
+//
+// Parameters:
+//   - skin: specifies the name of an existing built-in Skin.
+//   - file: specifies the name of an existing file in the Skin.
+//
+// Returns:
+//   - []byte: the Skin file content.
+//   - time.Time: the file modification date.
+//   - error: an error if the command fails.
 func (cli *Cli) ReadStockSkinFile(skin, file string) ([]byte, time.Time, error) {
 	if skin == "" || file == "" {
 		return nil, time.Time{}, fmt.Errorf("skin name and file name are required")
@@ -236,84 +404,129 @@ func (cli *Cli) ReadStockSkinFile(skin, file string) ([]byte, time.Time, error) 
 	return data, ts, nil
 }
 
-// RenameClusterSkin переименовывает кастомный кластерный скин.
-func (cli *Cli) RenameClusterSkin(skin, newSkin string) error {
-	if skin == "" || newSkin == "" {
-		return fmt.Errorf("skin name and newSkin name are required")
+// RenameClusterSkin renames a custom Cluster Skin.
+//
+// Parameters:
+//   - oldSkin: specifies the name of an existing Skin.
+//   - newSkin: specifies the new name for the Skin.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) RenameClusterSkin(oldSkin, newSkin string) error {
+	if oldSkin == "" || newSkin == "" {
+		return fmt.Errorf("old and new skin names are required")
 	}
-	return cli.QueryNV("RENAMECLUSTERSKIN", skin, "INTO", newSkin)
+	return cli.QueryNV("RENAMECLUSTERSKIN", oldSkin, "INTO", newSkin)
 }
 
-// RenameDomainSkin переименовывает кастомный скин домена.
-func (cli *Cli) RenameDomainSkin(domain, skin, newSkin string) (err error) {
-	if skin == "" || newSkin == "" {
-		return fmt.Errorf("skin name and newSkin name are required")
+// RenameDomainSkin renames a custom named Domain Skin.
+//
+// Parameters:
+//   - domain: (Optional) specifies the Domain name.
+//   - oldSkin: specifies the name of an existing named Skin.
+//   - newSkin: specifies the new name for the Skin.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) RenameDomainSkin(domain, oldSkin, newSkin string) error {
+	if oldSkin == "" || newSkin == "" {
+		return fmt.Errorf("old and new skin names are required")
 	}
 
 	const cmd = "RENAMEDOMAINSKIN"
 	if domain != "" {
-		err = cli.QueryNV(cmd, domain, "SKIN", skin, "INTO", newSkin)
+		return cli.QueryNV(cmd, domain, "SKIN", oldSkin, "INTO", newSkin)
 	} else {
-		err = cli.QueryNV(cmd, skin, "INTO", newSkin)
+		return cli.QueryNV(cmd, oldSkin, "INTO", newSkin)
 	}
-	return
 }
 
-// RenameServerSkin переименовывает кастомный серверный скин.
-func (cli *Cli) RenameServerSkin(skin, newSkin string) error {
-	if skin == "" || newSkin == "" {
-		return fmt.Errorf("skin name and newSkin name are required")
+// RenameServerSkin renames a custom Server Skin.
+//
+// Parameters:
+//   - oldSkin: specifies the name of an existing Skin.
+//   - newSkin: specifies the new name for the Skin.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) RenameServerSkin(oldSkin, newSkin string) error {
+	if oldSkin == "" || newSkin == "" {
+		return fmt.Errorf("old and new skin names are required")
 	}
-	return cli.QueryNV("RENAMESERVERSKIN", skin, "INTO", newSkin)
+	return cli.QueryNV("RENAMESERVERSKIN", oldSkin, "INTO", newSkin)
 }
 
-// StoreClusterSkinFile сохраняет файл в кастомный кластерный скин или удаляет его.
-func (cli *Cli) StoreClusterSkinFile(skin, file string, data []byte) (err error) {
-	if skin == "" || file == "" {
-		return fmt.Errorf("skin name and file name are required")
+// StoreClusterSkinFile stores a file into a custom Cluster Skin.
+//
+// Parameters:
+//   - skin: specifies the name of an existing Cluster Skin.
+//   - file: specifies the Skin file name.
+//   - data: the file content.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) StoreClusterSkinFile(skin, file string, data []byte) error {
+	if skin == "" || file == "" || data == nil {
+		return fmt.Errorf("skin name, file name and data are required")
 	}
-
-	const cmd = "STORECLUSTERSKINFILE"
-	if data != nil {
-		err = cli.QueryNV(cmd, skin, "FILE", file, "DATA", data)
-	} else {
-		err = cli.QueryNV(cmd, skin, "FILE", file, "DELETE")
-	}
-	return
+	return cli.QueryNV("STORECLUSTERSKINFILE", skin, "FILE", file, "DATA", data)
 }
 
-// StoreDomainSkinFile сохраняет файл в кастомный скин домена или удаляет его.
+// StoreDomainSkinFile stores a file into a custom Domain Skin.
+//
+// Parameters:
+//   - domain: (Optional) specifies the Domain name.
+//   - skin: specifies the name of an existing Domain Skin.
+//   - file: specifies the Skin file name.
+//   - data: the file content.
+//
+// Returns:
+//   - error: an error if the command fails.
 func (cli *Cli) StoreDomainSkinFile(domain, skin, file string, data []byte) error {
-	if file == "" {
-		return fmt.Errorf("file name is required")
+	if file == "" || data == nil {
+		return fmt.Errorf("file name and data are required")
 	}
 
-	args := make([]any, 0, 6)
+	const cmd = "STOREDOMAINSKINFILE"
 	if domain != "" {
-		args = append(args, domain, "SKIN")
-	}
-	args = append(args, skin, "FILE", file)
-
-	if data != nil {
-		args = append(args, "DATA", data)
+		return cli.QueryNV(cmd, domain, "SKIN", skin, "FILE", file, "DATA", data)
 	} else {
-		args = append(args, "DELETE")
+		return cli.QueryNV(cmd, skin, "FILE", file, "DATA", data)
 	}
-
-	return cli.QueryNV("STOREDOMAINSKINFILE", args...)
 }
 
-// StoreServerSkinFile сохраняет файл в кастомный серверный скин или удаляет его.
-func (cli *Cli) StoreServerSkinFile(skin, file string, data []byte) (err error) {
-	if skin == "" || file == "" {
-		return fmt.Errorf("skin name and file name are required")
+// StoreServerSkinFile stores a file into a custom Server Skin.
+//
+// Parameters:
+//   - skin: specifies the name of an existing Server Skin.
+//   - file: specifies the Skin file name.
+//   - data: the file content.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) StoreServerSkinFile(skin, file string, data []byte) error {
+	if skin == "" || file == "" || data == nil {
+		return fmt.Errorf("skin name, file name and data are required")
+	}
+	return cli.QueryNV("STORESERVERSKINFILE", skin, "FILE", file, "DATA", data)
+}
+
+// readSkinFile — внутренний хелпер для чтения файлов скинов.
+func (cli *Cli) readSkinFile(cmd string, args ...any) ([]byte, time.Time, error) {
+	res, err := cli.getSliceAny(cmd, args...)
+	if err != nil {
+		return nil, time.Time{}, err
 	}
 
-	const cmd = "STORESERVERSKINFILE"
-	if data != nil {
-		err = cli.QueryNV(cmd, skin, "FILE", file, "DATA", data)
-	} else {
-		err = cli.QueryNV(cmd, skin, "FILE", file, "DELETE")
+	if len(res) < 2 {
+		return nil, time.Time{}, fmt.Errorf("%s: expected array [data, time], got %T", cmd, res)
 	}
-	return
+
+	data, ok1 := res[0].([]byte)
+	ts, ok2 := res[1].(time.Time)
+	if !ok1 || !ok2 {
+		return nil, time.Time{}, fmt.Errorf("%s: invalid data types in response", cmd)
+	}
+
+	return data, ts, nil
 }

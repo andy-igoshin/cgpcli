@@ -23,16 +23,7 @@ package cgpcli
 
 import (
 	"fmt"
-	"time"
 )
-
-// PBXFileInfo represents metadata for a file in the Real-Time Application environment.
-type PBXFileInfo struct {
-	Name     string    // File name (as returned by the server)
-	Size     int64     // File size in bytes (STFileSize)
-	Created  time.Time // File creation timestamp (STCreated)
-	Modified time.Time // Last modification timestamp (STModified)
-}
 
 // CreateClusterPBX creates the cluster-wide Real-Time Application Environment or its national subset.
 //
@@ -176,10 +167,14 @@ func (cli *Cli) DeleteServerPBXFile(file string) error {
 //   - language: (Optional) This optional parameter specifies a national subset name.
 //
 // Returns:
-//   - map[string]*[PBXFileInfo]: A dictionary with file names as keys.
+//   - map[string]*[FileInfo]: A dictionary with file names as keys.
 //   - error: An error if the command fails.
-func (cli *Cli) ListClusterPBXFiles(language string) (map[string]*PBXFileInfo, error) {
-	return cli.listPBXFiles("LISTCLUSTERPBXFILES", Atom(language))
+func (cli *Cli) ListClusterPBXFiles(language string) (map[string]*FileInfo, error) {
+	raw, err := cli.getMapAny("LISTCLUSTERPBXFILES", Atom(language))
+	if err != nil {
+		return nil, err
+	}
+	return parseFileInfoMap(raw), nil
 }
 
 // ListDomainPBXFiles lists files in the Domain Real-Time Application Environment.
@@ -189,14 +184,21 @@ func (cli *Cli) ListClusterPBXFiles(language string) (map[string]*PBXFileInfo, e
 //   - language: (Optional) This optional parameter specifies a national subset name.
 //
 // Returns:
-//   - map[string]*[PBXFileInfo]: A dictionary with file names as keys.
+//   - map[string]*[FileInfo]: A dictionary with file names as keys.
 //   - error: An error if the command fails.
-func (cli *Cli) ListDomainPBXFiles(domain, language string) (map[string]*PBXFileInfo, error) {
+func (cli *Cli) ListDomainPBXFiles(domain, language string) (map[string]*FileInfo, error) {
+	var raw map[string]any
+	var err error
 	if language != "" {
-		return cli.listPBXFiles("LISTDOMAINPBXFILES", Atom(domain), "FILE", language)
+		raw, err = cli.getMapAny("LISTDOMAINPBXFILES", Atom(domain), "FILE", language)
 	} else {
-		return cli.listPBXFiles("LISTDOMAINPBXFILES", Atom(domain))
+		raw, err = cli.getMapAny("LISTDOMAINPBXFILES", Atom(domain))
 	}
+
+	if err != nil {
+		return nil, err
+	}
+	return parseFileInfoMap(raw), nil
 }
 
 // ListServerPBXFiles lists files in the Server-wide Real-Time Application Environment.
@@ -205,10 +207,14 @@ func (cli *Cli) ListDomainPBXFiles(domain, language string) (map[string]*PBXFile
 //   - language: (Optional) This optional parameter specifies a national subset name.
 //
 // Returns:
-//   - map[string]*[PBXFileInfo]: A dictionary with file names as keys.
+//   - map[string]*[FileInfo]: A dictionary with file names as keys.
 //   - error: An error if the command fails.
-func (cli *Cli) ListServerPBXFiles(language string) (map[string]*PBXFileInfo, error) {
-	return cli.listPBXFiles("LISTSERVERPBXFILES", Atom(language))
+func (cli *Cli) ListServerPBXFiles(language string) (map[string]*FileInfo, error) {
+	raw, err := cli.getMapAny("LISTSERVERPBXFILES", Atom(language))
+	if err != nil {
+		return nil, err
+	}
+	return parseFileInfoMap(raw), nil
 }
 
 // ListStockPBXFiles lists files in the stock (built-in) Real-Time Application Environment.
@@ -217,10 +223,14 @@ func (cli *Cli) ListServerPBXFiles(language string) (map[string]*PBXFileInfo, er
 //   - language: (Optional) This optional parameter specifies a national subset name.
 //
 // Returns:
-//   - map[string]*[PBXFileInfo]: A dictionary with file names as keys.
+//   - map[string]*[FileInfo]: A dictionary with file names as keys.
 //   - error: An error if the command fails.
-func (cli *Cli) ListStockPBXFiles(language string) (map[string]*PBXFileInfo, error) {
-	return cli.listPBXFiles("LISTSTOCKPBXFILES", Atom(language))
+func (cli *Cli) ListStockPBXFiles(language string) (map[string]*FileInfo, error) {
+	raw, err := cli.getMapAny("LISTSTOCKPBXFILES", Atom(language))
+	if err != nil {
+		return nil, err
+	}
+	return parseFileInfoMap(raw), nil
 }
 
 // ReadClusterPBXFile reads a file from the cluster-wide Real-Time Application Environment.
@@ -339,30 +349,4 @@ func (cli *Cli) StoreServerPBXFile(file string, data []byte) error {
 		return fmt.Errorf("file and data are required")
 	}
 	return cli.QueryNV("STORESERVERPBXFILE", file, "DATA", data)
-}
-
-// listPBXFiles — внутренний хелпер для обработки ответов LIST*PBXFILES.
-// Преобразует map[string]any в типизированную мапу метаданных.
-func (cli *Cli) listPBXFiles(cmd string, args ...any) (map[string]*PBXFileInfo, error) {
-	raw, err := cli.getMapAny(cmd, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	res := make(map[string]*PBXFileInfo, len(raw))
-	for name, attrs := range raw {
-		attrMap, ok := attrs.(map[string]any)
-		if !ok {
-			continue
-		}
-
-		info := &PBXFileInfo{
-			Name:     name,
-			Size:     toInt64(attrMap["STFileSize"]),
-			Created:  toTime(attrMap["STCreated"]),
-			Modified: toTime(attrMap["STModified"]),
-		}
-		res[name] = info
-	}
-	return res, nil
 }
