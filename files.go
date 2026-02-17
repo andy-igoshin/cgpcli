@@ -48,18 +48,17 @@ type StorageFileInfo struct {
 //
 // Returns:
 //   - error: An error if mandatory parameters are missing or the server fails to delete the file.
-func (cli *Cli) DeleteStorageFile(account, file, authAccount string) (err error) {
+func (cli *Cli) DeleteStorageFile(account, file, authAccount string) error {
 	if account == "" || file == "" {
 		return fmt.Errorf("account name and file name are required")
 	}
 
 	const cmd = "DELETESTORAGEFILE"
 	if authAccount != "" {
-		err = cli.QueryNV(cmd, Atom(account), "FILE", file, "AUTH", authAccount)
+		return cli.QueryNV(cmd, Atom(account), "FILE", file, "AUTH", authAccount)
 	} else {
-		err = cli.QueryNV(cmd, Atom(account), "FILE", file)
+		return cli.QueryNV(cmd, Atom(account), "FILE", file)
 	}
-	return
 }
 
 // GetFileSubscription retrieves the list of Account "subscribed files".
@@ -126,9 +125,9 @@ func (cli *Cli) GetStorageFileInfo(account, path, authAccount string) (*StorageF
 //   - authAccount: (Optional) The name of an Account on whose behalf the operation is executed.
 //
 // Returns:
-//   - map[string]any: A dictionary where keys are file names and values contain file details.
+//   - map[string]*[FileInfo]: A dictionary where keys are file names and values contain file details.
 //   - error: An error if the command fails.
-func (cli *Cli) ListStorageFiles(account, path, authAccount string) (map[string]any, error) {
+func (cli *Cli) ListStorageFiles(account, path, authAccount string) (map[string]*FileInfo, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
@@ -142,7 +141,11 @@ func (cli *Cli) ListStorageFiles(account, path, authAccount string) (map[string]
 	if authAccount != "" {
 		args = append(args, "AUTH", authAccount)
 	}
-	return cli.getMapAny(cmd, args...)
+	raw, err := cli.getMapAny(cmd, args...)
+	if err != nil {
+		return nil, err
+	}
+	return parseFileInfoMap(raw), nil
 }
 
 // ReadStorageFile retrieves a file or its slice from the Account File Storage.
@@ -239,18 +242,17 @@ func (cli *Cli) ReadStorageFileAttr(account, file string, attrs []string, authAc
 //
 // Returns:
 //   - error: An error if names are missing or the server fails to rename the object.
-func (cli *Cli) RenameStorageFile(account, oldName, newName, authAccount string) (err error) {
+func (cli *Cli) RenameStorageFile(account, oldName, newName, authAccount string) error {
 	if account == "" || oldName == "" || newName == "" {
 		return fmt.Errorf("account name, old and new file names are required")
 	}
 
 	const cmd = "RENAMESTORAGEFILE"
 	if authAccount != "" {
-		err = cli.QueryNV(cmd, Atom(account), "FILE", oldName, "INTO", newName, "AUTH", authAccount)
+		return cli.QueryNV(cmd, Atom(account), "FILE", oldName, "INTO", newName, "AUTH", authAccount)
 	} else {
-		err = cli.QueryNV(cmd, Atom(account), "FILE", oldName, "INTO", newName)
+		return cli.QueryNV(cmd, Atom(account), "FILE", oldName, "INTO", newName)
 	}
-	return
 }
 
 // SetFileSubscription sets the Account "subscribed files" list.
@@ -278,18 +280,17 @@ func (cli *Cli) SetFileSubscription(account string, subs []string) error {
 //
 // Returns:
 //   - error: An error if the command fails.
-func (cli *Cli) UpdateStorageFileAttr(account, file string, attrs []any, authAccount string) (err error) {
+func (cli *Cli) UpdateStorageFileAttr(account, file string, attrs []any, authAccount string) error {
 	if account == "" || file == "" || attrs == nil {
 		return fmt.Errorf("account name, file name and attributes are required")
 	}
 
 	const cmd = "UPDATESTORAGEFILEATTR"
 	if authAccount != "" {
-		err = cli.QueryNV(cmd, Atom(account), "FILE", file, attrs, "AUTH", authAccount)
+		return cli.QueryNV(cmd, Atom(account), "FILE", file, attrs, "AUTH", authAccount)
 	} else {
-		err = cli.QueryNV(cmd, Atom(account), "FILE", file, attrs)
+		return cli.QueryNV(cmd, Atom(account), "FILE", file, attrs)
 	}
-	return
 }
 
 // WriteStorageFile stores a file or creates a directory in the Account File Storage.
