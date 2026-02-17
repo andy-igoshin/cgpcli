@@ -155,9 +155,9 @@ func (cli *Cli) Logout() error {
 //   - *Cli: A pointer to the initialized session.
 //   - error: An error if connection, authentication, or protocol
 //     negotiation fails.
-func New(host, login, password string, secure Secure, tls bool) (cli *Cli, err error) {
+func New(host, login, password string, secure Secure, tls bool) (*Cli, error) {
 
-	cli = new(Cli)
+	cli := new(Cli)
 
 	cli.host = net.JoinHostPort(host, defaultPort)
 	cli.login = login
@@ -165,9 +165,9 @@ func New(host, login, password string, secure Secure, tls bool) (cli *Cli, err e
 	cli.secure = secure
 	cli.tls = tls
 
-	err = cli.connect()
+	err := cli.connect()
 
-	return
+	return cli, err
 }
 
 // Query sends a command to CommuniGate Pro CLI and unmarshals the response into a Go type.
