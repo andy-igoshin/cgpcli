@@ -206,18 +206,17 @@ func (cli *Cli) DeleteAccountSignalRule(account, rule string) error {
 //
 // Returns a map[string]any containing the ACL elements, or an error if the
 // account name is empty or the server fails to execute the command.
-func (cli *Cli) GetAccountACL(account, authAccount string) (res map[string]any, err error) {
+func (cli *Cli) GetAccountACL(account, authAccount string) (map[string]any, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
 
 	const cmd = "GETACCOUNTACL"
 	if authAccount != "" {
-		res, err = cli.getMapAny(cmd, Atom(account), "AUTH", authAccount)
+		return cli.getMapAny(cmd, Atom(account), "AUTH", authAccount)
 	} else {
-		res, err = cli.getMapAny(cmd, Atom(account))
+		return cli.getMapAny(cmd, Atom(account))
 	}
-	return
 }
 
 // GetAccountACLRights retrieves the effective access rights for a specific Account.
@@ -379,18 +378,17 @@ func (cli *Cli) GetAccountEffectiveSettings(account string) (map[string]any, err
 //
 // Returns a map[string]any with the requested info elements, or an error if
 // the account name is empty or the server fails to execute the command.
-func (cli *Cli) GetAccountInfo(account string, keys []string) (res map[string]any, err error) {
+func (cli *Cli) GetAccountInfo(account string, keys []string) (map[string]any, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
 	}
 
 	const cmd = "GETACCOUNTINFO"
 	if len(keys) > 0 {
-		res, err = cli.getMapAny(cmd, Atom(account), keys)
+		return cli.getMapAny(cmd, Atom(account), keys)
 	} else {
-		res, err = cli.getMapAny(cmd, Atom(account))
+		return cli.getMapAny(cmd, Atom(account))
 	}
-	return
 }
 
 // GetAccountLocation retrieves the storage path for an Account.
@@ -506,18 +504,17 @@ func (cli *Cli) GetAccountOneSetting(account, key string) (any, error) {
 //
 // Returns a string containing the plain-text password, or an error if
 // the account name is empty or the server fails to execute the command.
-func (cli *Cli) GetAccountPlainPassword(account string, method string) (s string, err error) {
+func (cli *Cli) GetAccountPlainPassword(account string, method string) (string, error) {
 	if account == "" {
 		return "", fmt.Errorf("account name is required")
 	}
 
 	const cmd = "GETACCOUNTPLAINPASSWORD"
 	if method == "SIP" || method == "RADIUS" {
-		s, err = cli.getString(cmd, account, "METHOD", method)
+		return cli.getString(cmd, account, "METHOD", method)
 	} else {
-		s, err = cli.getString(cmd, account)
+		return cli.getString(cmd, account)
 	}
-	return
 }
 
 // GetAccountPrefs retrieves the Account Preferences.
@@ -805,18 +802,17 @@ func (cli *Cli) ModifyAccountTelnums(account string, params map[string]any) (map
 //
 // Returns an error if names are empty or if the server fails to complete
 // the rename/move operation.
-func (cli *Cli) RenameAccount(oldName, newName, storage string) (err error) {
+func (cli *Cli) RenameAccount(oldName, newName, storage string) error {
 	if oldName == "" || newName == "" {
 		return fmt.Errorf("both old and new names are required")
 	}
 
 	const cmd = "RENAMEACCOUNT"
 	if storage != "" {
-		err = cli.QueryNV(cmd, oldName, "INTO", newName, "PATH", storage)
+		return cli.QueryNV(cmd, oldName, "INTO", newName, "PATH", storage)
 	} else {
-		err = cli.QueryNV(cmd, oldName, "INTO", newName)
+		return cli.QueryNV(cmd, oldName, "INTO", newName)
 	}
-	return
 }
 
 // SetAccountACL modifies the Access Control List (ACL) for Account Access Rights.
@@ -837,18 +833,17 @@ func (cli *Cli) RenameAccount(oldName, newName, storage string) (err error) {
 // This method executes the SETACCOUNTACL CLI command.
 //
 // Returns an error if account or acl are missing, or if the server operation fails.
-func (cli *Cli) SetAccountACL(account string, acl map[string]any, authAccount string) (err error) {
+func (cli *Cli) SetAccountACL(account string, acl map[string]any, authAccount string) error {
 	if account == "" || acl == nil {
 		return fmt.Errorf("account name and acl dictionary are required")
 	}
 
 	const cmd = "SETACCOUNTACL"
 	if authAccount != "" {
-		err = cli.QueryNV(cmd, Atom(account), "AUTH", authAccount, acl)
+		return cli.QueryNV(cmd, Atom(account), "AUTH", authAccount, acl)
 	} else {
-		err = cli.QueryNV(cmd, Atom(account), acl)
+		return cli.QueryNV(cmd, Atom(account), acl)
 	}
-	return
 }
 
 // SetAccountAccessModes updates the allowed access protocols/modes for an Account.
