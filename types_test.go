@@ -30,7 +30,7 @@ func TestCGPIP_writeCGP(t *testing.T) {
 			w := bufio.NewWriter(&b)
 
 			err := c.writeCGP(w)
-			w.Flush() // Важно сбросить буфер в bytes.Buffer
+			w.Flush()
 
 			if err != nil {
 				t.Fatalf("writeCGP() error = %v", err)

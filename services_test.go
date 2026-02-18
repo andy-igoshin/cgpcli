@@ -12,16 +12,12 @@ func TestAccountServices_Integration(t *testing.T) {
 
 	t.Run("BalanceOperations", func(t *testing.T) {
 		// Операция "list" возвращает историю транзакций и текущий баланс.
-		// Это самый безопасный метод для проверки связи с биллингом.
 		params := map[string]any{
 			"what": "list",
 		}
 
 		res, err := cli.Balance(me, params)
 		if err != nil {
-			// Если биллинг на сервере вообще не включен,
-			// CGP может вернуть 500. Для покрытия кода это допустимо,
-			// но мы надеемся на корректный ответ структуры.
 			t.Logf("Balance 'list' call result (might depend on billing config): %v", err)
 			return
 		}
@@ -91,7 +87,6 @@ func TestAccountServices_Integration(t *testing.T) {
 	})
 
 	t.Run("RosterOperations", func(t *testing.T) {
-		// Просто запрашиваем список контактов (List)
 		params := map[string]any{"what": "List"}
 		_, err := cli.Roster(me, params)
 		if err != nil {
@@ -100,7 +95,6 @@ func TestAccountServices_Integration(t *testing.T) {
 	})
 
 	t.Run("RemoveSubset", func(t *testing.T) {
-		// Тестируем на временном сете, чтобы не сломать реальные данные
 		tempSet := "SDK_Temp_Set"
 		cli.Dataset(me, map[string]any{"subsetName": tempSet, "what": "createSet"})
 

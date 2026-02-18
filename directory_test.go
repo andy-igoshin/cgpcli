@@ -50,8 +50,7 @@ func TestIntegration_Directory_Units(t *testing.T) {
 	cli := getTestCli(t)
 	defer cli.Close()
 
-	// Используем уникальное имя для каждого запуска теста,
-	// чтобы избежать "хвостов" от предыдущих падений.
+	// Используем уникальное имя для каждого запуска теста
 	testUnit := fmt.Sprintf("GoUnit_%d", time.Now().UnixNano()%10000)
 	mount := fmt.Sprintf("tmp/go_test_%s", testUnit)
 
@@ -132,7 +131,7 @@ func TestIntegration_Directory_FullMethods(t *testing.T) {
 			t.Fatalf("Initial GetDirectoryAccessRights failed: %v", err)
 		}
 
-		// Создаем временное правило (копируем структуру ваших DirAccessRight)
+		// Создаем временное правило (копируем структуру DirAccessRight)
 		testRule := DirAccessRight{
 			Name:      "GoTmpRule",
 			Target:    "*",
@@ -157,7 +156,7 @@ func TestIntegration_Directory_FullMethods(t *testing.T) {
 			}
 		}
 
-		// 3. Восстанавливаем оригинальные права (важно!)
+		// 3. Восстанавливаем оригинальные права
 		if err := cli.SetDirectoryAccessRights(false, original); err != nil {
 			t.Errorf("Failed to restore original ACL: %v", err)
 		}

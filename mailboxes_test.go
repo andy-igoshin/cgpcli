@@ -128,8 +128,7 @@ func TestMailboxes(t *testing.T) {
 			t.Errorf("ACL for postmaster missing 's' right: %s", acl["postmaster"])
 		}
 
-		// 3. Вызываем ListMailboxes для покрытия
-		// Этот вызов закроет оставшиеся ветки в ListMailboxes (с фильтром)
+		// 3. Вызываем ListMailboxes
 		list, err := cli.ListMailboxes(testAcc, mbox, "")
 		if err != nil {
 			t.Errorf("ListMailboxes with filter failed: %v", err)

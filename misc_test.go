@@ -61,8 +61,6 @@ func TestMiscellaneousLive(t *testing.T) {
 		}
 
 		// 5. CLEANUP & RESTORE
-		// Чтобы реально удалить 251-й, нужно либо DELETE, либо знать,
-		// что SET не удаляет. Удаляем явно то, что создали.
 		_ = cli.TempBlacklistIP(ip1, 0)
 		_ = cli.TempBlacklistIP(ip2, 0)
 
@@ -160,16 +158,13 @@ func TestMiscellaneous_Extended(t *testing.T) {
 		_ = cli.SetTrace(TraceFileIO, false)
 	})
 
-	// 4. Очереди и Кластер (методы с потенциальными ошибками логики)
+	// 4. Очереди и Кластер
 	t.Run("QueuesAndCluster", func(t *testing.T) {
-		// Эти вызовы скорее всего вернут ошибки (нет таких ID или не кластер),
-		// но код методов в misc.go будет исполнен.
 
 		_ = cli.RejectQueueMessage(999999, "Testing reject")
 		_ = cli.RejectQueueMessages("nonexistent@domain.com", "Spam")
 		_ = cli.ReleaseSMTPQueue("nonexistent.queue")
 
-		// Кластерные команды
 		_, _ = cli.GetCurrentController()
 		_ = cli.ReconnectClusterAdmin()
 	})

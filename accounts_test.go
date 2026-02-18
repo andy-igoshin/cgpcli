@@ -323,7 +323,7 @@ func TestAccountAccessModesInheritance(t *testing.T) {
 			t.Error("AccessModes key still exists in settings after #NULL# reset (inheritance failed)")
 		}
 
-		// GetAccountAccessModes должен вернуть nil (согласно нашей логике прозрачности)
+		// GetAccountAccessModes должен вернуть nil
 		got, err := cli.GetAccountAccessModes(testAcc)
 		if err != nil {
 			t.Errorf("GetAccountAccessModes failed: %v", err)
@@ -670,7 +670,6 @@ func TestAccountFinalStub(t *testing.T) {
 		}
 
 		// UpdateScheduledTask
-		// Просто вызываем метод для покрытия кода.
 		// Т.к. CGP может возвращать OK даже для несуществующих ID в задачах,
 		// мы просто фиксируем факт отсутствия паники/ошибок маршалинга.
 		task := map[string]any{"id": "nonexistent", "Enabled": false}

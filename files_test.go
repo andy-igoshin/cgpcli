@@ -104,13 +104,8 @@ func TestIntegration_StorageFiles_Extended(t *testing.T) {
 		t.Logf("Initial file attributes: %v", attrs)
 
 		// 2. Обновляем атрибут.
-		// В CGP для файлов можно пробовать менять 'ModTime' или кастомные флаги,
-		// но самый безопасный способ проверить вызов - отправить пустой или базовый набор.
-		// В CLI атрибуты передаются как массив any [name, value, name, value...]
 		updateAttrs := []any{"Keywords", "GoTest"}
 		if err := cli.UpdateStorageFileAttr(account, fileName, updateAttrs, ""); err != nil {
-			// Некоторые хранилища могут не поддерживать кастомные атрибуты,
-			// если будет ошибка - это тоже покрытие метода.
 			t.Logf("UpdateStorageFileAttr (Keywords) info: %v", err)
 		}
 

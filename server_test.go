@@ -41,7 +41,7 @@ func TestServer_IPLists_Honest(t *testing.T) {
 		})
 	}
 
-	// Кластерные IP-списки с честной проверкой
+	// Кластерные IP-списки
 	clusterIPs := []struct {
 		name string
 		get  func() (IPList, error)

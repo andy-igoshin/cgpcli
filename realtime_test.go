@@ -51,8 +51,6 @@ func TestPBX_Integration(t *testing.T) {
 
 	// --- 2. SERVER PBX ---
 	t.Run("ServerPBX", func(t *testing.T) {
-		// Внимание: Создание SERVER PBX может требовать прав All Domains
-		// Часто среда уже существует. Попробуем записать файл.
 		if err := cli.StoreServerPBXFile(testFile, testData); err != nil {
 			t.Logf("Note: StoreServerPBXFile might fail without permissions: %v", err)
 		} else {
@@ -67,7 +65,6 @@ func TestPBX_Integration(t *testing.T) {
 
 	// --- 3. STOCK PBX (Read-Only) ---
 	t.Run("StockPBX", func(t *testing.T) {
-		// Читаем стандартный файл, который точно есть в любой установке (например, default.sppkg или версионный файл)
 		// Для теста просто попробуем List без языка
 		files, err := cli.ListStockPBXFiles("")
 		if err != nil {
@@ -89,7 +86,6 @@ func TestPBX_Extended(t *testing.T) {
 
 	// 1. Уровень SERVER (Create/Delete/List)
 	t.Run("ServerPBX_Full", func(t *testing.T) {
-		// Пробуем создать языковую среду (может вернуть ошибку, если уже есть - это ок)
 		_ = cli.CreateServerPBX(testLang)
 
 		_ = cli.StoreServerPBXFile(testFile, testData)
@@ -102,7 +98,7 @@ func TestPBX_Extended(t *testing.T) {
 		_ = cli.DeleteServerPBX(testLang)
 	})
 
-	// 2. Уровень CLUSTER (если сервер в кластере - сработает, если нет - просто покроет код)
+	// 2. Уровень CLUSTER
 	t.Run("ClusterPBX", func(t *testing.T) {
 		_ = cli.CreateClusterPBX(testLang)
 
@@ -122,14 +118,10 @@ func TestPBX_Extended(t *testing.T) {
 		_ = cli.DeleteClusterPBX(testLang)
 	})
 
-	// 3. Уровень STOCK и DOMAIN (оставшиеся методы)
+	// 3. Уровень STOCK и DOMAIN
 	t.Run("StockAndDomainAdditional", func(t *testing.T) {
-		// ReadStockPBXFile - пробуем прочитать базовый пакет
-		// Обычно pbxbase.spp или что-то подобное всегда есть
 		_, _ = cli.ReadStockPBXFile("pbxbase.spp")
 
-		// DeleteDomainPBX (удаление языкового набора в домене)
-		// Сначала создадим, чтобы было что удалять
 		_ = cli.CreateDomainPBX("test.domain.name", testLang)
 		err := cli.DeleteDomainPBX("test.domain.name", testLang)
 		if err != nil {

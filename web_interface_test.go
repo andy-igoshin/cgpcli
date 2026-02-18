@@ -15,7 +15,7 @@ func TestWebInterface_Integration(t *testing.T) {
 	)
 
 	// Подготовка: создаем аккаунт для тестов сессий
-	_ = cli.DeleteAccount(testAcc) // На случай, если остался от прошлого прогона
+	_ = cli.DeleteAccount(testAcc)
 	if err := cli.CreateAccount(testAcc, map[string]any{"Password": testPass}, TypeDefault, "", false); err != nil {
 		t.Fatalf("Failed to create test account: %v", err)
 	}
@@ -42,7 +42,6 @@ func TestWebInterface_Integration(t *testing.T) {
 			t.Fatalf("GetSession failed: %v", err)
 		}
 
-		// В CLI PWD возвращается ключ 'accountName', а не 'Account'
 		if acc, ok := data["accountName"].(string); !ok || acc != "webtestuser" {
 			t.Errorf("Unexpected account in session: %v (data: %+v)", data["accountName"], data)
 		}
@@ -56,7 +55,6 @@ func TestWebInterface_Integration(t *testing.T) {
 			t.Fatalf("UpdateSession failed: %v", err)
 		}
 
-		// Проверяем, что данные применились
 		data, _ := cli.GetSession(sessionID, "")
 		if val, ok := data["MyParam"].(string); !ok || val != "MyValue" {
 			t.Errorf("Custom param not found or incorrect: %v", data["MyParam"])
@@ -92,7 +90,7 @@ func TestWebInterface_Integration(t *testing.T) {
 		}
 	})
 
-	// 5.1 Тест создания LITE сессии (ЗАКРЫВАЕМ: CreateLiteSession, ListLiteSessions)
+	// 5.1 Тест создания LITE сессии
 	t.Run("LiteSessions_FullCycle", func(t *testing.T) {
 		liteID, err := cli.CreateLiteSession(testAddr, "")
 		if err != nil {
@@ -117,7 +115,7 @@ func TestWebInterface_Integration(t *testing.T) {
 		_ = cli.KillSession(liteID, "")
 	})
 
-	// 5.2 Тест WebUser сессии и Bless (ЗАКРЫВАЕМ: CreateWebUserSession, BlessSession)
+	// 5.2 Тест WebUser сессии и Bless
 	t.Run("WebUser_And_Bless", func(t *testing.T) {
 		wuID, err := cli.CreateWebUserSession(testAcc, testAddr, "", "Basic")
 		if err != nil {

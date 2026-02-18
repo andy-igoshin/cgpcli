@@ -13,13 +13,11 @@ func TestPrettyPrint(t *testing.T) {
 		"Aliases":  []string{"ivan", "vanya"},
 		"Limits": map[string]any{
 			"MaxMessages": 500,
-			"Flags":       []byte("ABC"), // Проверка []byte
+			"Flags":       []byte("ABC"),
 		},
 	}
 
 	t.Run("ConsoleOutput", func(t *testing.T) {
-		// Мы просто визуально проверяем, что не паникует
-		// В реальных тестах можно перехватить stdout, но для дебаг-функции достаточно прогона
 		PrettyPrint(data)
 	})
 }

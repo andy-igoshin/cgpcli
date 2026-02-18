@@ -22,7 +22,7 @@ func TestAccountRights(t *testing.T) {
 
 	t.Run("SetAndVerifyRights", func(t *testing.T) {
 		// Список прав для установки
-		// CanModifySettings, CanCreateAccounts - типичные права в CGP
+		// CanModifySettings, CanCreateAccounts
 		targetRights := []string{"CanModifySettings", "CanCreateDomains"}
 
 		err := cli.SetAccountRights(testAcc, targetRights)

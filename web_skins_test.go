@@ -175,7 +175,6 @@ func TestWebSkins_Comprehensive(t *testing.T) {
 			t.Error("ReadClusterSkinFile: content mismatch")
 		}
 
-		// [!] ЗАКРЫВАЕМ: RenameClusterSkin (line 237)
 		if err := cli.RenameClusterSkin(skinID, renamedID); err != nil {
 			t.Errorf("RenameClusterSkin failed: %v", err)
 		}
@@ -199,7 +198,7 @@ func TestWebSkins_Comprehensive(t *testing.T) {
 				_, _, err := cli.ReadStockSkinFile(stockSkin, f)
 				if err == nil {
 					break
-				} // Проверили один успешный и хватит
+				}
 			}
 		}
 	})

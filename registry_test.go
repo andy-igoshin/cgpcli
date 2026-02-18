@@ -185,12 +185,9 @@ func TestMarshal_EdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Используем вспомогательную функцию для получения строки
-			// Она должна вызвать marshal(buf, tt.input, tt.key)
 			var b bytes.Buffer
 			w := bufio.NewWriter(&b)
 
-			// Наша целевая функция, которую мы оптимизируем
 			err := marshal(w, tt.input, tt.key)
 			w.Flush()
 

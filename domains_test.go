@@ -126,7 +126,6 @@ func TestDomainAdministration(t *testing.T) {
 		if err := cli.InsertDirectoryRecords(targetDomain); err != nil {
 			t.Errorf("InsertDirectoryRecords failed: %v", err)
 		}
-		// Осторожно с Delete в песочнице, если там есть важные записи
 		if err := cli.DeleteDirectoryRecords(targetDomain); err != nil {
 			t.Errorf("DeleteDirectoryRecords failed: %v", err)
 		}
@@ -285,7 +284,7 @@ func TestDomainAdministration_Extra(t *testing.T) {
 		if err != nil {
 			t.Fatalf("GetDomainSettings failed: %v", err)
 		}
-		// Пробуем перезаписать (безопасно, так как данные те же)
+		// Пробуем перезаписать
 		if err := cli.SetDomainSettings(targetDomain, settings); err != nil {
 			t.Errorf("SetDomainSettings failed: %v", err)
 		}

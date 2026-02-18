@@ -139,7 +139,7 @@ func TestDecodeDataBlock(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var res any
-			// Используем Unmarshal, который вызывает наш readCgpBlock
+			// Используем Unmarshal, который вызывает readCgpBlock
 			err := Unmarshal([]byte(tt.input), &res)
 			if err != nil {
 				t.Fatalf("Unmarshal failed: %v", err)
