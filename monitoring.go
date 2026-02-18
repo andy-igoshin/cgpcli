@@ -5,18 +5,16 @@
 // server performance, resource utilization, and protocol-specific metrics.
 //
 // Key capabilities include:
-//   - Statistics Retrieval: Iterating through the hierarchical OID tree using
+//   - Statistics Retrieval: iterating through the hierarchical OID tree using
 //     [Cli.GetNextStatName] and [Cli.ListAllStats] to discover available metrics.
-//   - Value Inspection: Fetching current values for specific statistics elements
+//   - Value Inspection: fetching current values for specific statistics elements
 //     (counters, gauges, or strings) via [Cli.GetStatElement].
-//   - Custom Metrics: Updating user-defined statistics elements using [Cli.SetStatElement]
+//   - Custom Metrics: updating user-defined statistics elements using [Cli.SetStatElement]
 //     with "SET" or "INC" (increment) operations.
-//   - Signal Inspection: Retrieving detailed state information for active
+//   - Signal Inspection: retrieving detailed state information for active
 //     Signal Dialogs by their numeric identifiers.
-//   - Server Lifecycle: Gracefully initiating server termination via the [Cli.Shutdown] method.
+//   - Server Lifecycle: gracefully initiating server termination via the [Cli.Shutdown] method.
 //
-// This section is vital for building health-check exporters (like Prometheus exporters),
-// automated scaling triggers, and administrative dashboards.
 package cgpcli
 
 import (
@@ -32,11 +30,13 @@ const statsCapacity = 2048
 // GetDialogInfo retrieves the information about a Signal Dialog object.
 //
 // Parameters:
-//   - dialogID: The numeric Dialog ID.
+//   - dialogID: the numeric Dialog ID.
+//
+// This method executes the GETDIALOGINFO CLI command.
 //
 // Returns:
-//   - map[string]any: A dictionary with the Dialog status data.
-//   - error: An error if the command fails.
+//   - map[string]any: a dictionary with the Dialog status data.
+//   - error: an error if the command fails.
 func (cli *Cli) GetDialogInfo(dialogID int64) (map[string]any, error) {
 	return cli.getMapAny("GETDIALOGINFO", dialogID)
 }
@@ -44,12 +44,14 @@ func (cli *Cli) GetDialogInfo(dialogID int64) (map[string]any, error) {
 // GetNextStatName is used to enumerate available Server statistics (SNMP) elements.
 //
 // Parameters:
-//   - objectID: An empty string to get the first element, or the ID of the
+//   - objectID: an empty string to get the first element, or the ID of the
 //     previously found element.
 //
+// This method executes the GETNEXTSTATNAME CLI command.
+//
 // Returns:
-//   - string: The ObjectID of the next statistics element.
-//   - error: Returns io.EOF if the current element is the last one available.
+//   - string: the ObjectID of the next statistics element.
+//   - error: returns io.EOF if the current element is the last one available.
 func (cli *Cli) GetNextStatName(objectID string) (s string, err error) {
 	s, err = cli.getString("GETNEXTSTATNAME", objectID)
 	if err != nil {
@@ -64,11 +66,13 @@ func (cli *Cli) GetNextStatName(objectID string) (s string, err error) {
 // GetStatElement retrieves the current value of a Server statistics (SNMP) element.
 //
 // Parameters:
-//   - objectID: The object ID of the Server statistics element.
+//   - objectID: the object ID of the Server statistics element.
+//
+// This method executes the GETSTATELEMENT CLI command.
 //
 // Returns:
-//   - any: A number, string, or other object representing the element value.
-//   - error: An error if the ObjectID is not found.
+//   - any: a number, string, or other object representing the element value.
+//   - error: an error if the ObjectID is not found.
 func (cli *Cli) GetStatElement(objectID string) (any, error) {
 	if objectID == "" {
 		return nil, fmt.Errorf("objectID is required")
@@ -80,8 +84,8 @@ func (cli *Cli) GetStatElement(objectID string) (any, error) {
 // and returns a slice of all available OIDs.
 //
 // Returns:
-//   - []string: A slice containing all discovered statistic names.
-//   - error: An error if any part of the iteration fails.
+//   - []string: a slice containing all discovered statistic names.
+//   - error: an error if any part of the iteration fails.
 func (cli *Cli) ListAllStats() ([]string, error) {
 	stats := make([]string, 0, statsCapacity)
 	var current string
@@ -103,12 +107,14 @@ func (cli *Cli) ListAllStats() ([]string, error) {
 // SetStatElement updates the current value of a "Custom" Server statistics element.
 //
 // Parameters:
-//   - objectID: The object ID of the Server statistics element.
-//   - op: The operation to perform: "INC" (increment) or "SET" (assignment).
-//   - val: The numeric value to be used in the operation.
+//   - objectID: the object ID of the Server statistics element.
+//   - op: the operation to perform: "INC" (increment) or "SET" (assignment).
+//   - val: the numeric value to be used in the operation.
+//
+// This method executes the SETSTATELEMENT CLI command.
 //
 // Returns:
-//   - error: An error if the element is not "Custom" or the command fails.
+//   - error: an error if the element is not "Custom" or the command fails.
 func (cli *Cli) SetStatElement(objectID, op string, val int64) error {
 	if objectID == "" {
 		return fmt.Errorf("objectID is required")
@@ -121,8 +127,10 @@ func (cli *Cli) SetStatElement(objectID, op string, val int64) error {
 
 // Shutdown initiates the stop sequence for the CommuniGate Pro Server.
 //
+// This method executes the SHUTDOWN CLI command.
+//
 // Returns:
-//   - error: An error if the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) Shutdown() error {
 	return cli.QueryNV("SHUTDOWN")
 }

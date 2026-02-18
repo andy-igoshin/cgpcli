@@ -6,17 +6,15 @@
 // within a single list, including support for negative (exclusion) rules and comments.
 //
 // Key capabilities include:
-//   - Flexible Management: Adding, inserting, and deleting entries with [Cli.Add],
+//   - Flexible Management: adding, inserting, and deleting entries with [Cli.Add],
 //     [Cli.InsertBefore], and [Cli.InsertAfter] to maintain strict rule ordering.
-//   - Rule Logic: Full support for exclusion rules (prefixed with "!") and complex
+//   - Rule Logic: full support for exclusion rules (prefixed with "!") and complex
 //     entry types like [IPRange] and [IPSeq].
-//   - IP Matching: The [IPList.Contains] method allows for high-performance
+//   - IP Matching: the [IPList.Contains] method allows for high-performance
 //     checks to determine if a specific net.IP is matched by any rule in the list.
-//   - Format Preservation: Methods for parsing and writing lists while maintaining
+//   - Format Preservation: methods for parsing and writing lists while maintaining
 //     comment alignment and special character encoding required by the CommuniGate Pro CLI.
 //
-// This section is essential for managing security settings, relay permissions,
-// and access control lists based on network topology.
 package cgpcli
 
 import (
@@ -36,27 +34,27 @@ type IPCIDR struct{ net.IPNet }
 // IPEntry represents a single line in a CommuniGate Pro IP List, including the value,
 // optional comment, and whether it is an exclusion rule.
 type IPEntry struct {
-	Comment    string // Human-readable comment after the semicolon.
-	CommentPos int    // Original position of the semicolon for alignment preservation.
-	IsNegative bool   // True if the entry starts with "!" (exclusion).
-	Value      any    // Can be IPCIDR, IPRange, IPSeq, or IPUnknown.
+	Comment    string // optional comment after the semicolon.
+	CommentPos int    // original position of the semicolon for alignment.
+	IsNegative bool   // true if the entry starts with "!" (exclusion rule).
+	Value      any    // the IP value: IPCIDR, IPRange, IPSeq, or IPUnknown.
 }
 
 type (
 	IPList    []IPEntry
-	IPRange   struct{ Start, End net.IP } // IPRange represents a contiguous range of IP addresses from Start to End.
-	IPSeq     []any                       // IPSeq represents a comma-separated sequence of multiple IP rules.
+	IPRange   struct{ Start, End net.IP } // contiguous range of IP addresses from Start to End.
+	IPSeq     []any                       // comma-separated sequence of multiple IP rules.
 	IPUnknown string
 )
 
 // Add appends a new entry to the IP list or updates the comment/exclusion status if the entry exists.
 //
 // Parameters:
-//   - input: The IP address, CIDR, range, or sequence to add. Supports "!" prefix for negative rules.
-//   - comment: The comment string to associate with this entry.
+//   - input: the IP address, CIDR, range, or sequence to add. Supports "!" prefix for negative rules.
+//   - comment: the comment string to associate with this entry.
 //
 // Returns:
-//   - error: An error if the input format is invalid.
+//   - error: an error if the input format is invalid.
 func (l *IPList) Add(input string, comment string) error {
 	isNegative := false
 	trimmedInput := strings.TrimSpace(input)
@@ -94,10 +92,10 @@ func (l *IPList) Add(input string, comment string) error {
 // It respects the order of entries and correctly handles negative (exclusion) rules.
 //
 // Parameters:
-//   - ip: The net.IP address to check.
+//   - ip: the net.IP address to check.
 //
 // Returns:
-//   - bool: True if the IP is allowed by the list rules, false otherwise.
+//   - bool: true if the IP is allowed by the list rules, false otherwise.
 func (l IPList) Contains(ip net.IP) bool {
 	if ip == nil {
 		return false
@@ -118,10 +116,10 @@ func (l IPList) Contains(ip net.IP) bool {
 // Delete removes an entry from the IP list matching the provided input string.
 //
 // Parameters:
-//   - input: The IP address, CIDR, or range to remove. The "!" prefix is ignored during matching.
+//   - input: the IP address, CIDR, or range to remove. The "!" prefix is ignored during matching.
 //
 // Returns:
-//   - error: An error if the entry is not found or the format is invalid.
+//   - error: an error if the entry is not found or the format is invalid.
 func (l *IPList) Delete(input string) error {
 	cleanInput := strings.TrimPrefix(strings.TrimSpace(input), "!")
 	val := parseDataPart(cleanInput)
@@ -145,10 +143,10 @@ func (l *IPList) Delete(input string) error {
 // GetEntry retrieves a pointer to an IPEntry matching the input string.
 //
 // Parameters:
-//   - input: The IP representation to search for.
+//   - input: the IP representation to search for.
 //
 // Returns:
-//   - *IPEntry: A pointer to the entry if found, nil otherwise.
+//   - *[IPEntry]: a pointer to the entry if found, nil otherwise.
 func (l IPList) GetEntry(input string) *IPEntry {
 	idx := l.indexOf(input)
 	if idx == -1 {
@@ -160,13 +158,13 @@ func (l IPList) GetEntry(input string) *IPEntry {
 // Insert places a new entry at a specific index in the list.
 //
 // Parameters:
-//   - index: The position at which to insert the new entry.
-//   - input: The IP rule string (supports "!" prefix).
-//   - comment: The comment for the entry.
-//   - alignPos: The visual position of the semicolon for comment alignment.
+//   - index: the position at which to insert the new entry.
+//   - input: the IP rule string (supports "!" prefix).
+//   - comment: the comment for the entry.
+//   - alignPos: the visual position of the semicolon for comment alignment.
 //
 // Returns:
-//   - error: An error if the input format is invalid.
+//   - error: an error if the input format is invalid.
 func (l *IPList) Insert(index int, input string, comment string, alignPos int) error {
 	isNegative := false
 	trimmedInput := strings.TrimSpace(input)
@@ -204,13 +202,13 @@ func (l *IPList) Insert(index int, input string, comment string, alignPos int) e
 // InsertAfter places a new entry immediately following a specific marker entry.
 //
 // Parameters:
-//   - marker: The existing entry value to look for.
-//   - input: The new IP rule string to insert.
-//   - comment: The comment for the new entry.
-//   - alignPos: The visual position of the semicolon for comment alignment.
+//   - marker: the existing entry value to look for.
+//   - input: the new IP rule string to insert.
+//   - comment: the comment for the new entry.
+//   - alignPos: the visual position of the semicolon for comment alignment.
 //
 // Returns:
-//   - error: An error if the marker is not found or input is invalid.
+//   - error: an error if the marker is not found or input is invalid.
 func (l *IPList) InsertAfter(marker string, input string, comment string, alignPos int) error {
 	idx := l.indexOf(marker)
 	if idx == -1 {
@@ -222,13 +220,13 @@ func (l *IPList) InsertAfter(marker string, input string, comment string, alignP
 // InsertBefore places a new entry immediately preceding a specific marker entry.
 //
 // Parameters:
-//   - marker: The existing entry value to look for.
-//   - input: The new IP rule string to insert.
-//   - comment: The comment for the new entry.
-//   - alignPos: The visual position of the semicolon for comment alignment.
+//   - marker: the existing entry value to look for.
+//   - input: the new IP rule string to insert.
+//   - comment: the comment for the new entry.
+//   - alignPos: the visual position of the semicolon for comment alignment.
 //
 // Returns:
-//   - error: An error if the marker is not found or input is invalid.
+//   - error: an error if the marker is not found or input is invalid.
 func (l *IPList) InsertBefore(marker string, input string, comment string, alignPos int) error {
 	idx := l.indexOf(marker)
 	if idx == -1 {

@@ -5,14 +5,15 @@
 // reliable and secure data exchange between the Go application and the CommuniGate Pro CLI.
 //
 // Key capabilities include:
-//   - Session Lifecycle: Automatic connection establishment, authentication,
+//   - Session Lifecycle: automatic connection establishment, authentication,
 //     and graceful termination via [Cli.Close].
-//   - Persistence: Transparent re-connection logic if the session exceeds
+//   - Persistence: transparent re-connection logic if the session exceeds
 //     the server's idle timeout (approx. 5 minutes).
-//   - Security: Support for standard [Plain] login, MD5-based [APOP], and [WebUser]
+//   - Security: support for standard [Plain] login, MD5-based [APOP], and [WebUser]
 //     authentication, with optional TLS (STARTTLS) encryption.
-//   - Efficiency: Mandatory use of CommuniGate Pro CLI "INLINE" mode, which, combined with
+//   - Efficiency: mandatory use of CommuniGate Pro CLI "INLINE" mode, which, combined with
 //     the library's custom parser, ensures high-performance data processing.
+//
 package cgpcli
 
 import (
@@ -112,7 +113,7 @@ func (cli *Cli) Close() (err error) {
 // GetRespCode returns the numeric status code from the last server response.
 //
 // Returns:
-//   - CliCode: A numeric status code (e.g., 200 for OK, 201 for OK INLINE).
+//   - CliCode: a numeric status code (e.g., 200 for OK, 201 for OK INLINE).
 func (cli *Cli) GetRespCode() CliCode {
 	return cli.respCode
 }
@@ -120,7 +121,7 @@ func (cli *Cli) GetRespCode() CliCode {
 // GetRespData returns the raw string data (payload) from the last server response.
 //
 // Returns:
-//   - string: The data portion of the CLI response, following the status code.
+//   - string: the data portion of the CLI response, following the status code.
 func (cli *Cli) GetRespData() string {
 	return string(cli.respData)
 }
@@ -134,7 +135,7 @@ func (cli *Cli) IsSuccess() bool {
 // It is an alias for [Cli.Close].
 //
 // Returns:
-//   - error: An error if the server fails to acknowledge the termination or
+//   - error: an error if the server fails to acknowledge the termination or
 //     the connection cannot be closed gracefully.
 func (cli *Cli) Logout() error {
 	return cli.Close()
@@ -145,15 +146,15 @@ func (cli *Cli) Logout() error {
 // to INLINE mode for efficient data exchange.
 //
 // Parameters:
-//   - host: The server hostname or IP address.
-//   - login: The administrative or user login name.
-//   - password: The password for authentication.
-//   - secure: The security mode to use (Plain, APOP, or WebUser).
-//   - tls: If true, attempts to upgrade the connection via STARTTLS.
+//   - host: the server hostname or IP address.
+//   - login: the administrative or user login name.
+//   - password: the password for authentication.
+//   - secure: the security mode to use (Plain, APOP, or WebUser).
+//   - tls: if true, attempts to upgrade the connection via STARTTLS.
 //
 // Returns:
-//   - *Cli: A pointer to the initialized session.
-//   - error: An error if connection, authentication, or protocol
+//   - *Cli: a pointer to the initialized session.
+//   - error: an error if connection, authentication, or protocol
 //     negotiation fails.
 func New(host, login, password string, secure Secure, tls bool) (*Cli, error) {
 
@@ -174,12 +175,12 @@ func New(host, login, password string, secure Secure, tls bool) (*Cli, error) {
 // It automatically handles connection health and session state.
 //
 // Parameters:
-//   - cmd: The CLI command string (e.g., "GETACCOUNTSETTINGS").
-//   - args: Variadic arguments that will be marshaled into the CLI command format.
+//   - cmd: the CLI command string (e.g., "GETACCOUNTSETTINGS").
+//   - args: variadic arguments that will be marshaled into the CLI command format.
 //
 // Returns:
-//   - any: The unmarshaled result from the server.
-//   - error: An error if sending, parsing, or unmarshaling fails, or
+//   - any: the unmarshaled result from the server.
+//   - error: an error if sending, parsing, or unmarshaling fails, or
 //     if the server returns a non-success code.
 func (cli *Cli) Query(cmd string, args ...any) (res any, err error) {
 	if err = cli.Send(cmd, args...); err != nil {
@@ -201,11 +202,11 @@ func (cli *Cli) Query(cmd string, args ...any) (res any, err error) {
 // It is useful for operations like updates where the server doesn't return data.
 //
 // Parameters:
-//   - cmd: The CLI command string.
-//   - args: Variadic arguments for the command.
+//   - cmd: the CLI command string.
+//   - args: variadic arguments for the command.
 //
 // Returns:
-//   - error: An error if the command fails or if the server returns a
+//   - error: an error if the command fails or if the server returns a
 //     status code other than 200 or 201.
 func (cli *Cli) QueryNV(cmd string, args ...any) (err error) {
 	if err = cli.Send(cmd, args...); err != nil {
@@ -224,11 +225,11 @@ func (cli *Cli) QueryNV(cmd string, args ...any) (err error) {
 // It handles automatic reconnection if the session has timed out.
 //
 // Parameters:
-//   - cmd: The CLI command string.
-//   - args: Variadic arguments to be appended to the command.
+//   - cmd: the CLI command string.
+//   - args: variadic arguments to be appended to the command.
 //
 // Returns:
-//   - error: An error if connection recovery fails or data cannot be
+//   - error: an error if connection recovery fails or data cannot be
 //     written to the transport.
 func (cli *Cli) Send(cmd string, args ...any) (err error) {
 	if time.Since(cli.lastAccess) > cgpTimeout || cli.conn == nil {
@@ -268,7 +269,7 @@ func (cli *Cli) Send(cmd string, args ...any) (err error) {
 // SetDebug enables or disables raw protocol logging to os.Stderr.
 //
 // Parameters:
-//   - debug: If true, all sent (>>>) and received (<<<) raw data will
+//   - debug: if true, all sent (>>>) and received (<<<) raw data will
 //     be printed to the standard error stream.
 func (cli *Cli) SetDebug(debug bool) {
 	cli.debug = debug

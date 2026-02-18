@@ -6,16 +6,14 @@
 // and identifying unusual activity patterns.
 //
 // Key capabilities include:
-//   - Granular Monitoring: Retrieving specific counters or the entire statistics
+//   - Granular Monitoring: retrieving specific counters or the entire statistics
 //     dictionary for an account or domain.
-//   - Reset Mechanisms: Clearing accumulated counters via [Cli.ResetAccountStat]
+//   - Reset Mechanisms: clearing accumulated counters via [Cli.ResetAccountStat]
 //     and [Cli.ResetDomainStat], allowing for periodic (e.g., monthly or daily)
 //     reporting cycles.
-//   - Resource Tracking: Accessing data related to protocol usage, login
+//   - Resource Tracking: accessing data related to protocol usage, login
 //     frequency, and storage interaction at the entity level.
 //
-// These methods are essential for building per-customer reporting tools,
-// monitoring SLA compliance, and automating resource-based policy enforcement.
 package cgpcli
 
 import (
@@ -27,7 +25,9 @@ import (
 // Parameters:
 //   - account: the name of an existing Account. The asterisk (*) symbol can
 //     be used to specify the current authenticated Account.
-//   - key: (Optional) specifies the name of the statistical entry to retrieve.
+//   - key: an optional the name of the statistical entry to retrieve.
+//
+// This method executes the GETACCOUNTSTAT CLI command.
 //
 // Returns:
 //   - any: a number or a timeStamp with the specified statistical information,
@@ -52,7 +52,9 @@ func (cli *Cli) GetAccountStat(account string, key string) (any, error) {
 // Parameters:
 //   - domain: the name of an existing Domain. The asterisk (*) symbol can
 //     be used to specify the Domain of the current authenticated Account.
-//   - key: (Optional) specifies the name of the statistical entry to retrieve.
+//   - key: an optional the name of the statistical entry to retrieve.
+//
+// This method executes the GETDOMAINSTAT CLI command.
 //
 // Returns:
 //   - any: a string with the specified statistical information, or (if the
@@ -76,8 +78,10 @@ func (cli *Cli) GetDomainStat(domain string, key string) (any, error) {
 // Parameters:
 //   - account: the name of an existing Account. The asterisk (*) symbol can
 //     be used to specify the current authenticated Account.
-//   - key: (Optional) specifies the name of the statistical entry to reset.
+//   - key: an optional the name of the statistical entry to reset.
 //     If the key is not specified, all Account statistical entries are reset.
+//
+// This method executes the RESETACCOUNTSTAT CLI command.
 //
 // Returns:
 //   - error: an error if the command fails.
@@ -99,8 +103,10 @@ func (cli *Cli) ResetAccountStat(account string, key string) error {
 // Parameters:
 //   - domain: the name of an existing Domain. The asterisk (*) symbol can
 //     be used to specify the Domain of the current authenticated Account.
-//   - key: (Optional) specifies the name of the statistical entry to reset.
+//   - key: an optional the name of the statistical entry to reset.
 //     If the key is not specified, all Domain statistical entries are reset.
+//
+// This method executes the RESETDOMAINSTAT CLI command.
 //
 // Returns:
 //   - error: an error if the command fails.

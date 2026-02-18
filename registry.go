@@ -7,15 +7,15 @@
 // type-safe conversion.
 //
 // Key capabilities include:
-//   - Field Exceptions: A global map [FieldExceptions] that defines how specific
+//   - Field Exceptions: a global map [FieldExceptions] that defines how specific
 //     keys (e.g., "Created", "MaxAccountSize") should be interpreted.
-//   - Specialized Parsers: Built-in logic for handling legacy date formats,
+//   - Specialized Parsers: built-in logic for handling legacy date formats,
 //     storage quotas with suffixes (K, M, G), and time durations (s, m, h, never).
-//   - Networking Support: Automatic marshaling of IP addresses in square
+//   - Networking Support: automatic marshaling of IP addresses in square
 //     brackets (TypeIPSB) and comma-separated IP lists (TypeIPSBSA).
-//   - Extensibility: The [RegisterFieldType] function allows developers to
+//   - Extensibility: the [RegisterFieldType] function allows developers to
 //     add support for custom fields or override existing transformation rules.
-//   - Symmetric Transformation: Automatic handling of both [transformRead]
+//   - Symmetric Transformation: automatic handling of both [transformRead]
 //     (from CGP to Go) and [transformWrite] (from Go to CGP syntax).
 //
 // This registry is applied automatically during Query operations, making the
@@ -125,8 +125,8 @@ var FieldExceptions = map[string]FieldType{
 // are interpreted by the library's transformation engine.
 //
 // Parameters:
-//   - name: The exact key name as it appears in the CommuniGate Pro protocol (e.g., "MyCustomTimeout").
-//   - t: The target [FieldType] which defines the transformation logic.
+//   - name: the exact key name as it appears in the CommuniGate Pro protocol (e.g., "MyCustomTimeout").
+//   - t: the target [FieldType] which defines the transformation logic.
 //
 // Note: This function must be called before initializing any new CLI sessions
 // via [New]. The recommended approach is to call [RegisterFieldType] within

@@ -6,15 +6,13 @@
 // system-wide directory.
 //
 // Key capabilities include:
-//   - Unit Lifecycle: Creating, relocating, and deleting local or remote
+//   - Unit Lifecycle: creating, relocating, and deleting local or remote
 //     Directory Units with support for shared and mount-point configurations.
-//   - Access Control: Granular management of directory access rights via the
+//   - Access Control: granular management of directory access rights via the
 //     [DirAccessRight] structure, including record-level and attribute-level permissions.
-//   - Search and Discovery: Listing and retrieving configuration details for
+//   - Search and Discovery: listing and retrieving configuration details for
 //     individual directory units.
 //
-// Use these methods to synchronize account data, manage shared contacts,
-// and configure organizational units within the CommuniGate Pro environment.
 package cgpcli
 
 import (
@@ -23,27 +21,29 @@ import (
 
 // DirAccessRight defines a single rule for Directory Access Control.
 type DirAccessRight struct {
-	Name         string   // Unique name of the access rule.
-	Target       string   // Target attribute or "*" for all attributes.
-	BindDN       string   // Subject Distinguished Name (DN) this rule applies to.
-	Type         string   // Access type: "allow", "prohibit", or "grant".
-	RecordRights []string // Record-level permissions (e.g., "create", "delete").
-	SearchAttrs  []string // List of attributes allowed for searching.
-	ReadAttrs    []string // List of attributes allowed for reading.
-	ModifyAttrs  []string // List of attributes allowed for modification.
+	Name         string   // unique name of the access rule.
+	Target       string   // target attribute, or "*" for all attributes.
+	BindDN       string   // subject distinguished name (DN) this rule applies to.
+	Type         string   // access type: "allow", "prohibit", or "grant".
+	RecordRights []string // record-level permissions (e.g., "create", "delete").
+	SearchAttrs  []string // list of attributes allowed for searching.
+	ReadAttrs    []string // list of attributes allowed for reading.
+	ModifyAttrs  []string // list of attributes allowed for modification.
 }
 
 // CreateDirectoryUnit creates a new Directory Unit.
 //
 // Parameters:
-//   - unit: This parameter specifies the new Unit name.
-//   - mountPoint: This parameter specifies the new Unit mount point (mount DN).
-//   - shared: If true, a cluster-wide Directory Unit is created.
-//   - remote: If true, a Remote (LDAP-based) Directory Unit is created,
+//   - unit: the new Unit name.
+//   - mountPoint: the new Unit mount point (mount DN).
+//   - shared: if true, a cluster-wide Directory Unit is created.
+//   - remote: if true, a Remote (LDAP-based) Directory Unit is created,
 //     otherwise a Local (File-based) Directory Unit is created.
 //
+// This method executes the CREATEDIRECTORYUNIT CLI command.
+//
 // Returns:
-//   - error: An error if the unit name or mount point is empty, or if
+//   - error: an error if the unit name or mount point is empty, or if
 //     the server fails to create the unit.
 func (cli *Cli) CreateDirectoryUnit(unit, mountPoint string, shared, remote bool) error {
 	if unit == "" || mountPoint == "" {
@@ -65,11 +65,13 @@ func (cli *Cli) CreateDirectoryUnit(unit, mountPoint string, shared, remote bool
 // DeleteDirectoryUnit removes an existing Directory Unit.
 //
 // Parameters:
-//   - unit: This parameter specifies the Directory Unit name.
-//   - shared: If true, this is a cluster-wide Directory Unit name.
+//   - unit: the Directory Unit name.
+//   - shared: if true, this is a cluster-wide Directory Unit name.
+//
+// This method executes the DELETEDIRECTORYUNIT CLI command.
 //
 // Returns:
-//   - error: An error if the unit name is empty or if the server
+//   - error: an error if the unit name is empty or if the server
 //     fails to execute the command.
 func (cli *Cli) DeleteDirectoryUnit(unit string, shared bool) error {
 	if unit == "" {
@@ -87,11 +89,13 @@ func (cli *Cli) DeleteDirectoryUnit(unit string, shared bool) error {
 // GetDirectoryAccessRights retrieves the Directory Access Rights.
 //
 // Parameters:
-//   - shared: If true, the cluster-wide Access Rights are retrieved.
+//   - shared: if true, the cluster-wide Access Rights are retrieved.
+//
+// This method executes the GETDIRECTORYACCESSRIGHTS CLI command.
 //
 // Returns:
-//   - [][DirAccessRight]: A slice of Access Rights rules.
-//   - error: An error if the server fails to retrieve or parse the data.
+//   - [][DirAccessRight]: a slice of Access Rights rules.
+//   - error: an error if the server fails to retrieve or parse the data.
 func (cli *Cli) GetDirectoryAccessRights(shared bool) ([]DirAccessRight, error) {
 	const cmd = "GETDIRECTORYACCESSRIGHTS"
 	var res []any
@@ -147,12 +151,14 @@ func (cli *Cli) GetDirectoryAccessRights(shared bool) ([]DirAccessRight, error) 
 // GetDirectoryUnit retrieves the settings for a specific Directory Unit.
 //
 // Parameters:
-//   - unit: This parameter specifies the Directory Unit name.
-//   - shared: If true, this is a cluster-wide Directory Unit name.
+//   - unit: the Directory Unit name.
+//   - shared: if true, this is a cluster-wide Directory Unit name.
+//
+// This method executes the GETDIRECTORYUNIT CLI command.
 //
 // Returns:
-//   - map[string]any: A dictionary with the Directory Unit settings.
-//   - error: An error if the unit name is empty or the server fails
+//   - map[string]any: a dictionary with the Directory Unit settings.
+//   - error: an error if the unit name is empty or the server fails
 //     to retrieve the data.
 func (cli *Cli) GetDirectoryUnit(unit string, shared bool) (map[string]any, error) {
 	if unit == "" {
@@ -170,12 +176,14 @@ func (cli *Cli) GetDirectoryUnit(unit string, shared bool) (map[string]any, erro
 // ListDirectoryUnits retrieves the list of all created Directory units.
 //
 // Parameters:
-//   - shared: If true, the cluster-wide Units are listed.
+//   - shared: if true, the cluster-wide Units are listed.
+//
+// This method executes the LISTDIRECTORYUNITS CLI command.
 //
 // Returns:
-//   - map[string]string: A dictionary where keys are Directory Unit mount points
+//   - map[string]string: a dictionary where keys are Directory Unit mount points
 //     and values are Directory Unit names.
-//   - error: An error if the server fails to execute the command.
+//   - error: an error if the server fails to execute the command.
 func (cli *Cli) ListDirectoryUnits(shared bool) (map[string]string, error) {
 	const cmd = "LISTDIRECTORYUNITS"
 	var res map[string]any
@@ -201,12 +209,14 @@ func (cli *Cli) ListDirectoryUnits(shared bool) (map[string]string, error) {
 // RelocateDirectoryUnit re-mounts an existing Directory Unit on a different mount point.
 //
 // Parameters:
-//   - unit: This parameter specifies the Directory Unit name.
-//   - mountPoint: This parameter specifies the new mount point (mount DN).
-//   - shared: If true, this is a cluster-wide Directory Unit name.
+//   - unit: the Directory Unit name.
+//   - mountPoint: the new mount point (mount DN).
+//   - shared: if true, this is a cluster-wide Directory Unit name.
+//
+// This method executes the RELOCATEDIRECTORYUNIT CLI command.
 //
 // Returns:
-//   - error: An error if the unit name or mount point is empty, or if
+//   - error: an error if the unit name or mount point is empty, or if
 //     the server fails to relocate the unit.
 func (cli *Cli) RelocateDirectoryUnit(unit, mountPoint string, shared bool) error {
 	if unit == "" || mountPoint == "" {
@@ -224,11 +234,13 @@ func (cli *Cli) RelocateDirectoryUnit(unit, mountPoint string, shared bool) erro
 // SetDirectoryAccessRights sets the Directory Access Rights.
 //
 // Parameters:
-//   - shared: If true, the cluster-wide Access Rights are set.
-//   - rights: A slice of [DirAccessRight] structures specifying the new ACLs.
+//   - shared: if true, the cluster-wide Access Rights are set.
+//   - rights: a slice of [DirAccessRight] structures specifying the new ACLs.
+//
+// This method executes the SETDIRECTORYACCESSRIGHTS CLI command.
 //
 // Returns:
-//   - error: An error if the rights array is nil or if the server
+//   - error: an error if the rights array is nil or if the server
 //     fails to apply the new settings.
 func (cli *Cli) SetDirectoryAccessRights(shared bool, rights []DirAccessRight) error {
 	if rights == nil {
@@ -254,12 +266,14 @@ func (cli *Cli) SetDirectoryAccessRights(shared bool, rights []DirAccessRight) e
 // SetDirectoryUnit changes the Directory Unit settings.
 //
 // Parameters:
-//   - unit: This parameter specifies the Directory Unit name.
-//   - shared: If true, this is a cluster-wide Directory Unit name.
-//   - settings: A dictionary specifying the new Directory Unit settings.
+//   - unit: the Directory Unit name.
+//   - shared: if true, this is a cluster-wide Directory Unit name.
+//   - settings: a dictionary specifying the new Directory Unit settings.
+//
+// This method executes the SETDIRECTORYUNIT CLI command.
 //
 // Returns:
-//   - error: An error if the unit name or settings dictionary is empty,
+//   - error: an error if the unit name or settings dictionary is empty,
 //     or if the server fails to update the unit.
 func (cli *Cli) SetDirectoryUnit(unit string, shared bool, settings map[string]any) error {
 	if unit == "" || settings == nil {

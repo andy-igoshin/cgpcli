@@ -5,14 +5,12 @@
 // dedicated routing entities that redirect incoming messages to target address.
 //
 // Key capabilities include:
-//   - Lifecycle Management: Creating, renaming, and deleting forwarders.
-//   - Discovery: Listing all forwarders in a domain or performing reverse
+//   - Lifecycle Management: creating, renaming, and deleting forwarders.
+//   - Discovery: listing all forwarders in a domain or performing reverse
 //     lookups with [Cli.FindForwarders] to identify which objects point
 //     to a specific target address.
-//   - Inspection: Retrieving the target address of a specific forwarder.
+//   - Inspection: retrieving the target address of a specific forwarder.
 //
-// This section is particularly useful for managing system-wide redirections
-// and migrating legacy mail aliases to dedicated routing objects.
 package cgpcli
 
 import (
@@ -22,11 +20,13 @@ import (
 // CreateForwarder creates new Forwarders.
 //
 // Parameters:
-//   - forwarder: This parameter specifies the name for the new Forwarder. The name can contain the @ symbol followed by the Domain name, in this case the Forwarder is created in the specified Domain. If the Domain name is not specified, the command applies to the administrator Domain.
-//   - address: This parameter specifies the E-mail address the Forwarder should reroute E-mail messages and Signals to.
+//   - forwarder: the name for the new Forwarder. The name can contain the @ symbol followed by the Domain name, in this case the Forwarder is created in the specified Domain. If the Domain name is not specified, the command applies to the administrator Domain.
+//   - address: the E-mail address the Forwarder should reroute E-mail messages and Signals to.
+//
+// This method executes the CREATEFORWARDER CLI command.
 //
 // Returns:
-//   - error: An error if the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) CreateForwarder(forwarder, address string) error {
 	if forwarder == "" || address == "" {
 		return fmt.Errorf("forwarder name and address are required")
@@ -37,10 +37,12 @@ func (cli *Cli) CreateForwarder(forwarder, address string) error {
 // DeleteForwarder removes Forwarders.
 //
 // Parameters:
-//   - forwarder: This parameter specifies the name of an existing Forwarder. The name can include the Domain name.
+//   - forwarder: the name of an existing Forwarder. The name can include the Domain name.
+//
+// This method executes the DELETEFORWARDER CLI command.
 //
 // Returns:
-//   - error: An error if the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) DeleteForwarder(forwarder string) error {
 	if forwarder == "" {
 		return fmt.Errorf("forwarder name is required")
@@ -51,12 +53,14 @@ func (cli *Cli) DeleteForwarder(forwarder string) error {
 // FindForwarders finds all Forwarders pointing to the specified address.
 //
 // Parameters:
-//   - domain: This parameter specifies the Domain name.
-//   - address: This parameter specifies an E-mail address to look for.
+//   - domain: the Domain name.
+//   - address: an E-mail address to look for.
+//
+// This method executes the FINDFORWARDERS CLI command.
 //
 // Returns:
-//   - []string: An array with the found Forwarder names.
-//   - error: An error if the command fails.
+//   - []string: an array with the found Forwarder names.
+//   - error: an error if the command fails.
 func (cli *Cli) FindForwarders(domain, address string) ([]string, error) {
 	if domain == "" || address == "" {
 		return nil, fmt.Errorf("domain and target address are required")
@@ -67,11 +71,13 @@ func (cli *Cli) FindForwarders(domain, address string) ([]string, error) {
 // GetForwarder retrieves the Forwarder address.
 //
 // Parameters:
-//   - forwarder: This parameter specifies the name of an existing Forwarder. The name can include the Domain name.
+//   - forwarder: the name of an existing Forwarder. The name can include the Domain name.
+//
+// This method executes the GETFORWARDER CLI command.
 //
 // Returns:
-//   - string: A string with the E-mail address this Forwarder reroutes all E-mail messages and Signals to.
-//   - error: An error if the command fails.
+//   - string: a string with the E-mail address this Forwarder reroutes all E-mail messages and Signals to.
+//   - error: an error if the command fails.
 func (cli *Cli) GetForwarder(forwarder string) (string, error) {
 	if forwarder == "" {
 		return "", fmt.Errorf("forwarder name is required")
@@ -82,11 +88,13 @@ func (cli *Cli) GetForwarder(forwarder string) (string, error) {
 // ListForwarders retrieves the list of all Forwarders in the Domain.
 //
 // Parameters:
-//   - domain: (Optional) This parameter specifies the Domain name. If the Domain name is not specified, the command applies to the administrator Domain.
+//   - domain: an optional Domain name. If not specified, the command applies to the administrator Domain.
+//
+// This method executes the LISTFORWARDERS CLI command.
 //
 // Returns:
-//   - []string: An array with the names of all Forwarders in the specified (or default) Domain.
-//   - error: An error if the command fails.
+//   - []string: an array with the names of all Forwarders in the specified (or default) Domain.
+//   - error: an error if the command fails.
 func (cli *Cli) ListForwarders(domain string) ([]string, error) {
 	return cli.getSliceString("LISTFORWARDERS", domain)
 }
@@ -94,11 +102,13 @@ func (cli *Cli) ListForwarders(domain string) ([]string, error) {
 // RenameForwarder renames Forwarders.
 //
 // Parameters:
-//   - oldName: This parameter specifies the name of an existing Forwarder. The name can include the Domain name.
-//   - newName: This parameter specifies the new Forwarder name. The name can include the Domain name.
+//   - oldName: the name of an existing Forwarder. The name can include the Domain name.
+//   - newName: the new Forwarder name. The name can include the Domain name.
+//
+// This method executes the RENAMEFORWARDER CLI command.
 //
 // Returns:
-//   - error: An error if the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) RenameForwarder(oldName, newName string) error {
 	if oldName == "" || newName == "" {
 		return fmt.Errorf("old and new names are required")

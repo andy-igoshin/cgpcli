@@ -6,16 +6,16 @@
 // unmarshaled with bit-perfect accuracy.
 //
 // Key components include:
-//   - Atoms: The [Atom] type represents unquoted strings used for commands,
+//   - Atoms: the [Atom] type represents unquoted strings used for commands,
 //     keywords, and object identifiers where standard quoting would cause
 //     syntax errors.
 //   - Network Addresses: [CGPIP] handles the server's unique #I[address]:port
 //     format, supporting both IPv4 and IPv6 with optional port numbers.
-//   - Temporal Constants: Predefined [TimePast] (#TPAST) and [TimeFuture]
+//   - Temporal Constants: predefined [TimePast] (#TPAST) and [TimeFuture]
 //     (#TFUTURE) constants for handling expiration dates and schedule limits.
 //   - Binary Data: [DataBlock] provides a container for raw bytes (like SSL
 //     certificates) that require specific encapsulation during transmission.
-//   - Session Offsets: Enumerated constants for navigating data streams
+//   - Session Offsets: enumerated constants for navigating data streams
 //     ([OffsetBeg], [OffsetEnd], [OffsetNew]).
 //
 // These types are used throughout the library to maintain strict compliance

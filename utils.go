@@ -8,12 +8,12 @@
 // Key capabilities include:
 //   - Recursive Visualization: [PrettyPrint] allows for a clean, indented
 //     tree-view output of any data structure returned by the CLI.
-//   - Sorted Inspection: Maps are automatically sorted by key during output,
+//   - Sorted Inspection: maps are automatically sorted by key during output,
 //     ensuring consistent and predictable debugging sessions.
-//   - Type Metadata: Each value in the pretty-printed output is annotated
+//   - Type Metadata: each value in the pretty-printed output is annotated
 //     with its Go type information, making it easier to map CLI responses
 //     to application logic.
-//   - Formatted Time: Date and time objects are rendered in a human-readable
+//   - Formatted Time: date and time objects are rendered in a human-readable
 //     format, bypassing the default verbose [time.Time] representation.
 //
 // These functions are intended for use during the development and

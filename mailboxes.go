@@ -5,19 +5,17 @@
 // operations for both private user folders and shared resources.
 //
 // Key capabilities include:
-//   - Lifecycle Management: Creating, renaming, and deleting mailboxes.
+//   - Lifecycle Management: creating, renaming, and deleting mailboxes.
 //     Supports recursive operations for entire folder trees using the "MAILBOXES" keyword.
-//   - Access Control: Granular management of permissions via [Cli.GetMailboxACL]
+//   - Access Control: granular management of permissions via [Cli.GetMailboxACL]
 //     and [Cli.SetMailboxACL], including support for effective rights calculation.
-//   - Metadata & Organization: Managing mailbox classes (e.g., for MAPI/Groupware
+//   - Metadata & Organization: managing mailbox classes (e.g., for MAPI/Groupware
 //     compatibility) and mailbox-level aliases.
-//   - Discovery: Listing mailbox trees with filters and retrieving detailed
+//   - Discovery: listing mailbox trees with filters and retrieving detailed
 //     information such as message counts and storage size.
-//   - On-behalf Operations: Most methods support the "AUTH" parameter,
+//   - On-behalf Operations: most methods support the "AUTH" parameter,
 //     enabling administrative actions on behalf of a specific user.
 //
-// Use these methods to manage IMAP folder structures, shared calendars,
-// and complex permission schemes in multi-user environments.
 package cgpcli
 
 import (
@@ -27,13 +25,15 @@ import (
 // CreateMailbox creates a Mailbox in the specified Account.
 //
 // Parameters:
-//   - account: This parameter specifies the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
-//   - mailbox: This parameter specifies the name for the new Mailbox.
-//   - class: (Optional) This parameter specifies the Mailbox class for the new Mailbox.
-//   - authAccount: (Optional) This parameter specifies the name of an Account on whose behalf this operation should be executed.
+//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - mailbox: the name for the new Mailbox.
+//   - class: mailbox class for the new Mailbox.
+//   - authAccount: an optional name of an Account on whose behalf the operation is executed.
+//
+// This method executes the MAILBOX CLI command.
 //
 // Returns:
-//   - error: An error if the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) CreateMailbox(account, mailbox, class, authAccount string) error {
 	if account == "" || mailbox == "" {
 		return fmt.Errorf("account name and mailbox name are required")
@@ -53,13 +53,15 @@ func (cli *Cli) CreateMailbox(account, mailbox, class, authAccount string) error
 // DeleteMailbox removes a Mailbox from the specified Account.
 //
 // Parameters:
-//   - account: This parameter specifies the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
-//   - mailbox: This parameter specifies the name of the Mailbox to be deleted.
-//   - recursive: If true, the keyword MAILBOXES is used, and all nested Mailboxes (submailboxes) are deleted, too.
-//   - authAccount: (Optional) This parameter specifies the name of an Account on whose behalf the operation should be executed.
+//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - mailbox: the name of the Mailbox to be deleted.
+//   - recursive: if true, the keyword MAILBOXES is used, and all nested Mailboxes (submailboxes) are deleted, too.
+//   - authAccount: an optional name of an Account on whose behalf the operation is executed.
+//
+// This method executes the MAILBOX CLI command.
 //
 // Returns:
-//   - error: An error if the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) DeleteMailbox(account, mailbox string, recursive bool, authAccount string) (err error) {
 	if account == "" || mailbox == "" {
 		return fmt.Errorf("account name and mailbox name are required")
@@ -80,13 +82,15 @@ func (cli *Cli) DeleteMailbox(account, mailbox string, recursive bool, authAccou
 // GetMailboxACL retrieves the access control list for the Account Mailbox.
 //
 // Parameters:
-//   - account: This parameter specifies the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
-//   - mailbox: This parameter specifies the name of an existing Mailbox in the specified Account.
-//   - authAccount: (Optional) This parameter specifies the name of an Account on whose behalf the operation should be executed.
+//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - mailbox: the name of an existing Mailbox in the specified Account.
+//   - authAccount: an optional name of an Account on whose behalf the operation is executed.
+//
+// This method executes the GETMAILBOXACL CLI command.
 //
 // Returns:
-//   - map[string]string: A dictionary with the Mailbox access elements.
-//   - error: An error if the command fails.
+//   - map[string]string: a dictionary with the Mailbox access elements.
+//   - error: an error if the command fails.
 func (cli *Cli) GetMailboxACL(account, mailbox, authAccount string) (res map[string]string, err error) {
 	if account == "" || mailbox == "" {
 		return nil, fmt.Errorf("account name and mailbox name are required")
@@ -104,11 +108,13 @@ func (cli *Cli) GetMailboxACL(account, mailbox, authAccount string) (res map[str
 // GetMailboxAliases retrieves the Account Mailbox aliases.
 //
 // Parameters:
-//   - account: This parameter specifies the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//
+// This method executes the GETMAILBOXALIASES CLI command.
 //
 // Returns:
-//   - map[string]string: A dictionary where each key is the name of an existing Mailbox alias, and the value is the name of the Mailbox it points to.
-//   - error: An error if the command fails.
+//   - map[string]string: a dictionary where each key is the name of an existing Mailbox alias, and the value is the name of the Mailbox it points to.
+//   - error: an error if the command fails.
 func (cli *Cli) GetMailboxAliases(account string) (map[string]string, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -119,13 +125,15 @@ func (cli *Cli) GetMailboxAliases(account string) (map[string]string, error) {
 // GetMailboxInfo retrieves the internal information about the Account Mailbox.
 //
 // Parameters:
-//   - account: This parameter specifies the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
-//   - mailbox: This parameter specifies the name of an existing Mailbox in the specified Account.
-//   - authAccount: (Optional) This parameter specifies the name of an Account on whose behalf the operation should be executed.
+//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - mailbox: the name of an existing Mailbox in the specified Account.
+//   - authAccount: an optional name of an Account on whose behalf the operation is executed.
+//
+// This method executes the GETMAILBOXINFO CLI command.
 //
 // Returns:
-//   - map[string]any: A dictionary with the Mailbox internal information.
-//   - error: An error if the command fails.
+//   - map[string]any: a dictionary with the Mailbox internal information.
+//   - error: an error if the command fails.
 func (cli *Cli) GetMailboxInfo(account, mailbox, authAccount string) (res map[string]any, err error) {
 	if account == "" || mailbox == "" {
 		return nil, fmt.Errorf("account and mailbox names are required")
@@ -143,13 +151,15 @@ func (cli *Cli) GetMailboxInfo(account, mailbox, authAccount string) (res map[st
 // GetMailboxRights retrieves the effective Mailbox access rights based on the Mailbox ACL for the given authAccountName.
 //
 // Parameters:
-//   - account: This parameter specifies the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
-//   - mailbox: This parameter specifies the name of an existing Mailbox in the specified Account.
-//   - authAccount: This parameter specifies the name of an Account whose access rights should be retrieved.
+//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - mailbox: the name of an existing Mailbox in the specified Account.
+//   - authAccount: the name of an Account whose access rights should be retrieved.
+//
+// This method executes the GETMAILBOXRIGHTS CLI command.
 //
 // Returns:
-//   - string: A string with the effective Mailbox access rights.
-//   - error: An error if the command fails.
+//   - string: a string with the effective Mailbox access rights.
+//   - error: an error if the command fails.
 func (cli *Cli) GetMailboxRights(account, mailbox, authAccount string) (string, error) {
 	if account == "" || mailbox == "" || authAccount == "" {
 		return "", fmt.Errorf("account, mailbox and authAccount names are required")
@@ -160,11 +170,13 @@ func (cli *Cli) GetMailboxRights(account, mailbox, authAccount string) (string, 
 // GetMailboxSubscription retrieves the list of Account "subscribed Mailboxes".
 //
 // Parameters:
-//   - account: This parameter specifies the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//
+// This method executes the GETMAILBOXSUBSCRIPTION CLI command.
 //
 // Returns:
-//   - []string: An array with the list of Account "subscribed Mailboxes".
-//   - error: An error if the command fails.
+//   - []string: an array with the list of Account "subscribed Mailboxes".
+//   - error: an error if the command fails.
 func (cli *Cli) GetMailboxSubscription(account string) ([]string, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -175,13 +187,15 @@ func (cli *Cli) GetMailboxSubscription(account string) ([]string, error) {
 // ListMailboxes retrieves the list of Account Mailboxes.
 //
 // Parameters:
-//   - account: This parameter specifies the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
-//   - filter: (Optional) This parameter specifies the filter string to apply to Account Mailbox names (wildcards "*" and "%" are supported).
-//   - authAccount: (Optional) This parameter specifies the name of an Account on whose behalf the LIST operation should be executed.
+//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - filter: an optional filter string for Account Mailbox names (wildcards "*" and "%" are supported).
+//   - authAccount: an optional name of an Account on whose behalf the LIST operation is executed.
+//
+// This method executes the LISTMAILBOXES CLI command.
 //
 // Returns:
-//   - map[string]any: A dictionary where each key is a Mailbox name and the value contains Mailbox information or nested structures.
-//   - error: An error if the command fails.
+//   - map[string]any: a dictionary where each key is a Mailbox name and the value contains Mailbox information or nested structures.
+//   - error: an error if the command fails.
 func (cli *Cli) ListMailboxes(account, filter, authAccount string) (map[string]any, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -201,14 +215,16 @@ func (cli *Cli) ListMailboxes(account, filter, authAccount string) (map[string]a
 // RenameMailbox renames a Mailbox in the specified Account.
 //
 // Parameters:
-//   - account: This parameter specifies the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
-//   - oldName: This parameter specifies the name of the Mailbox to be renamed.
-//   - newName: This parameter specifies the new name for the Mailbox.
-//   - recursive: If true, the keyword MAILBOXES is used, and all nested Mailboxes (submailboxes) are renamed, too.
-//   - authAccount: (Optional) This optional parameter specifies the name of an Account on whose behalf the operation should be executed.
+//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - oldName: the name of the Mailbox to be renamed.
+//   - newName: the new name for the Mailbox.
+//   - recursive: if true, the keyword MAILBOXES is used, and all nested Mailboxes (submailboxes) are renamed, too.
+//   - authAccount: an optional name of an Account on whose behalf the operation is executed.
+//
+// This method executes the RENAMEMAILBOX CLI command.
 //
 // Returns:
-//   - error: An error if the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) RenameMailbox(account, oldName, newName string, recursive bool, authAccount string) (err error) {
 	if account == "" || oldName == "" || newName == "" {
 		return fmt.Errorf("account, old and new names are required")
@@ -230,13 +246,15 @@ func (cli *Cli) RenameMailbox(account, oldName, newName string, recursive bool, 
 // SetMailboxACL modifies the access control list for the Account Mailbox.
 //
 // Parameters:
-//   - account: This parameter specifies the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
-//   - mailbox: This parameter specifies the name of an existing Mailbox in the specified Account.
-//   - acl: This parameter specifies the access right elements to be modified. Use "+" or "-" prefixes to add or remove rights.
-//   - authAccount: (Optional) This parameter specifies the name of an Account on whose behalf the operation should be executed.
+//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - mailbox: the name of an existing Mailbox in the specified Account.
+//   - acl: the access right elements to be modified. Use "+" or "-" prefixes to add or remove rights.
+//   - authAccount: an optional name of an Account on whose behalf the operation is executed.
+//
+// This method executes the SETMAILBOXACL CLI command.
 //
 // Returns:
-//   - error: An error if the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetMailboxACL(account, mailbox string, acl map[string]string, authAccount string) (err error) {
 	if account == "" || mailbox == "" || acl == nil {
 		return fmt.Errorf("account, mailbox and non-empty acl are required")
@@ -254,11 +272,13 @@ func (cli *Cli) SetMailboxACL(account, mailbox string, acl map[string]string, au
 // SetMailboxAliases sets the Account Mailbox aliases.
 //
 // Parameters:
-//   - account: This parameter specifies the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
-//   - aliases: The set of new Mailbox aliases.
+//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - aliases: the set of new Mailbox aliases.
+//
+// This method executes the SETMAILBOXALIASES CLI command.
 //
 // Returns:
-//   - error: An error if the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetMailboxAliases(account string, aliases map[string]string) error {
 	if account == "" || aliases == nil {
 		return fmt.Errorf("account name and aliases dictionary are required")
@@ -269,13 +289,15 @@ func (cli *Cli) SetMailboxAliases(account string, aliases map[string]string) err
 // SetMailboxClass sets the "class" of an Account Mailbox.
 //
 // Parameters:
-//   - account: This parameter specifies the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
-//   - mailbox: This parameter specifies the name of an existing Mailbox in the specified Account.
-//   - class: The Mailbox class.
-//   - authAccount: (Optional) This parameter specifies the name of an Account whose Mailbox access rights should be used.
+//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - mailbox: the name of an existing Mailbox in the specified Account.
+//   - class: the Mailbox class.
+//   - authAccount: an optional name of an Account whose Mailbox access rights should be used.
+//
+// This method executes the SETMAILBOXCLASS CLI command.
 //
 // Returns:
-//   - error: An error if the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetMailboxClass(account, mailbox, class, authAccount string) (err error) {
 	if account == "" || mailbox == "" || class == "" {
 		return fmt.Errorf("account, mailbox and class are required")
@@ -293,11 +315,13 @@ func (cli *Cli) SetMailboxClass(account, mailbox, class, authAccount string) (er
 // SetMailboxSubscription sets the Account "subscribed Mailboxes" list.
 //
 // Parameters:
-//   - account: This parameter specifies the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
-//   - subs: The list of subscribed Mailboxes. Each array element should be a string with a Mailbox name.
+//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - subs: the list of subscribed Mailboxes. Each array element should be a string with a Mailbox name.
+//
+// This method executes the SETMAILBOXSUBSCRIPTION CLI command.
 //
 // Returns:
-//   - error: An error if the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetMailboxSubscription(account string, subs []string) error {
 	if account == "" || subs == nil {
 		return fmt.Errorf("account name and subs array are required")

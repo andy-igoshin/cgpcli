@@ -6,18 +6,16 @@
 // inter-process communication within the CommuniGate Pro Signal engine.
 //
 // Key capabilities include:
-//   - Task Lifecycle: Starting new PBX tasks for specific accounts using
+//   - Task Lifecycle: starting new PBX tasks for specific accounts using
 //     [Cli.StartPBXTask] with custom entry points and initial parameters.
-//   - Process Control: Monitoring the current status of running tasks and
+//   - Process Control: monitoring the current status of running tasks and
 //     terminating them (killing nodes) when necessary.
-//   - Event Management: Sending asynchronous events to active tasks via
+//   - Event Management: sending asynchronous events to active tasks via
 //     [Cli.SendTaskEvent], enabling interaction between the CLI and
 //     running signal applications.
-//   - Task Identification: Each task is managed via a unique TaskID returned
+//   - Task Identification: each task is managed via a unique TaskID returned
 //     at startup, allowing precise control over concurrent applications.
 //
-// This section is vital for building complex telephony controllers,
-// external dialers, and real-time monitoring tools for VoIP services.
 package cgpcli
 
 import (
@@ -27,10 +25,12 @@ import (
 // KillNode kills an existing PBX Task.
 //
 // Parameters:
-//   - taskID: This parameter specifies the unique Task ID.
+//   - taskID: the unique Task ID.
+//
+// This method executes the KILLNODE CLI command.
 //
 // Returns:
-//   - error: An error if the task cannot be found or the command fails.
+//   - error: an error if the task cannot be found or the command fails.
 func (cli *Cli) KillNode(taskID string) error {
 	if taskID == "" {
 		return fmt.Errorf("taskID is required")
@@ -41,11 +41,13 @@ func (cli *Cli) KillNode(taskID string) error {
 // ReadNodeStatus reads the current application status of an existing PBX Task.
 //
 // Parameters:
-//   - taskID: This parameter specifies the Task ID.
+//   - taskID: the Task ID.
+//
+// This method executes the READNODESTATUS CLI command.
 //
 // Returns:
-//   - any: The application status object returned by the task.
-//   - error: An error if the command fails.
+//   - any: the application status object returned by the task.
+//   - error: an error if the command fails.
 func (cli *Cli) ReadNodeStatus(taskID string) (any, error) {
 	if taskID == "" {
 		return nil, fmt.Errorf("taskID is required")
@@ -56,12 +58,14 @@ func (cli *Cli) ReadNodeStatus(taskID string) (any, error) {
 // SendTaskEvent sends an Event to an existing PBX Task.
 //
 // Parameters:
-//   - taskID: This parameter specifies the Task ID.
-//   - event: The name of the Event to send.
-//   - param: (Optional) This parameter specifies the Event parameter.
+//   - taskID: the Task ID.
+//   - event: the name of the Event to send.
+//   - param: an optional event parameter.
+//
+// This method executes the SENDTASKEVENT CLI command.
 //
 // Returns:
-//   - error: An error if the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SendTaskEvent(taskID, event string, param any) error {
 	if taskID == "" || event == "" {
 		return fmt.Errorf("taskID and event name are required")
@@ -78,16 +82,18 @@ func (cli *Cli) SendTaskEvent(taskID, event string, param any) error {
 // StartPBXTask starts a new PBX Task on behalf of the specified Account.
 //
 // Parameters:
-//   - account: The name of the Account. The name can include the Domain name.
+//   - account: the name of the Account. The name can include the Domain name.
 //     If the Domain name is not specified, the current user Domain is used.
-//   - program: The name of the program (the .sppr file) to start.
-//   - entry: (Optional) The program entry point. If empty, "main" is used.
-//   - param: (Optional) Specifies the program parameter.
+//   - program: the name of the program (the .sppr file) to start.
+//   - entry: an optional program entry point. If empty, "main" is used.
+//   - param: an optional specifies the program parameter.
 //     Accessible within the program via Vars().startParameter.
 //
+// This method executes the PROGRAM CLI command.
+//
 // Returns:
-//   - string: A string with the new Task ID.
-//   - error: An error if the command fails.
+//   - string: a string with the new Task ID.
+//   - error: an error if the command fails.
 func (cli *Cli) StartPBXTask(account, program, entry string, param any) (string, error) {
 	if account == "" || program == "" {
 		return "", fmt.Errorf("account and program name are required")

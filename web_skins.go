@@ -5,21 +5,18 @@
 // skins at three distinct hierarchy levels: Server, Cluster, and Domain.
 //
 // Key capabilities include:
-//   - Hierarchy Management: Creating, renaming, and deleting custom skins
+//   - Hierarchy Management: creating, renaming, and deleting custom skins
 //     at different scopes (Server, Cluster, or Domain-specific).
-//   - File Operations: Full CRUD support for individual skin files,
+//   - File Operations: full CRUD support for individual skin files,
 //     enabling programmatic updates to HTML templates, CSS, and images via
 //     [Cli.StoreServerSkinFile] and related methods.
-//   - Stock Skin Access: Ability to read and list files from built-in
+//   - Stock Skin Access: ability to read and list files from built-in
 //     "stock" skins provided by the server for reference or inheritance.
-//   - Metadata Tracking: Retrieving file content along with its modification
+//   - Metadata Tracking: retrieving file content along with its modification
 //     timestamp ([time.Time]) for efficient caching and synchronization.
-//   - Discovery: Listing available skins and inspecting their file contents
+//   - Discovery: listing available skins and inspecting their file contents
 //     at each hierarchy level.
 //
-// These methods are vital for building white-label solutions, automating
-// brand deployment across multiple domains, and maintaining UI
-// consistency in large clusters.
 package cgpcli
 
 import (
@@ -31,6 +28,8 @@ import (
 //
 // Parameters:
 //   - skin: specifies the name of the new Skin.
+//
+// This method executes the CREATECLUSTERSKIN CLI command.
 //
 // Returns:
 //   - error: an error if the command fails.
@@ -44,9 +43,11 @@ func (cli *Cli) CreateClusterSkin(skin string) error {
 // CreateDomainSkin creates a custom Domain Skin.
 //
 // Parameters:
-//   - domain: (Optional) specifies the Domain name.
+//   - domain: an optional the Domain name.
 //   - skin: specifies the name of the new Skin. To create the unnamed Domain
 //     Skin, specify an empty string.
+//
+// This method executes the CREATEDOMAINSKIN CLI command.
 //
 // Returns:
 //   - error: an error if the command fails.
@@ -64,6 +65,8 @@ func (cli *Cli) CreateDomainSkin(domain, skin string) error {
 // Parameters:
 //   - skin: specifies the name of the new Skin.
 //
+// This method executes the CREATESERVERSKIN CLI command.
+//
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) CreateServerSkin(skin string) error {
@@ -77,6 +80,8 @@ func (cli *Cli) CreateServerSkin(skin string) error {
 //
 // Parameters:
 //   - skin: specifies the name of the Skin to be deleted.
+//
+// This method executes the DELETECLUSTERSKIN CLI command.
 //
 // Returns:
 //   - error: an error if the command fails.
@@ -93,6 +98,8 @@ func (cli *Cli) DeleteClusterSkin(skin string) error {
 //   - skin: specifies the name of an existing Cluster Skin.
 //   - file: specifies the Skin file name to be deleted.
 //
+// This method executes the STORECLUSTERSKINFILE CLI command.
+//
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteClusterSkinFile(skin, file string) error {
@@ -105,9 +112,11 @@ func (cli *Cli) DeleteClusterSkinFile(skin, file string) error {
 // DeleteDomainSkin deletes a custom Domain Skin.
 //
 // Parameters:
-//   - domain: (Optional) specifies the Domain name.
+//   - domain: an optional the Domain name.
 //   - skin: specifies the name of the Skin to be deleted. To delete the
 //     unnamed Domain Skin, specify an empty string.
+//
+// This method executes the DELETEDOMAINSKIN CLI command.
 //
 // Returns:
 //   - error: an error if the command fails.
@@ -123,9 +132,11 @@ func (cli *Cli) DeleteDomainSkin(domain, skin string) error {
 // DeleteDomainSkinFile removes a file from a custom Domain Skin.
 //
 // Parameters:
-//   - domain: (Optional) specifies the Domain name.
+//   - domain: an optional the Domain name.
 //   - skin: specifies the name of an existing Domain Skin.
 //   - file: specifies the Skin file name to be deleted.
+//
+// This method executes the STOREDOMAINSKINFILE CLI command.
 //
 // Returns:
 //   - error: an error if the command fails.
@@ -147,6 +158,8 @@ func (cli *Cli) DeleteDomainSkinFile(domain, skin, file string) error {
 // Parameters:
 //   - skin: specifies the name of the Skin to be deleted.
 //
+// This method executes the DELETESERVERSKIN CLI command.
+//
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteServerSkin(skin string) error {
@@ -162,6 +175,8 @@ func (cli *Cli) DeleteServerSkin(skin string) error {
 //   - skin: specifies the name of an existing Server Skin.
 //   - file: specifies the Skin file name to be deleted.
 //
+// This method executes the STORESERVERSKINFILE CLI command.
+//
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteServerSkinFile(skin, file string) error {
@@ -176,6 +191,8 @@ func (cli *Cli) DeleteServerSkinFile(skin, file string) error {
 // Parameters:
 //   - skin: specifies the name of an existing Cluster Skin.
 //
+// This method executes the LISTCLUSTERSKINFILES CLI command.
+//
 // Returns:
 //   - map[string]*[FileInfo]: a dictionary with Skin file names as keys.
 //   - error: an error if the command fails.
@@ -189,6 +206,8 @@ func (cli *Cli) ListClusterSkinFiles(skin string) (map[string]*FileInfo, error) 
 
 // ListClusterSkins lists custom Cluster Skins.
 //
+// This method executes the LISTCLUSTERSKINS CLI command.
+//
 // Returns:
 //   - []string: an array with Skin names.
 //   - error: an error if the command fails.
@@ -199,8 +218,10 @@ func (cli *Cli) ListClusterSkins() ([]string, error) {
 // ListDomainSkinFiles lists files in a custom Domain Skin.
 //
 // Parameters:
-//   - domain: (Optional) specifies the Domain name.
+//   - domain: an optional the Domain name.
 //   - skin: specifies the name of an existing Domain Skin.
+//
+// This method executes the LISTDOMAINSKINFILES CLI command.
 //
 // Returns:
 //   - map[string]*[FileInfo]: a dictionary with Skin file names as keys.
@@ -225,7 +246,9 @@ func (cli *Cli) ListDomainSkinFiles(domain, skin string) (map[string]*FileInfo, 
 // ListDomainSkins lists custom Domain Skins.
 //
 // Parameters:
-//   - domain: (Optional) specifies the Domain name.
+//   - domain: an optional the Domain name.
+//
+// This method executes the LISTDOMAINSKINS CLI command.
 //
 // Returns:
 //   - []string: an array with Skin names.
@@ -238,6 +261,8 @@ func (cli *Cli) ListDomainSkins(domain string) ([]string, error) {
 //
 // Parameters:
 //   - skin: specifies the name of an existing Server Skin.
+//
+// This method executes the LISTSERVERSKINFILES CLI command.
 //
 // Returns:
 //   - map[string]*[FileInfo]: a dictionary with Skin file names as keys.
@@ -252,6 +277,8 @@ func (cli *Cli) ListServerSkinFiles(skin string) (map[string]*FileInfo, error) {
 
 // ListServerSkins lists custom Server Skins.
 //
+// This method executes the LISTSERVERSKINS CLI command.
+//
 // Returns:
 //   - []string: an array with Skin names.
 //   - error: an error if the command fails.
@@ -263,6 +290,8 @@ func (cli *Cli) ListServerSkins() ([]string, error) {
 //
 // Parameters:
 //   - skin: specifies the name of a built-in Skin.
+//
+// This method executes the LISTSTOCKSKINFILES CLI command.
 //
 // Returns:
 //   - map[string]*[FileInfo]: a dictionary with Skin file names as keys.
@@ -281,6 +310,8 @@ func (cli *Cli) ListStockSkinFiles(skin string) (map[string]*FileInfo, error) {
 //   - skin: specifies the name of an existing Cluster Skin.
 //   - file: specifies the name of an existing file in the specified Cluster Skin.
 //
+// This method executes the READCLUSTERSKINFILE CLI command.
+//
 // Returns:
 //   - []byte: the Skin file content.
 //   - time.Time: the file modification date.
@@ -295,9 +326,11 @@ func (cli *Cli) ReadClusterSkinFile(skin, file string) ([]byte, time.Time, error
 // ReadDomainSkinFile reads a file from a custom Domain Skin.
 //
 // Parameters:
-//   - domain: (Optional) specifies the Domain name.
+//   - domain: an optional the Domain name.
 //   - skin: specifies the name of an existing Domain Skin.
 //   - file: specifies the name of an existing file in the Skin.
+//
+// This method executes the READDOMAINSKINFILE CLI command.
 //
 // Returns:
 //   - []byte: the Skin file content.
@@ -341,6 +374,8 @@ func (cli *Cli) ReadDomainSkinFile(domain, skin, file string) ([]byte, time.Time
 //   - skin: specifies the name of an existing Server Skin.
 //   - file: specifies the name of an existing file in the Skin.
 //
+// This method executes the READSERVERSKINFILE CLI command.
+//
 // Returns:
 //   - []byte: the Skin file content.
 //   - time.Time: the file modification date.
@@ -374,6 +409,8 @@ func (cli *Cli) ReadServerSkinFile(skin, file string) ([]byte, time.Time, error)
 // Parameters:
 //   - skin: specifies the name of an existing built-in Skin.
 //   - file: specifies the name of an existing file in the Skin.
+//
+// This method executes the READSTOCKSKINFILE CLI command.
 //
 // Returns:
 //   - []byte: the Skin file content.
@@ -409,6 +446,8 @@ func (cli *Cli) ReadStockSkinFile(skin, file string) ([]byte, time.Time, error) 
 //   - oldSkin: specifies the name of an existing Skin.
 //   - newSkin: specifies the new name for the Skin.
 //
+// This method executes the RENAMECLUSTERSKIN CLI command.
+//
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) RenameClusterSkin(oldSkin, newSkin string) error {
@@ -421,9 +460,11 @@ func (cli *Cli) RenameClusterSkin(oldSkin, newSkin string) error {
 // RenameDomainSkin renames a custom named Domain Skin.
 //
 // Parameters:
-//   - domain: (Optional) specifies the Domain name.
+//   - domain: an optional the Domain name.
 //   - oldSkin: specifies the name of an existing named Skin.
 //   - newSkin: specifies the new name for the Skin.
+//
+// This method executes the RENAMEDOMAINSKIN CLI command.
 //
 // Returns:
 //   - error: an error if the command fails.
@@ -446,6 +487,8 @@ func (cli *Cli) RenameDomainSkin(domain, oldSkin, newSkin string) error {
 //   - oldSkin: specifies the name of an existing Skin.
 //   - newSkin: specifies the new name for the Skin.
 //
+// This method executes the RENAMESERVERSKIN CLI command.
+//
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) RenameServerSkin(oldSkin, newSkin string) error {
@@ -462,6 +505,8 @@ func (cli *Cli) RenameServerSkin(oldSkin, newSkin string) error {
 //   - file: specifies the Skin file name.
 //   - data: the file content.
 //
+// This method executes the STORECLUSTERSKINFILE CLI command.
+//
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) StoreClusterSkinFile(skin, file string, data []byte) error {
@@ -474,10 +519,12 @@ func (cli *Cli) StoreClusterSkinFile(skin, file string, data []byte) error {
 // StoreDomainSkinFile stores a file into a custom Domain Skin.
 //
 // Parameters:
-//   - domain: (Optional) specifies the Domain name.
+//   - domain: an optional the Domain name.
 //   - skin: specifies the name of an existing Domain Skin.
 //   - file: specifies the Skin file name.
 //   - data: the file content.
+//
+// This method executes the STOREDOMAINSKINFILE CLI command.
 //
 // Returns:
 //   - error: an error if the command fails.
@@ -500,6 +547,8 @@ func (cli *Cli) StoreDomainSkinFile(domain, skin, file string, data []byte) erro
 //   - skin: specifies the name of an existing Server Skin.
 //   - file: specifies the Skin file name.
 //   - data: the file content.
+//
+// This method executes the STORESERVERSKINFILE CLI command.
 //
 // Returns:
 //   - error: an error if the command fails.

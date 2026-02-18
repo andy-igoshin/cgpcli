@@ -6,18 +6,18 @@
 // unique grammar rules.
 //
 // Key capabilities include:
-//   - Smart String Quoting: Automatically determines if a string is "safe"
+//   - Smart String Quoting: automatically determines if a string is "safe"
 //     to send as an unquoted token or if it requires escaping and double quotes.
-//   - Unit Transformation: Converts numeric values into CommuniGate Pro CLI size units
+//   - Unit Transformation: converts numeric values into CommuniGate Pro CLI size units
 //     (K, M, G, T) and durations into time units (s, m, h, d) automatically
 //     based on the context (key name).
-//   - Native Binary Support: Efficiently encodes byte slices into
+//   - Native Binary Support: efficiently encodes byte slices into
 //     Base64-wrapped [data blocks] required by the server for file transfers
 //     and certificates.
-//   - Temporal Handling: Maps Go's [time.Time] to CGP's #T, #TPAST, and
+//   - Temporal Handling: maps Go's [time.Time] to CGP's #T, #TPAST, and
 //     #TFUTURE syntax, specifically managing the UTC offset to match the
 //     server's internal time representation.
-//   - Recursive Structures: Deep serialization of maps ({...}) and
+//   - Recursive Structures: deep serialization of maps ({...}) and
 //     slices ((...)) with support for nested custom types.
 //
 // This encoder is the core communication bridge, responsible for
@@ -136,11 +136,11 @@ func formatCGPSize(v int64) string {
 // to avoid intermediate string allocations.
 //
 // Parameters:
-//   - w: A pointer to a *bufio.Writer where the serialized data will be written.
-//   - v: The data structure to be serialized.
+//   - w: a pointer to a *bufio.Writer where the serialized data will be written.
+//   - v: the data structure to be serialized.
 //
 // Returns:
-//   - An error if writing to the buffer fails or if the data is invalid.
+//   - error: an error if writing to the buffer fails or if the data is invalid.
 func MarshalTo(w *bufio.Writer, v any) error {
 	return marshal(w, v, "")
 }
@@ -148,12 +148,12 @@ func MarshalTo(w *bufio.Writer, v any) error {
 // MarshalToString returns the CGP-formatted string representation of v.
 //
 // Parameters:
-//   - v: The data to be serialized. Can be any basic Go type (string, int,
+//   - v: the data to be serialized. Can be any basic Go type (string, int,
 //     bool, time.Time), a map[string]any, or a slice.
 //
 // Returns:
-//   - A string ready to be sent to the CommuniGate Pro CLI.
-//   - An error if the data structure contains types that cannot be serialized.
+//   - string: a string ready to be sent to the CommuniGate Pro CLI.
+//   - error: an error if the data structure contains types that cannot be serialized.
 func MarshalToString(v any) (string, error) {
 	var b bytes.Buffer
 	err := marshal(&b, v, "")

@@ -4,17 +4,15 @@
 // Groups serve as versatile objects for mail distribution and signal routing.
 //
 // Key capabilities include:
-//   - Lifecycle Management: Creating, deleting, and renaming groups across
+//   - Lifecycle Management: creating, deleting, and renaming groups across
 //     the environment.
-//   - Membership & Configuration: Using [Cli.GetGroup] and [Cli.SetGroup] to manage
+//   - Membership & Configuration: using [Cli.GetGroup] and [Cli.SetGroup] to manage
 //     both group-specific settings and the list of group members simultaneously.
-//   - Discovery: Listing all groups within a specific domain and checking
+//   - Discovery: listing all groups within a specific domain and checking
 //     for the existence of individual groups.
-//   - Unified Data Access: The [GroupResult] structure simplifies interaction
+//   - Unified Data Access: the [GroupResult] structure simplifies interaction
 //     by separating administrative settings from the member list.
 //
-// Use these methods to automate the management of distribution lists and
-// departmental communication channels.
 package cgpcli
 
 import (
@@ -24,18 +22,20 @@ import (
 // GroupResult represents the combined data of a CommuniGate Pro group,
 // separating operational settings from the actual member list.
 type GroupResult struct {
-	Settings map[string]any // Administrative settings and attributes of the group.
-	Members  []string       // List of addresses or object names belonging to the group.
+	Settings map[string]any // administrative settings and attributes of the group.
+	Members  []string       // list of addresses or object names belonging to the group.
 }
 
 // CreateGroup creates new Groups.
 //
 // Parameters:
-//   - group: This parameter specifies the name for the new Group. The name can contain the @ symbol followed by the Domain name, in this case the Group is created in the specified Domain. If the Domain name is not specified, the command applies to the administrator Domain.
-//   - settings: (Optional) This optional parameter specifies the initial Group settings and the members list.
+//   - group: the name for the new Group. The name can contain the @ symbol followed by the Domain name, in this case the Group is created in the specified Domain. If the Domain name is not specified, the command applies to the administrator Domain.
+//   - settings: an optional initial Group settings and the members list.
+//
+// This method executes the CREATEGROUP CLI command.
 //
 // Returns:
-//   - error: An error if the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) CreateGroup(group string, settings map[string]any) (err error) {
 	if group == "" {
 		return fmt.Errorf("group name is required")
@@ -53,10 +53,12 @@ func (cli *Cli) CreateGroup(group string, settings map[string]any) (err error) {
 // DeleteGroup removes Groups.
 //
 // Parameters:
-//   - group: This parameter specifies the name of an existing Group. The name can include the Domain name.
+//   - group: the name of an existing Group. The name can include the Domain name.
+//
+// This method executes the DELETEGROUP CLI command.
 //
 // Returns:
-//   - error: An error if the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) DeleteGroup(group string) error {
 	if group == "" {
 		return fmt.Errorf("group name is required")
@@ -67,11 +69,13 @@ func (cli *Cli) DeleteGroup(group string) error {
 // GetGroup retrieves the Group settings.
 //
 // Parameters:
-//   - group: This parameter specifies the name of an existing Group. The name can include the Domain name.
+//   - group: the name of an existing Group. The name can include the Domain name.
+//
+// This method executes the GETGROUP CLI command.
 //
 // Returns:
-//   - *[GroupResult]: A structure containing the Group settings and members.
-//   - error: An error if the command fails.
+//   - *[GroupResult]: a structure containing the Group settings and members.
+//   - error: an error if the command fails.
 func (cli *Cli) GetGroup(group string) (*GroupResult, error) {
 	if group == "" {
 		return nil, fmt.Errorf("group name is required")
@@ -103,11 +107,13 @@ func (cli *Cli) GetGroup(group string) (*GroupResult, error) {
 // IsGroupExists checks if a group exists by attempting to retrieve its settings.
 //
 // Parameters:
-//   - group: This parameter specifies the name of an existing Group. The name can include the Domain name.
+//   - group: the name of an existing Group. The name can include the Domain name.
+//
+// This method executes the GETGROUP CLI command.
 //
 // Returns:
-//   - bool: True if the group exists.
-//   - error: An error if the check fails (excluding 'not found' errors).
+//   - bool: true if the group exists.
+//   - error: an error if the check fails (excluding 'not found' errors).
 func (cli *Cli) IsGroupExists(group string) (bool, error) {
 	if group == "" {
 		return false, fmt.Errorf("group name is required")
@@ -123,11 +129,13 @@ func (cli *Cli) IsGroupExists(group string) (bool, error) {
 // ListGroups retrieves the list of all Groups in the Domain.
 //
 // Parameters:
-//   - domain: (Optional) This optional parameter specifies the Domain name. If the Domain name is not specified, the command applies to the administrator Domain.
+//   - domain: an optional Domain name. If the Domain name is not specified, the command applies to the administrator Domain.
+//
+// This method executes the LISTGROUPS CLI command.
 //
 // Returns:
-//   - []string: An array with the names of all Groups in the specified (or default) Domain.
-//   - error: An error if the command fails.
+//   - []string: an array with the names of all Groups in the specified (or default) Domain.
+//   - error: an error if the command fails.
 func (cli *Cli) ListGroups(domain string) ([]string, error) {
 	return cli.getSliceString("LISTGROUPS", Atom(domain))
 }
@@ -135,11 +143,13 @@ func (cli *Cli) ListGroups(domain string) ([]string, error) {
 // RenameGroup renames Groups.
 //
 // Parameters:
-//   - oldName: This parameter specifies the name of an existing Group. The name can include the Domain name.
-//   - newName: This parameter specifies the new Group name. The name can include the Domain name.
+//   - oldName: the name of an existing Group. The name can include the Domain name.
+//   - newName: the new Group name. The name can include the Domain name.
+//
+// This method executes the RENAMEGROUP CLI command.
 //
 // Returns:
-//   - error: An error if the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) RenameGroup(oldName, newName string) error {
 	if oldName == "" || newName == "" {
 		return fmt.Errorf("old and new group names are required")
@@ -150,12 +160,14 @@ func (cli *Cli) RenameGroup(oldName, newName string) error {
 // SetGroup sets the Group settings.
 //
 // Parameters:
-//   - group: This parameter specifies the name of an existing Group. The name can include the Domain name.
-//   - settings: This dictionary is used to replace the Group settings dictionary.
-//   - members: (Optional) The list of group members to be included in the settings dictionary.
+//   - group: the name of an existing Group. The name can include the Domain name.
+//   - settings: this dictionary is used to replace the Group settings dictionary.
+//   - members: an optional list of group members to be included in the settings dictionary.
+//
+// This method executes the SETGROUP CLI command.
 //
 // Returns:
-//   - error: An error if the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetGroup(group string, settings map[string]any, members []string) error {
 	if group == "" {
 		return fmt.Errorf("group name is required")

@@ -6,19 +6,17 @@
 // attempts or short-term "unblockable" exceptions.
 //
 // Key capabilities include:
-//   - Structured Representation: The [TempIP] struct associates an IP address
+//   - Structured Representation: the [TempIP] struct associates an IP address
 //     with its remaining time-to-live (TTL) or a permanent status flag.
 //   - Efficient Lookups: [TempIPList] uses a fixed-size [IPKey] ([16]byte)
 //     based map for O(1) IP address lookups, handling both IPv4 and IPv6 transparently.
-//   - Robust Parsing: Optimized parsing logic in [parseTempIPsToMap] that
+//   - Robust Parsing: optimized parsing logic in [parseTempIPsToMap] that
 //     extracts IPs and their durations from raw protocol strings with
 //     minimal allocations.
-//   - Local Drafting: Methods like [TempIPList.Add] and [TempIPList.Delete]
+//   - Local Drafting: methods like [TempIPList.Add] and [TempIPList.Delete]
 //     allow for building or modifying lists locally before committing
 //     them to the server.
 //
-// These structures are vital for building security orchestrators,
-// fail2ban-style integrators, and automated traffic controllers.
 package cgpcli
 
 import (

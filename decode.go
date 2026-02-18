@@ -6,22 +6,23 @@
 // grammar with high efficiency.
 //
 // Key capabilities include:
-//   - High-Performance Parsing: Uses a state-based [decodeState] with a
+//   - High-Performance Parsing: uses a state-based [decodeState] with a
 //     custom character table to scan data with minimal overhead.
-//   - String Interning: Implements a key cache to reuse common dictionary
+//   - String Interning: implements a key cache to reuse common dictionary
 //     keys (like "Account", "Status", "Domain"), significantly reducing
 //     memory allocations during large data transfers.
-//   - CGP-Specific Types: Native support for unquoted tokens, #I[address]
+//   - CGP-Specific Types: native support for unquoted tokens, #I[address]
 //     blocks, Base64-encoded [data blocks], and specialized temporal
 //     constants (#TPAST, #TFUTURE).
-//   - Structural Mapping: Handles recursive dictionaries ({...}),
+//   - Structural Mapping: handles recursive dictionaries ({...}),
 //     arrays ((...)), and even embedded XML or tagged objects.
-//   - Type Transformation: Automatically converts CommuniGate Pro CLI strings like "10M" or
+//   - Type Transformation: automatically converts CommuniGate Pro CLI strings like "10M" or
 //     "1h" into meaningful numeric bytes or [time.Duration] values via
 //     internal helper functions.
 //
 // This parser is designed to be robust, handling potentially malformed or
 // unusually large responses without compromising system stability.
+//
 package cgpcli
 
 import (
@@ -105,14 +106,14 @@ func (d *decodeState) skipSpaces() {
 // value pointed to by v.
 //
 // Parameters:
-//   - data: A byte slice containing the raw response from the CommuniGate Pro CLI.
+//   - data: a byte slice containing the raw response from the CommuniGate Pro CLI.
 //     This can be a simple word, a dictionary, an array or a complex nested types.
-//   - v: A non-nil pointer to the destination variable. If v is a pointer
+//   - v: a non-nil pointer to the destination variable. If v is a pointer
 //     to an interface{}, Unmarshal will populate it with map[string]any,
 //     []any, int64, bool, or string, depending on the source data.
 //
 // Returns:
-//   - An error if v is not a pointer, is nil, or if the data cannot be
+//   - error: an error if v is not a pointer, is nil, or if the data cannot be
 //     correctly mapped to the target type.
 func Unmarshal(data []byte, v any) error {
 	var d decodeState

@@ -6,16 +6,14 @@
 // time intervals or calendar schedules.
 //
 // Key capabilities include:
-//   - Lifecycle Management: Creating, renaming, and deleting tasks associated
+//   - Lifecycle Management: creating, renaming, and deleting tasks associated
 //     with specific accounts using [Cli.CreateNamedTask] and [Cli.DeleteNamedTask].
-//   - Configuration: Retrieving and updating task parameters.
-//   - Discovery: Listing tasks at both account and domain levels to
+//   - Configuration: retrieving and updating task parameters.
+//   - Discovery: listing tasks at both account and domain levels to
 //     monitor automated workflows across the server.
-//   - Owner Resolution: Automatic handling of account names, ensuring
+//   - Owner Resolution: automatic handling of account names, ensuring
 //     tasks are correctly linked to the local part of the account address.
 //
-// Use these methods to build automation engines, backup triggers, or
-// custom maintenance routines within the CommuniGate Pro ecosystem.
 package cgpcli
 
 import (
@@ -26,12 +24,14 @@ import (
 // CreateNamedTask creates a new Named Task.
 //
 // Parameters:
-//   - task: The name for the new Named Task. Can include the @ symbol followed by the Domain name.
+//   - task: the name for the new Named Task. Can include the @ symbol followed by the Domain name.
 //     If the Domain name is not specified, the command applies to the administrator Domain.
-//   - account: The owner Account name.
+//   - account: the owner Account name.
+//
+// This method executes the CREATENAMEDTASK CLI command.
 //
 // Returns:
-//   - error: An error if the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) CreateNamedTask(task, account string) error {
 	if task == "" || account == "" {
 		return fmt.Errorf("task name and account name are required")
@@ -46,10 +46,12 @@ func (cli *Cli) CreateNamedTask(task, account string) error {
 // DeleteNamedTask removes an existing Named Task.
 //
 // Parameters:
-//   - task: The name of an existing Named Task. The name can include the Domain name.
+//   - task: the name of an existing Named Task. The name can include the Domain name.
+//
+// This method executes the DELETENAMEDTASK CLI command.
 //
 // Returns:
-//   - error: An error if the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) DeleteNamedTask(task string) error {
 	if task == "" {
 		return fmt.Errorf("task name is required")
@@ -60,11 +62,13 @@ func (cli *Cli) DeleteNamedTask(task string) error {
 // GetNamedTask retrieves the Named Task settings.
 //
 // Parameters:
-//   - task: The name of an existing Named Task. The name can include the Domain name.
+//   - task: the name of an existing Named Task. The name can include the Domain name.
+//
+// This method executes the GETNAMEDTASK CLI command.
 //
 // Returns:
-//   - map[string]any: A dictionary with the Named Task settings.
-//   - error: An error if the command fails.
+//   - map[string]any: a dictionary with the Named Task settings.
+//   - error: an error if the command fails.
 func (cli *Cli) GetNamedTask(task string) (map[string]any, error) {
 	if task == "" {
 		return nil, fmt.Errorf("task name is required")
@@ -76,7 +80,9 @@ func (cli *Cli) GetNamedTask(task string) (map[string]any, error) {
 // the specified Account.
 //
 // Parameters:
-//   - account: The owner Account name.
+//   - account: the owner Account name.
+//
+// This method executes the LISTACCOUNTNAMEDTASKS CLI command.
 //
 // Returns:
 //   - map[string]any: a dictionary where keys are Task names and values
@@ -92,8 +98,10 @@ func (cli *Cli) ListAccountNamedTasks(account string) (map[string]any, error) {
 // ListDomainNamedTasks retrieves the list of all Named Tasks in the Domain.
 //
 // Parameters:
-//   - domain: (Optional) The Domain name. If the Domain name is not specified,
+//   - domain: an optional Domain name. If the Domain name is not specified,
 //     the command applies to the administrator Domain.
+//
+// This method executes the LISTDOMAINNAMEDTASKS CLI command.
 //
 // Returns:
 //   - map[string]any: a dictionary where keys are Task names and values
@@ -106,11 +114,13 @@ func (cli *Cli) ListDomainNamedTasks(domain string) (map[string]any, error) {
 // RenameNamedTask renames an existing Named Task.
 //
 // Parameters:
-//   - oldTask: The name of an existing Named Task. The name can include the Domain name.
-//   - newTask: The new Named Task name.
+//   - oldTask: the name of an existing Named Task. The name can include the Domain name.
+//   - newTask: the new Named Task name.
+//
+// This method executes the RENAMENAMEDTASK CLI command.
 //
 // Returns:
-//   - error: An error if the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) RenameNamedTask(oldTask, newTask string) error {
 	if oldTask == "" || newTask == "" {
 		return fmt.Errorf("oldName and newName are required")
@@ -121,8 +131,10 @@ func (cli *Cli) RenameNamedTask(oldTask, newTask string) error {
 // UpdateNamedTask sets the Named Task settings.
 //
 // Parameters:
-//   - task: The name of an existing Named Task. The name can include the Domain name.
-//   - settings: A dictionary used to update the Named Task settings dictionary.
+//   - task: the name of an existing Named Task. The name can include the Domain name.
+//   - settings: a dictionary used to update the Named Task settings dictionary.
+//
+// This method executes the UPDATENAMEDTASK CLI command.
 //
 // Returns:
 //   - error: an error if the command fails.

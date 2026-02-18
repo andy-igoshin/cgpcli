@@ -8,6 +8,7 @@
 //   - Posting new custom alerts for administrators or users to see.
 //   - Removing specific alerts using their unique timestamps.
 //   - Batch updating alert dictionaries.
+//
 package cgpcli
 
 import (
@@ -17,7 +18,7 @@ import (
 // GetAccountAlerts retrieves the Account Alerts.
 //
 // Parameters:
-//   - account: This parameter specifies the name of an existing Account.
+//   - account: the name of an existing Account.
 //     The asterisk (*) symbol can be used to specify the current
 //     authenticated Account.
 //
@@ -26,6 +27,8 @@ import (
 // Returns a map[string]string containing the alerts and timestamps,
 // or an error if the account name is empty or the server fails
 // to execute the command.
+//
+// This method executes the GETACCOUNTALERTS CLI command.
 func (cli *Cli) GetAccountAlerts(account string) (map[string]string, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -39,6 +42,8 @@ func (cli *Cli) GetAccountAlerts(account string) (map[string]string, error) {
 //
 // Returns a map[string]string containing the cluster alerts and timestamps,
 // or an error if the server fails to execute the command.
+//
+// This method executes the GETCLUSTERALERTS CLI command.
 func (cli *Cli) GetClusterAlerts() (map[string]string, error) {
 	return cli.getMapString("GETCLUSTERALERTS")
 }
@@ -46,7 +51,7 @@ func (cli *Cli) GetClusterAlerts() (map[string]string, error) {
 // GetDomainAlerts retrieves the domain-wide Alerts.
 //
 // Parameters:
-//   - domain: This optional parameter specifies the name of an existing Domain.
+//   - domain: an optional name of an existing Domain.
 //     If an empty string is provided, the command typically targets the
 //     current domain context.
 //
@@ -54,6 +59,8 @@ func (cli *Cli) GetClusterAlerts() (map[string]string, error) {
 //
 // Returns a map[string]string containing the domain alerts and timestamps,
 // or an error if the server fails to execute the command.
+//
+// This method executes the GETDOMAINALERTS CLI command.
 func (cli *Cli) GetDomainAlerts(domain string) (map[string]string, error) {
 	return cli.getMapString("GETDOMAINALERTS", Atom(domain))
 }
@@ -64,6 +71,8 @@ func (cli *Cli) GetDomainAlerts(domain string) (map[string]string, error) {
 //
 // Returns a map[string]string containing the server alerts and timestamps,
 // or an error if the server fails to execute the command.
+//
+// This method executes the GETSERVERALERTS CLI command.
 func (cli *Cli) GetServerAlerts() (map[string]string, error) {
 	return cli.getMapString("GETSERVERALERTS")
 }
@@ -71,15 +80,17 @@ func (cli *Cli) GetServerAlerts() (map[string]string, error) {
 // PostAccountAlert posts an alert message to a specific Account.
 //
 // Parameters:
-//   - account: This parameter specifies the name of an existing Account.
+//   - account: the name of an existing Account.
 //     The asterisk (*) symbol can be used to specify the current
 //     authenticated Account.
-//   - alert: This string specifies the text of the alert to be posted.
+//   - alert: the text of the alert to be posted.
 //
 // This method executes the POSTACCOUNTALERT CLI command.
 //
 // Returns an error if the account name or alert text is empty, or if
 // the server fails to execute the command.
+//
+// This method executes the POSTACCOUNTALERT CLI command.
 func (cli *Cli) PostAccountAlert(account, alert string) error {
 	if account == "" || alert == "" {
 		return fmt.Errorf("account name and alert text are required")
@@ -90,12 +101,14 @@ func (cli *Cli) PostAccountAlert(account, alert string) error {
 // PostClusterAlert posts a cluster-wide Alert message.
 //
 // Parameters:
-//   - alert: This string specifies the text of the alert to be posted.
+//   - alert: the text of the alert to be posted.
 //
 // This method executes the POSTCLUSTERALERT CLI command.
 //
 // Returns an error if the alert text is empty or if the server fails
 // to execute the command.
+//
+// This method executes the POSTCLUSTERALERT CLI command.
 func (cli *Cli) PostClusterAlert(alert string) error {
 	if alert == "" {
 		return fmt.Errorf("alert text is required")
@@ -106,13 +119,15 @@ func (cli *Cli) PostClusterAlert(alert string) error {
 // PostDomainAlert posts a domain-wide Alert message.
 //
 // Parameters:
-//   - domain: This parameter specifies the name of an existing Domain.
-//   - alert: This string specifies the text of the alert to be posted.
+//   - domain: the name of an existing Domain.
+//   - alert: the text of the alert to be posted.
 //
 // This method executes the POSTDOMAINALERT CLI command.
 //
 // Returns an error if the domain name or alert text is empty, or if
 // the server fails to execute the command.
+//
+// This method executes the POSTDOMAINALERT CLI command.
 func (cli *Cli) PostDomainAlert(domain, alert string) error {
 	if domain == "" || alert == "" {
 		return fmt.Errorf("domain name and alert text are required")
@@ -123,12 +138,14 @@ func (cli *Cli) PostDomainAlert(domain, alert string) error {
 // PostServerAlert posts a server-wide Alert message.
 //
 // Parameters:
-//   - alert: This string specifies the text of the alert to be posted.
+//   - alert: the text of the alert to be posted.
 //
 // This method executes the POSTSERVERALERT CLI command.
 //
 // Returns an error if the alert text is empty or if the server fails
 // to execute the command.
+//
+// This method executes the POSTSERVERALERT CLI command.
 func (cli *Cli) PostServerAlert(alert string) error {
 	if alert == "" {
 		return fmt.Errorf("alert text is required")
@@ -139,16 +156,18 @@ func (cli *Cli) PostServerAlert(alert string) error {
 // RemoveAccountAlert removes a specific alert message from an Account.
 //
 // Parameters:
-//   - account: This parameter specifies the name of an existing Account.
+//   - account: the name of an existing Account.
 //     The asterisk (*) symbol can be used to specify the current
 //     authenticated Account.
-//   - timeStamp: The exact timestamp string of the alert to be removed,
+//   - timeStamp: the exact timestamp string of the alert to be removed,
 //     as retrieved by GetAccountAlerts.
 //
 // This method executes the REMOVEACCOUNTALERT CLI command.
 //
 // Returns an error if the account name or timeStamp is empty, or if
 // the server fails to execute the command.
+//
+// This method executes the REMOVEACCOUNTALERT CLI command.
 func (cli *Cli) RemoveAccountAlert(account, timeStamp string) error {
 	if account == "" || timeStamp == "" {
 		return fmt.Errorf("account name and timeStamp are required")
@@ -159,13 +178,15 @@ func (cli *Cli) RemoveAccountAlert(account, timeStamp string) error {
 // RemoveClusterAlert removes a specific cluster-wide alert message.
 //
 // Parameters:
-//   - timeStamp: The exact timestamp string of the cluster-wide alert
+//   - timeStamp: the exact timestamp string of the cluster-wide alert
 //     to be removed, as retrieved by GetClusterAlerts.
 //
 // This method executes the REMOVECLUSTERALERT CLI command.
 //
 // Returns an error if the timeStamp is empty or if the server
 // fails to execute the command.
+//
+// This method executes the REMOVECLUSTERALERT CLI command.
 func (cli *Cli) RemoveClusterAlert(timeStamp string) error {
 	if timeStamp == "" {
 		return fmt.Errorf("timeStamp is required")
@@ -176,14 +197,16 @@ func (cli *Cli) RemoveClusterAlert(timeStamp string) error {
 // RemoveDomainAlert removes a specific domain-wide alert message.
 //
 // Parameters:
-//   - domain: This parameter specifies the name of an existing Domain.
-//   - timeStamp: The exact timestamp string of the domain alert
+//   - domain: the name of an existing Domain.
+//   - timeStamp: the exact timestamp string of the domain alert
 //     to be removed, as retrieved by GetDomainAlerts.
 //
 // This method executes the REMOVEDOMAINALERT CLI command.
 //
 // Returns an error if the domain name or timeStamp is empty, or if
 // the server fails to execute the command.
+//
+// This method executes the REMOVEDOMAINALERT CLI command.
 func (cli *Cli) RemoveDomainAlert(domain, timeStamp string) error {
 	if domain == "" || timeStamp == "" {
 		return fmt.Errorf("domain name and timeStamp are required")
@@ -194,13 +217,15 @@ func (cli *Cli) RemoveDomainAlert(domain, timeStamp string) error {
 // RemoveServerAlert removes a specific server-wide alert message.
 //
 // Parameters:
-//   - timeStamp: The exact timestamp string of the server-wide alert
+//   - timeStamp: the exact timestamp string of the server-wide alert
 //     to be removed, as retrieved by GetServerAlerts.
 //
 // This method executes the REMOVESERVERALERT CLI command.
 //
 // Returns an error if the timeStamp is empty or if the server
 // fails to execute the command.
+//
+// This method executes the REMOVESERVERALERT CLI command.
 func (cli *Cli) RemoveServerAlert(timeStamp string) error {
 	if timeStamp == "" {
 		return fmt.Errorf("timeStamp is required")
@@ -211,15 +236,17 @@ func (cli *Cli) RemoveServerAlert(timeStamp string) error {
 // SetAccountAlerts replaces the entire Account alert dictionary.
 //
 // Parameters:
-//   - account: This parameter specifies the name of an existing Account.
+//   - account: the name of an existing Account.
 //     The asterisk (*) symbol can be used to specify the current
 //     authenticated Account.
-//   - alerts: A dictionary used to replace the current Account alert dictionary.
+//   - alerts: a dictionary used to replace the current Account alert dictionary.
 //
 // This method executes the SETACCOUNTALERTS CLI command.
 //
 // Returns an error if the account name is empty, the alerts map is nil,
 // or if the server fails to execute the command.
+//
+// This method executes the SETACCOUNTALERTS CLI command.
 func (cli *Cli) SetAccountAlerts(account string, alerts map[string]any) error {
 	if account == "" || alerts == nil {
 		return fmt.Errorf("account name and alerts dictionary are required")
@@ -230,11 +257,13 @@ func (cli *Cli) SetAccountAlerts(account string, alerts map[string]any) error {
 // SetClusterAlerts replaces the entire cluster-wide Alert dictionary.
 //
 // Parameters:
-//   - alerts: A dictionary used to replace the current Cluster alert dictionary.
+//   - alerts: a dictionary used to replace the current Cluster alert dictionary.
 //
 // This method executes the SETCLUSTERALERTS CLI command.
 //
 // Returns an error if the server fails to execute the command.
+//
+// This method executes the SETCLUSTERALERTS CLI command.
 func (cli *Cli) SetClusterAlerts(alerts map[string]any) error {
 	return cli.QueryNV("SETCLUSTERALERTS", alerts)
 }
@@ -242,13 +271,15 @@ func (cli *Cli) SetClusterAlerts(alerts map[string]any) error {
 // SetDomainAlerts replaces the entire Domain alert dictionary.
 //
 // Parameters:
-//   - domain: This optional parameter specifies the name of an existing Domain.
+//   - domain: an optional name of an existing Domain.
 //     If an empty string is provided, the command targets the current domain context.
-//   - alerts: A dictionary used to replace the current Domain alert dictionary.
+//   - alerts: a dictionary used to replace the current Domain alert dictionary.
 //
 // This method executes the SETDOMAINALERTS CLI command.
 //
 // Returns an error if the server fails to execute the command.
+//
+// This method executes the SETDOMAINALERTS CLI command.
 func (cli *Cli) SetDomainAlerts(domain string, alerts map[string]any) error {
 	return cli.QueryNV("SETDOMAINALERTS", Atom(domain), alerts)
 }
@@ -256,11 +287,13 @@ func (cli *Cli) SetDomainAlerts(domain string, alerts map[string]any) error {
 // SetServerAlerts replaces the entire server-wide Alert dictionary.
 //
 // Parameters:
-//   - alerts: A dictionary used to replace the current Server alert dictionary.
+//   - alerts: a dictionary used to replace the current Server alert dictionary.
 //
 // This method executes the SETSERVERALERTS CLI command.
 //
 // Returns an error if the server fails to execute the command.
+//
+// This method executes the SETSERVERALERTS CLI command.
 func (cli *Cli) SetServerAlerts(alerts map[string]any) error {
 	return cli.QueryNV("SETSERVERALERTS", alerts)
 }
