@@ -106,6 +106,16 @@ func isCGPSafeString(s string) bool {
 	return true
 }
 
+var cgpSizeUnits = []struct {
+	suffix string
+	value  int64
+}{
+	{"T", 1024 * 1024 * 1024 * 1024},
+	{"G", 1024 * 1024 * 1024},
+	{"M", 1024 * 1024},
+	{"K", 1024},
+}
+
 // formatCGPSize преобразует байты в формат CGP (1K, 5M, 10G) или "unlimited".
 func formatCGPSize(v int64) string {
 	if v == -1 {
@@ -114,18 +124,9 @@ func formatCGPSize(v int64) string {
 	if v == 0 {
 		return "0"
 	}
-	units := []struct {
-		suffix string
-		value  int64
-	}{
-		{"T", 1024 * 1024 * 1024 * 1024},
-		{"G", 1024 * 1024 * 1024},
-		{"M", 1024 * 1024},
-		{"K", 1024},
-	}
-	for _, u := range units {
+	for _, u := range cgpSizeUnits {
 		if v%u.value == 0 {
-			return fmt.Sprintf("%d%s", v/u.value, u.suffix)
+			return strconv.FormatInt(v/u.value, 10) + u.suffix
 		}
 	}
 	return strconv.FormatInt(v, 10)
@@ -193,8 +194,7 @@ func marshal(w encodeWriter, v any, keyName string) (err error) {
 
 	case cgpIPSBSA:
 		w.WriteByte('"')
-		ips := []net.IP(val)
-		for i, ip := range ips {
+		for i, ip := range val {
 			if i > 0 {
 				w.WriteString(", ")
 			}
