@@ -66,7 +66,7 @@ func (cli *Cli) CreateAccountStorage(domain, storage string) error {
 // DeleteDirectoryRecords deletes Domain object records from the Directory.
 //
 // Parameters:
-//   - domain: the Domain name. If empty, applies to the authenticated user Domain.
+//   - domain: an optional Domain name. If empty, applies to the authenticated user Domain.
 //
 // This method executes the DELETEDIRECTORYRECORDS CLI command.
 //
@@ -79,7 +79,7 @@ func (cli *Cli) DeleteDirectoryRecords(domain string) error {
 // GetAccountDefaultPrefs retrieves the Default Account Preferences for the specified Domain.
 //
 // Parameters:
-//   - domain: the Domain name. If empty, applies to the administrator Domain.
+//   - domain: an optional Domain name. If empty, applies to the administrator Domain.
 //
 // This method executes the GETACCOUNTDEFAULTPREFS CLI command.
 //
@@ -93,7 +93,7 @@ func (cli *Cli) GetAccountDefaultPrefs(domain string) (map[string]any, error) {
 // GetAccountDefaults retrieves the default Account settings for the specified Domain.
 //
 // Parameters:
-//   - domain: the Domain name. If empty, applies to the administrator Domain.
+//   - domain: an optional Domain name. If empty, applies to the administrator Domain.
 //
 // This method executes the GETACCOUNTDEFAULTS CLI command.
 //
@@ -138,7 +138,7 @@ func (cli *Cli) GetDomainAliases(domain string) ([]string, error) {
 // GetDomainEffectiveSettings retrieves both explicitly set and default Domain settings.
 //
 // Parameters:
-//   - domain: the name of an existing Domain. If empty, uses the current context.
+//   - domain: an optional name of an existing Domain. If empty, uses the current context.
 //
 // This method executes the GETDOMAINEFFECTIVESETTINGS CLI command.
 //
@@ -183,7 +183,7 @@ func (cli *Cli) GetDomainMailRules(domain string) ([]MailRule, error) {
 // GetDomainSettings retrieves explicitly set (non-default) Domain settings.
 //
 // Parameters:
-//   - domain: the name of an existing Domain. If empty, uses the current context.
+//   - domain: an optional name of an existing Domain. If empty, uses the current context.
 //
 // This method executes the GETDOMAINSETTINGS CLI command.
 //
@@ -214,7 +214,7 @@ func (cli *Cli) GetDomainSignalRules(domain string) ([]SignalRule, error) {
 // InsertDirectoryRecords inserts records for Domain objects into the Directory.
 //
 // Parameters:
-//   - domain: the Domain name. If empty, applies to the authenticated user Domain.
+//   - domain: an optional Domain name. If empty, applies to the authenticated user Domain.
 //
 // This method executes the INSERTDIRECTORYRECORDS CLI command.
 //
@@ -556,7 +556,7 @@ func (cli *Cli) SuspendDomain(domain string) error {
 // UpdateAccountDefaultPrefs modifies the Domain Default Account Preferences.
 //
 // Parameters:
-//   - domain: the Domain name. If empty, applies to the authenticated user Domain.
+//   - domain: an optional Domain name. If empty, applies to the authenticated user Domain.
 //   - settings: a dictionary used to modify the Domain Default Account Preferences.
 //
 // This method executes the UPDATEACCOUNTDEFAULTPREFS CLI command.
@@ -573,7 +573,7 @@ func (cli *Cli) UpdateAccountDefaultPrefs(domain string, settings map[string]any
 // UpdateAccountDefaults modifies the Default Account settings for the specified Domain.
 //
 // Parameters:
-//   - domain: the Domain name. If empty, applies to the administrator Domain.
+//   - domain: an optional Domain name. If empty, applies to the administrator Domain.
 //   - settings: a dictionary used to modify the Domain Default Account settings.
 //
 // This method executes the UPDATEACCOUNTDEFAULTS CLI command.
@@ -590,7 +590,7 @@ func (cli *Cli) UpdateAccountDefaults(domain string, settings map[string]any) er
 // UpdateAccountTemplate modifies the Account Template settings for the Domain.
 //
 // Parameters:
-//   - domain: the Domain name. If empty, applies to the administrator Domain.
+//   - domain: an optional Domain name. If empty, applies to the administrator Domain.
 //   - settings: a dictionary used to modify the Domain Account Template.
 //
 // This method executes the UPDATEACCOUNTTEMPLATE CLI command.
@@ -607,7 +607,7 @@ func (cli *Cli) UpdateAccountTemplate(domain string, settings map[string]any) er
 // UpdateDomainSettings updates specific Domain settings without modifying others.
 //
 // Parameters:
-//   - domain: the name of an existing Domain. If empty, uses the current context.
+//   - domain: an optional name of an existing Domain. If empty, uses the current context.
 //   - settings: a dictionary containing the settings to update.
 //
 // This method executes the UPDATEDOMAINSETTINGS CLI command.
