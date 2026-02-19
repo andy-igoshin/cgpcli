@@ -82,29 +82,20 @@ func (c CGPIP) String() string {
 }
 
 // writeCGP формирует данные для отправки на сервер CGP напрямую в буфер.
-func (c CGPIP) writeCGP(w encodeWriter) (err error) {
+func (c CGPIP) writeCGP(w encodeWriter) error {
 	if c.IsZero() {
-		_, err = w.WriteString("#NULL#")
-		return
+		_, err := w.WriteString("#NULL#")
+		return err
 	}
 
-	if _, err = w.WriteString("#I["); err != nil {
-		return
-	}
-	if _, err = w.WriteString(c.IP.String()); err != nil {
-		return
-	}
-	if err = w.WriteByte(']'); err != nil {
-		return
-	}
+	w.WriteString("#I[")
+	w.WriteString(c.IP.String())
+	w.WriteByte(']')
 
 	if c.Port > 0 {
-		if err = w.WriteByte(':'); err != nil {
-			return
-		}
-		if _, err = w.WriteString(strconv.Itoa(c.Port)); err != nil {
-			return
-		}
+		w.WriteByte(':')
+		w.WriteString(strconv.Itoa(c.Port))
 	}
-	return
+
+	return nil
 }
