@@ -156,3 +156,81 @@ func TestDecodeDataBlock(t *testing.T) {
 		})
 	}
 }
+
+// TestArrayCounting проверяет корректность подсчёта элементов в arrayInterface.
+func TestArrayCounting(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  int
+	}{
+		{"Empty", "()", 0},
+		{"One", "(a)", 1},
+		{"Two", "(a,b)", 2},
+		{"Three", "(a,b,c)", 3},
+		{"Nested", "(a,(b,c),d)", 3},
+		{"NestedDict", "(a,{k=v;},c)", 3},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got any
+			if err := Unmarshal([]byte(tt.input), &got); err != nil {
+				t.Fatalf("Unmarshal() error = %v", err)
+			}
+			arr, ok := got.([]any)
+			if !ok {
+				if tt.want == 0 {
+					return
+				}
+				t.Fatalf("expected []any, got %T: %v", got, got)
+			}
+			if len(arr) != tt.want {
+				t.Errorf("len=%d, want %d, got %v", len(arr), tt.want, arr)
+			}
+		})
+	}
+}
+
+// TestParseCGPSizeQuotes проверяет нужен ли strings.Trim в parseCGPSize.
+func TestParseCGPSizeQuotes(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  any
+	}{
+		{"NoQuotes", "10K", int64(10 * 1024)},
+		{"WithQuotes", `"10K"`, int64(10 * 1024)},
+		{"Unlimited", "unlimited", int64(-1)},
+		{"Plain", "1024", int64(1024)},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := parseCGPSize(tt.input)
+			if got != tt.want {
+				t.Errorf("parseCGPSize(%q) = %v (%T), want %v (%T)", tt.input, got, got, tt.want, tt.want)
+			}
+		})
+	}
+}
+
+// TestParseIPSBSA проверяет parseIPSBSA.
+func TestParseIPSBSA(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  int
+	}{
+		{"Empty", "", 0},
+		{"Single", "[192.168.1.1]", 1},
+		{"Multiple", "[192.168.1.1], [10.0.0.1]", 2},
+		{"IPv6", "[::1], [fe80::1]", 2},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := parseIPSBSA(tt.input)
+			if len(got) != tt.want {
+				t.Errorf("parseIPSBSA(%q) = %d IPs, want %d: %v", tt.input, len(got), tt.want, got)
+			}
+		})
+	}
+}

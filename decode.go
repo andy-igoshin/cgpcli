@@ -236,10 +236,11 @@ func (d *decodeState) dictionaryInterface() any {
 }
 
 func (d *decodeState) arrayInterface() any {
-	count := 1
+	commas := 0
 	depth := 1
 	ts := d.span
 	data := d.data
+	empty := true
 
 	for ts < len(data) {
 		f := cgpCharTable[data[ts]]
@@ -252,20 +253,20 @@ func (d *decodeState) arrayInterface() any {
 					break
 				}
 			} else if f&isCgpComma != 0 && depth == 1 {
-				count++
+				commas++
 			}
+		}
+		if f&isCgpSpace == 0 {
+			empty = false
 		}
 		ts++
 	}
 
-	// Если мы нашли элементы (или хотя бы один), count должен быть корректным.
-	// Для пустого массива () count останется 0. Для (1) - тоже 0, надо +1 если не пусто.
-	// Но проще: если мы встретили хотя бы один символ до закрытия, это 1 элемент или больше.
-	if ts > d.span { // Если между ( и ) что-то было
-		count++
+	capacity := 0
+	if !empty {
+		capacity = commas + 1
 	}
-
-	res := make([]any, 0, count)
+	res := make([]any, 0, capacity)
 
 	for d.span < d.len {
 		d.skipSpaces()
@@ -616,11 +617,13 @@ func parseIPSB(v any) net.IP {
 	return net.ParseIP(s)
 }
 
+var ipsbsaReplacer = strings.NewReplacer("[", "", "]", "")
+
 func parseIPSBSA(s string) []net.IP {
 	if s == "" {
 		return []net.IP{}
 	}
-	s = strings.NewReplacer("[", "", "]", "").Replace(s)
+	s = ipsbsaReplacer.Replace(s)
 	parts := strings.Split(s, ",")
 	res := make([]net.IP, 0, len(parts))
 	for _, p := range parts {
