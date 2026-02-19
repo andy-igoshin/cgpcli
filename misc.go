@@ -14,7 +14,6 @@
 //     toggling "Log Everything" mode, and writing custom entries to the system log.
 //   - Cluster Operations: force-reconnecting cluster administration channels and
 //     identifying the current Dynamic Cluster Controller.
-//
 package cgpcli
 
 import (

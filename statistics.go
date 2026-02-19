@@ -13,7 +13,6 @@
 //     reporting cycles.
 //   - Resource Tracking: accessing data related to protocol usage, login
 //     frequency, and storage interaction at the entity level.
-//
 package cgpcli
 
 import (

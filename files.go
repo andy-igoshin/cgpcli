@@ -16,7 +16,6 @@
 //     to perform operations on behalf of other accounts.
 //   - Subscriptions: managing file-folder subscriptions for collaborative
 //     work and synchronization.
-//
 package cgpcli
 
 import (

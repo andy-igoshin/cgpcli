@@ -12,7 +12,6 @@
 //     [DirAccessRight] structure, including record-level and attribute-level permissions.
 //   - Search and Discovery: listing and retrieving configuration details for
 //     individual directory units.
-//
 package cgpcli
 
 import (

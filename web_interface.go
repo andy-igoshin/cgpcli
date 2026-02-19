@@ -16,7 +16,6 @@
 //     via [Cli.StoreSessionFile], supporting various offsets for partial data.
 //   - Lifecycle Control: terminating specific sessions with [Cli.KillSession]
 //     or updating session-specific metadata with [Cli.UpdateSession].
-//
 package cgpcli
 
 import (

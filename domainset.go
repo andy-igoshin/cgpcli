@@ -14,7 +14,6 @@
 //   - Security: managing [Trusted Certificates] (CA lists) for both Cluster and Server levels.
 //   - Integration: configuring system-wide [Directory Integration] settings and
 //     global telephony number (Telnums).
-//
 package cgpcli
 
 import (

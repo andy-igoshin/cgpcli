@@ -13,7 +13,6 @@
 //     monitor automated workflows across the server.
 //   - Owner Resolution: automatic handling of account names, ensuring
 //     tasks are correctly linked to the local part of the account address.
-//
 package cgpcli
 
 import (

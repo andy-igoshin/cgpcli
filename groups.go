@@ -12,7 +12,6 @@
 //     for the existence of individual groups.
 //   - Unified Data Access: the [GroupResult] structure simplifies interaction
 //     by separating administrative settings from the member list.
-//
 package cgpcli
 
 import (

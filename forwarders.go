@@ -10,7 +10,6 @@
 //     lookups with [Cli.FindForwarders] to identify which objects point
 //     to a specific target address.
 //   - Inspection: retrieving the target address of a specific forwarder.
-//
 package cgpcli
 
 import (

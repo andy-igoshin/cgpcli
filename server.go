@@ -17,7 +17,6 @@
 //     [BannedLines] structure for headers and message bodies.
 //   - Global Subsystems: fine-tuning of DNR (Domain Name Resolver),
 //     Logging, Queue Management, and Session settings.
-//
 package cgpcli
 
 import (

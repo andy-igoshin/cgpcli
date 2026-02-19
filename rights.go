@@ -9,7 +9,6 @@
 //     of administrative permissions for any given account.
 //   - Granular Control: assigning predefined CommuniGate Pro rights such as "CanModifySettings",
 //     "CanCreateAccounts", or "CanManageQueues".
-//
 package cgpcli
 
 import (

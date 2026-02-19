@@ -16,7 +16,6 @@
 //   - Local Drafting: methods like [TempIPList.Add] and [TempIPList.Delete]
 //     allow for building or modifying lists locally before committing
 //     them to the server.
-//
 package cgpcli
 
 import (

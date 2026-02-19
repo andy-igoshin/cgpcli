@@ -14,7 +14,6 @@
 //   - Signal Inspection: retrieving detailed state information for active
 //     Signal Dialogs by their numeric identifiers.
 //   - Server Lifecycle: gracefully initiating server termination via the [Cli.Shutdown] method.
-//
 package cgpcli
 
 import (

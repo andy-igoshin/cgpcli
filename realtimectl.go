@@ -15,7 +15,6 @@
 //     running signal applications.
 //   - Task Identification: each task is managed via a unique TaskID returned
 //     at startup, allowing precise control over concurrent applications.
-//
 package cgpcli
 
 import (

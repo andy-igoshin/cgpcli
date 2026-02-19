@@ -16,7 +16,6 @@
 //     timestamp ([time.Time]) for efficient caching and synchronization.
 //   - Discovery: listing available skins and inspecting their file contents
 //     at each hierarchy level.
-//
 package cgpcli
 
 import (

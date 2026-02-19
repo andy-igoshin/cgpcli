@@ -16,7 +16,6 @@
 //     supporting filters and pagination for large lists.
 //   - Maintenance: initiating bounce processing for problematic addresses
 //     and tracking delivery statistics (posts, bounces, confirmation IDs).
-//
 package cgpcli
 
 import (

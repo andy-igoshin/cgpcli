@@ -13,7 +13,6 @@
 //     authentication, with optional TLS (STARTTLS) encryption.
 //   - Efficiency: mandatory use of CommuniGate Pro CLI "INLINE" mode, which, combined with
 //     the library's custom parser, ensures high-performance data processing.
-//
 package cgpcli
 
 import (

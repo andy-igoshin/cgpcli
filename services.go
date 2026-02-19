@@ -14,7 +14,6 @@
 //   - Instant Messaging: managing the XMPP/SIP [Cli.Roster], allowing for
 //     programmatic contact list manipulation, subscription management,
 //     and presence monitoring.
-//
 package cgpcli
 
 import (

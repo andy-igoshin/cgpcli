@@ -15,7 +15,6 @@
 //   - Generics-Powered Operations: unified internal logic for setting and
 //     updating rules using Go Generics to ensure type safety across
 //     different rule levels.
-//
 package cgpcli
 
 import (

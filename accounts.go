@@ -10,7 +10,6 @@
 //   - Full support for Mail and Signal Rules.
 //   - Access control via ACLs and Rights management.
 //   - Alias and Telephony number (Telnums) configuration.
-//
 package cgpcli
 
 import (

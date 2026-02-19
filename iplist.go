@@ -14,7 +14,6 @@
 //     checks to determine if a specific net.IP is matched by any rule in the list.
 //   - Format Preservation: methods for parsing and writing lists while maintaining
 //     comment alignment and special character encoding required by the CommuniGate Pro CLI.
-//
 package cgpcli
 
 import (

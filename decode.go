@@ -22,7 +22,6 @@
 //
 // This parser is designed to be robust, handling potentially malformed or
 // unusually large responses without compromising system stability.
-//
 package cgpcli
 
 import (

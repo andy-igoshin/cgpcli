@@ -8,7 +8,6 @@
 //   - Posting new custom alerts for administrators or users to see.
 //   - Removing specific alerts using their unique timestamps.
 //   - Batch updating alert dictionaries.
-//
 package cgpcli
 
 import (

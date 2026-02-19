@@ -15,7 +15,6 @@
 //     environment through language-specific directories.
 //   - Discovery: listing available PBX files at various levels to
 //     inspect the current state of custom signaling logic.
-//
 package cgpcli
 
 import (

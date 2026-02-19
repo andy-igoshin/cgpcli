@@ -14,7 +14,6 @@
 //   - Operational State: suspending, resuming, and locating domain storage paths.
 //   - Rules & Directory: managing Domain-level Mail/Signal rules and synchronizing
 //     data with the Directory Service.
-//
 package cgpcli
 
 import (

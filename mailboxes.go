@@ -15,7 +15,6 @@
 //     information such as message counts and storage size.
 //   - On-behalf Operations: most methods support the "AUTH" parameter,
 //     enabling administrative actions on behalf of a specific user.
-//
 package cgpcli
 
 import (
