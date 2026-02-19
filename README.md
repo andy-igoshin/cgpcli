@@ -14,7 +14,6 @@ go get git.vsu.ru/ai/cgpcli
 package main
 
 import (
-	"fmt"
 	"git.vsu.ru/ai/cgpcli"
 )
 
