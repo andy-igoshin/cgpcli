@@ -10,7 +10,6 @@ import (
 )
 
 func main() {
-	// Используем переменные окружения из ваших тестов
 	cgpuser := os.Getenv("CGPUSER")
 	cgppass := os.Getenv("CGPPASS")
 
@@ -18,7 +17,6 @@ func main() {
 		log.Fatal("Error: please set CGPUSER and CGPPASS environment variables")
 	}
 
-	// Используем ваш конструктор New (APOP, без TLS для теста на 127.0.0.1)
 	cli, err := cgpcli.New("127.0.0.1", cgpuser, cgppass, cgpcli.APOP, false)
 	if err != nil {
 		log.Fatalf("Failed to connect: %v", err)
@@ -28,13 +26,11 @@ func main() {
 	fmt.Println("Connected to 127.0.0.1. Enumerating OIDs...")
 	fmt.Println(strings.Repeat("-", 40))
 
-	// Запрашиваем список
 	stats, err := cli.ListAllStats()
 	if err != nil {
 		log.Fatalf("Error during enumeration: %v", err)
 	}
 
-	// Выводим с порядковыми номерами
 	for i, name := range stats {
 		fmt.Printf("%04d | %s\n", i+1, name)
 	}

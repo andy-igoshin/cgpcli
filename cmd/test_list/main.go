@@ -28,7 +28,6 @@ func main() {
 	fmt.Println("--- Testing LISTDOMAINOBJECTS with Enum Flags ---")
 
 	// 3. Вызов функции с использованием битовой маски
-	// Например: запрашиваем Аккаунты и Форвардеры, игнорируя Алиасы
 	mask := cgpcli.TypeAccount | cgpcli.TypeForwarder | cgpcli.TypeAlias
 
 	res, err := cli.ListDomainObjects("test.domain.name", 100, "", mask, "")
@@ -36,14 +35,13 @@ func main() {
 		log.Fatalf("ListDomainObjects error: %v", err)
 	}
 
-	// 4. Красивый вывод через нашу утилиту
+	// 4. Красивый вывод
 	fmt.Println("\nStructure via PrettyPrint:")
 	cgpcli.PrettyPrint(res)
 
 	// 5. Демонстрация работы с типизированными данными
 	fmt.Printf("\n--- Summary (Total: %d, Cookie: '%s') ---\n", res.Total, res.Cookie)
 
-	// Сортируем ключи для красивого вывода в консоль
 	keys := make([]string, 0, len(res.Objects))
 	for k := range res.Objects {
 		keys = append(keys, k)
@@ -53,7 +51,6 @@ func main() {
 	for _, name := range keys {
 		obj := res.Objects[name]
 
-		// Благодаря Enum мы можем делать чистые проверки
 		typeLabel := obj.Type.String()
 
 		if len(obj.Targets) > 0 {

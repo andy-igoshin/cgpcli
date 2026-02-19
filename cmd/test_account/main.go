@@ -20,7 +20,7 @@ func main() {
 
 	if mode == "ro" {
 		suffix = "_RO"
-		defaultAccount = "testadmin@vsu.ru" // или любой другой боевой
+		defaultAccount = "testadmin@domain.name"
 		fmt.Println(">>> MODE: READ-ONLY (PRODUCTION) <<<")
 	} else {
 		fmt.Println(">>> MODE: LOCAL TEST <<<")

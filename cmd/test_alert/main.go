@@ -36,8 +36,6 @@ func main() {
 
 	// 2. Читаем алерты
 	fmt.Println("\n--- GETSERVERALERTS (Checking types) ---")
-	// Пока используем GetServerAlerts, который возвращает map[string]any (или уже map[string]string?)
-	// Чтобы увидеть "сырые" типы от парсера, проверим через Any.
 	res, err := cli.Query("GETSERVERALERTS")
 	if err != nil {
 		log.Fatalf("Get error: %v", err)

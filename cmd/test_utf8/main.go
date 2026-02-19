@@ -18,7 +18,6 @@ func main() {
 	}
 
 	// 2. Инициализация клиента
-	// Используем ваш конструктор New
 	cli, err := cgpcli.New("127.0.0.1", cgpuser, cgppass, cgpcli.APOP, false)
 	if err != nil {
 		log.Fatalf("Failed to connect: %v", err)
@@ -31,7 +30,6 @@ func main() {
 	fmt.Printf("Updating RealName for %s to: %s\n", targetAccount, russianName)
 
 	// 1. Устанавливаем русское имя
-	// UpdateAccountSettings отправляет данные через Marshal
 	err = cli.UpdateAccountSettings(targetAccount, map[string]any{
 		"RealName": russianName,
 	})
