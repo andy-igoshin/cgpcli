@@ -40,12 +40,12 @@ elif [ "$1" == "sandbox-test-one" ]; then
 
     echo ""
     echo "--- Running tests on sandbox ---"
-    ssh "${REMOTE_HOST}" "cd ${REMOTE_PATH} && ./build test-once $2"
+    ssh "${REMOTE_HOST}" "cd ${REMOTE_PATH} && ./build test-one $2"
 
 elif [ "$1" == "test" ]; then
     . .env
     go test -v
-elif [ "$1" == "test-once" ]; then
+elif [ "$1" == "test-one" ]; then
     . .env
     go test -v -run $2
 elif [ "$1" == "bench" ]; then
