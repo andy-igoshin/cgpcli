@@ -73,12 +73,7 @@ func (cli *Cli) CreateAccountStorage(domain, storage string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteDirectoryRecords(domain string) error {
-	const cmd = "DELETEDIRECTORYRECORDS"
-	if domain != "" {
-		return cli.QueryNV(cmd, domain)
-	} else {
-		return cli.QueryNV(cmd)
-	}
+	return cli.QueryNV("DELETEDIRECTORYRECORDS", Atom(domain))
 }
 
 // GetAccountDefaultPrefs retrieves the Default Account Preferences for the specified Domain.

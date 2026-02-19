@@ -129,6 +129,12 @@ func TestDomainAdministration(t *testing.T) {
 		if err := cli.DeleteDirectoryRecords(targetDomain); err != nil {
 			t.Errorf("DeleteDirectoryRecords failed: %v", err)
 		}
+		if err := cli.InsertDirectoryRecords(""); err != nil {
+			t.Errorf("InsertDirectoryRecords failed: %v", err)
+		}
+		if err := cli.DeleteDirectoryRecords(""); err != nil {
+			t.Errorf("DeleteDirectoryRecords failed: %v", err)
+		}
 	})
 
 	// 7. Состояние домена
