@@ -29,25 +29,25 @@ type GroupResult struct {
 // CreateGroup creates new Groups.
 //
 // Parameters:
-//   - group: the name for the new Group. The name can contain the @ symbol followed by the Domain name, in this case the Group is created in the specified Domain. If the Domain name is not specified, the command applies to the administrator Domain.
+//   - group: the name for the new Group. The name can include the Domain name, in this case the Group is created in the specified Domain.
+//     If the Domain name is not specified, the command applies to the administrator Domain.
 //   - settings: an optional initial Group settings and the members list.
 //
 // This method executes the CREATEGROUP CLI command.
 //
 // Returns:
 //   - error: an error if the command fails.
-func (cli *Cli) CreateGroup(group string, settings map[string]any) (err error) {
+func (cli *Cli) CreateGroup(group string, settings map[string]any) error {
 	if group == "" {
 		return fmt.Errorf("group name is required")
 	}
 
 	const cmd = "CREATEGROUP"
 	if settings != nil {
-		err = cli.QueryNV(cmd, group, settings)
+		return cli.QueryNV(cmd, group, settings)
 	} else {
-		err = cli.QueryNV(cmd, group)
+		return cli.QueryNV(cmd, group)
 	}
-	return
 }
 
 // DeleteGroup removes Groups.

@@ -48,18 +48,17 @@ func (cli *Cli) CreateClusterPBX(language string) error {
 //
 // Returns:
 //   - error: an error if the command fails.
-func (cli *Cli) CreateDomainPBX(domain, language string) (err error) {
+func (cli *Cli) CreateDomainPBX(domain, language string) error {
 	if domain == "" {
 		return fmt.Errorf("domain is required")
 	}
 
 	const cmd = "CREATEDOMAINPBX"
 	if language != "" {
-		err = cli.QueryNV(cmd, domain, "FILE", language)
+		return cli.QueryNV(cmd, domain, "FILE", language)
 	} else {
-		err = cli.QueryNV(cmd, domain)
+		return cli.QueryNV(cmd, domain)
 	}
-	return
 }
 
 // CreateServerPBX creates the Server-wide Real-Time Application Environment or its national subset.

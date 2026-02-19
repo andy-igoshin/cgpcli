@@ -246,18 +246,17 @@ func (cli *Cli) ListSubscribers(list, filter string, limit int) ([]string, error
 //
 // Returns:
 //   - error: an error if the command fails.
-func (cli *Cli) ProcessBounce(list, subscriber string, fatal bool) (err error) {
+func (cli *Cli) ProcessBounce(list, subscriber string, fatal bool) error {
 	if list == "" || subscriber == "" {
 		return fmt.Errorf("list name and subscriber address are required")
 	}
 
 	const cmd = "PROCESSBOUNCE"
 	if fatal {
-		err = cli.QueryNV(cmd, list, "FATAL", "FOR", subscriber)
+		return cli.QueryNV(cmd, list, "FATAL", "FOR", subscriber)
 	} else {
-		err = cli.QueryNV(cmd, list, "FOR", subscriber)
+		return cli.QueryNV(cmd, list, "FOR", subscriber)
 	}
-	return
 }
 
 // ReadSubscribers retrieves list subscribers with detailed information.
@@ -338,17 +337,16 @@ func (cli *Cli) RenameList(oldName, newName string) error {
 //
 // Returns:
 //   - error: an error if the command fails.
-func (cli *Cli) SetPostingMode(list, subscriber string, mode any) (err error) {
+func (cli *Cli) SetPostingMode(list, subscriber string, mode any) error {
 	if list == "" || subscriber == "" {
 		return fmt.Errorf("list name and subscriber address are required")
 	}
 
 	if mode != nil {
-		err = cli.QueryNV("SETPOSTINGMODE", list, "FOR", subscriber, mode)
+		return cli.QueryNV("SETPOSTINGMODE", list, "FOR", subscriber, mode)
 	} else {
-		err = cli.QueryNV("SETPOSTINGMODE", list, "FOR", subscriber)
+		return cli.QueryNV("SETPOSTINGMODE", list, "FOR", subscriber)
 	}
-	return
 }
 
 // UpdateList modifies list settings.

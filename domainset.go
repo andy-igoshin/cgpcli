@@ -34,18 +34,17 @@ import (
 //
 // Returns:
 //   - error: an error if the domain name is empty or the command fails.
-func (cli *Cli) CreateDirectoryDomain(domain string, settings map[string]any) (err error) {
+func (cli *Cli) CreateDirectoryDomain(domain string, settings map[string]any) error {
 	if domain == "" {
 		return fmt.Errorf("domain name is required")
 	}
 
 	const cmd = "CREATEDIRECTORYDOMAIN"
 	if settings != nil {
-		err = cli.QueryNV(cmd, domain, settings)
+		return cli.QueryNV(cmd, domain, settings)
 	} else {
-		err = cli.QueryNV(cmd, domain)
+		return cli.QueryNV(cmd, domain)
 	}
-	return
 }
 
 // CreateDomain creates a new secondary Domain.
@@ -89,18 +88,17 @@ func (cli *Cli) CreateDomain(domain string, settings map[string]any, storage str
 //
 // Returns:
 //   - error: an error if the storage path is empty or the command fails.
-func (cli *Cli) CreateDomainStorage(storage string, shared bool) (err error) {
+func (cli *Cli) CreateDomainStorage(storage string, shared bool) error {
 	if storage == "" {
 		return fmt.Errorf("storage path is required")
 	}
 
 	const cmd = "CREATEDOMAINSTORAGE"
 	if shared {
-		err = cli.QueryNV(cmd, "SHARED", "PATH", storage)
+		return cli.QueryNV(cmd, "SHARED", "PATH", storage)
 	} else {
-		err = cli.QueryNV(cmd, "PATH", storage)
+		return cli.QueryNV(cmd, "PATH", storage)
 	}
-	return
 }
 
 // DeleteDomain removes an existing Domain.
@@ -113,18 +111,17 @@ func (cli *Cli) CreateDomainStorage(storage string, shared bool) (err error) {
 //
 // Returns:
 //   - error: an error if the domain name is empty or the server fails to remove the domain.
-func (cli *Cli) DeleteDomain(domain string, force bool) (err error) {
+func (cli *Cli) DeleteDomain(domain string, force bool) error {
 	if domain == "" {
 		return fmt.Errorf("domain name is required")
 	}
 
 	const cmd = "DELETEDOMAIN"
 	if force {
-		err = cli.QueryNV(cmd, domain, "FORCE")
+		return cli.QueryNV(cmd, domain, "FORCE")
 	} else {
-		err = cli.QueryNV(cmd, domain)
+		return cli.QueryNV(cmd, domain)
 	}
-	return
 }
 
 // GetClusterAccountDefaults retrieves the cluster-wide Default Account settings.
@@ -262,14 +259,13 @@ func (cli *Cli) ListClusterTelnums(filter string, limit int) (map[string]string,
 // Returns:
 //   - []string: an array containing the "storage mount points" names.
 //   - error: an error if the command fails.
-func (cli *Cli) ListDomainStorage(shared bool) (res []string, err error) {
+func (cli *Cli) ListDomainStorage(shared bool) ([]string, error) {
 	const cmd = "LISTDOMAINSTORAGE"
 	if shared {
-		res, err = cli.getSliceString(cmd, "SHARED")
+		return cli.getSliceString(cmd, "SHARED")
 	} else {
-		res, err = cli.getSliceString(cmd)
+		return cli.getSliceString(cmd)
 	}
-	return
 }
 
 // ListDomains retrieves the names of all server domains.
@@ -331,18 +327,17 @@ func (cli *Cli) ReloadDirectoryDomains() error {
 //
 // Returns:
 //   - error: an error if names are missing or the server fails to rename the domain.
-func (cli *Cli) RenameDomain(oldName, newName string, storage string) (err error) {
+func (cli *Cli) RenameDomain(oldName, newName string, storage string) error {
 	if oldName == "" || newName == "" {
 		return fmt.Errorf("old and new domain names are required")
 	}
 
 	const cmd = "RENAMEDOMAIN"
 	if storage != "" {
-		err = cli.QueryNV(cmd, oldName, "INTO", newName, "PATH", storage)
+		return cli.QueryNV(cmd, oldName, "INTO", newName, "PATH", storage)
 	} else {
-		err = cli.QueryNV(cmd, oldName, "INTO", newName)
+		return cli.QueryNV(cmd, oldName, "INTO", newName)
 	}
-	return
 }
 
 // SetClusterAccountDefaults replaces the cluster-wide Default Account settings.

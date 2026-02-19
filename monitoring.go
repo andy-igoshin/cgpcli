@@ -52,15 +52,15 @@ func (cli *Cli) GetDialogInfo(dialogID int64) (map[string]any, error) {
 // Returns:
 //   - string: the ObjectID of the next statistics element.
 //   - error: returns io.EOF if the current element is the last one available.
-func (cli *Cli) GetNextStatName(objectID string) (s string, err error) {
-	s, err = cli.getString("GETNEXTSTATNAME", objectID)
+func (cli *Cli) GetNextStatName(objectID string) (string, error) {
+	s, err := cli.getString("GETNEXTSTATNAME", objectID)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			return "", io.EOF
 		}
 		return "", err
 	}
-	return
+	return s, err
 }
 
 // GetStatElement retrieves the current value of a Server statistics (SNMP) element.

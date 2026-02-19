@@ -62,7 +62,7 @@ func (cli *Cli) CreateMailbox(account, mailbox, class, authAccount string) error
 //
 // Returns:
 //   - error: an error if the command fails.
-func (cli *Cli) DeleteMailbox(account, mailbox string, recursive bool, authAccount string) (err error) {
+func (cli *Cli) DeleteMailbox(account, mailbox string, recursive bool, authAccount string) error {
 	if account == "" || mailbox == "" {
 		return fmt.Errorf("account name and mailbox name are required")
 	}
@@ -72,11 +72,10 @@ func (cli *Cli) DeleteMailbox(account, mailbox string, recursive bool, authAccou
 		keyword = "MAILBOXES"
 	}
 	if authAccount != "" {
-		err = cli.QueryNV("DELETEMAILBOX", Atom(account), keyword, mailbox, "AUTH", authAccount)
+		return cli.QueryNV("DELETEMAILBOX", Atom(account), keyword, mailbox, "AUTH", authAccount)
 	} else {
-		err = cli.QueryNV("DELETEMAILBOX", Atom(account), keyword, mailbox)
+		return cli.QueryNV("DELETEMAILBOX", Atom(account), keyword, mailbox)
 	}
-	return
 }
 
 // GetMailboxACL retrieves the access control list for the Account Mailbox.
@@ -91,18 +90,17 @@ func (cli *Cli) DeleteMailbox(account, mailbox string, recursive bool, authAccou
 // Returns:
 //   - map[string]string: a dictionary with the Mailbox access elements.
 //   - error: an error if the command fails.
-func (cli *Cli) GetMailboxACL(account, mailbox, authAccount string) (res map[string]string, err error) {
+func (cli *Cli) GetMailboxACL(account, mailbox, authAccount string) (map[string]string, error) {
 	if account == "" || mailbox == "" {
 		return nil, fmt.Errorf("account name and mailbox name are required")
 	}
 
 	const cmd = "GETMAILBOXACL"
 	if authAccount != "" {
-		res, err = cli.getMapString(cmd, Atom(account), "MAILBOX", mailbox, "AUTH", authAccount)
+		return cli.getMapString(cmd, Atom(account), "MAILBOX", mailbox, "AUTH", authAccount)
 	} else {
-		res, err = cli.getMapString(cmd, Atom(account), "MAILBOX", mailbox)
+		return cli.getMapString(cmd, Atom(account), "MAILBOX", mailbox)
 	}
-	return
 }
 
 // GetMailboxAliases retrieves the Account Mailbox aliases.
@@ -134,18 +132,17 @@ func (cli *Cli) GetMailboxAliases(account string) (map[string]string, error) {
 // Returns:
 //   - map[string]any: a dictionary with the Mailbox internal information.
 //   - error: an error if the command fails.
-func (cli *Cli) GetMailboxInfo(account, mailbox, authAccount string) (res map[string]any, err error) {
+func (cli *Cli) GetMailboxInfo(account, mailbox, authAccount string) (map[string]any, error) {
 	if account == "" || mailbox == "" {
 		return nil, fmt.Errorf("account and mailbox names are required")
 	}
 
 	const cmd = "GETMAILBOXINFO"
 	if authAccount != "" {
-		res, err = cli.getMapAny(cmd, Atom(account), "MAILBOX", mailbox, "AUTH", authAccount)
+		return cli.getMapAny(cmd, Atom(account), "MAILBOX", mailbox, "AUTH", authAccount)
 	} else {
-		res, err = cli.getMapAny(cmd, Atom(account), "MAILBOX", mailbox)
+		return cli.getMapAny(cmd, Atom(account), "MAILBOX", mailbox)
 	}
-	return
 }
 
 // GetMailboxRights retrieves the effective Mailbox access rights based on the Mailbox ACL for the given authAccountName.
@@ -225,7 +222,7 @@ func (cli *Cli) ListMailboxes(account, filter, authAccount string) (map[string]a
 //
 // Returns:
 //   - error: an error if the command fails.
-func (cli *Cli) RenameMailbox(account, oldName, newName string, recursive bool, authAccount string) (err error) {
+func (cli *Cli) RenameMailbox(account, oldName, newName string, recursive bool, authAccount string) error {
 	if account == "" || oldName == "" || newName == "" {
 		return fmt.Errorf("account, old and new names are required")
 	}
@@ -236,11 +233,10 @@ func (cli *Cli) RenameMailbox(account, oldName, newName string, recursive bool, 
 		keyword = "MAILBOXES"
 	}
 	if authAccount != "" {
-		err = cli.QueryNV(cmd, Atom(account), keyword, oldName, "INTO", newName, "AUTH", authAccount)
+		return cli.QueryNV(cmd, Atom(account), keyword, oldName, "INTO", newName, "AUTH", authAccount)
 	} else {
-		err = cli.QueryNV(cmd, Atom(account), keyword, oldName, "INTO", newName)
+		return cli.QueryNV(cmd, Atom(account), keyword, oldName, "INTO", newName)
 	}
-	return
 }
 
 // SetMailboxACL modifies the access control list for the Account Mailbox.
@@ -255,18 +251,17 @@ func (cli *Cli) RenameMailbox(account, oldName, newName string, recursive bool, 
 //
 // Returns:
 //   - error: an error if the command fails.
-func (cli *Cli) SetMailboxACL(account, mailbox string, acl map[string]string, authAccount string) (err error) {
+func (cli *Cli) SetMailboxACL(account, mailbox string, acl map[string]string, authAccount string) error {
 	if account == "" || mailbox == "" || acl == nil {
 		return fmt.Errorf("account, mailbox and non-empty acl are required")
 	}
 
 	const cmd = "SETMAILBOXACL"
 	if authAccount != "" {
-		err = cli.QueryNV(cmd, Atom(account), "MAILBOX", mailbox, "AUTH", authAccount, acl)
+		return cli.QueryNV(cmd, Atom(account), "MAILBOX", mailbox, "AUTH", authAccount, acl)
 	} else {
-		err = cli.QueryNV(cmd, Atom(account), "MAILBOX", mailbox, acl)
+		return cli.QueryNV(cmd, Atom(account), "MAILBOX", mailbox, acl)
 	}
-	return
 }
 
 // SetMailboxAliases sets the Account Mailbox aliases.
@@ -298,18 +293,17 @@ func (cli *Cli) SetMailboxAliases(account string, aliases map[string]string) err
 //
 // Returns:
 //   - error: an error if the command fails.
-func (cli *Cli) SetMailboxClass(account, mailbox, class, authAccount string) (err error) {
+func (cli *Cli) SetMailboxClass(account, mailbox, class, authAccount string) error {
 	if account == "" || mailbox == "" || class == "" {
 		return fmt.Errorf("account, mailbox and class are required")
 	}
 
 	const cmd = "SETMAILBOXCLASS"
 	if authAccount != "" {
-		err = cli.QueryNV(cmd, Atom(account), "MAILBOX", mailbox, "AUTH", authAccount, "CLASS", class)
+		return cli.QueryNV(cmd, Atom(account), "MAILBOX", mailbox, "AUTH", authAccount, "CLASS", class)
 	} else {
-		err = cli.QueryNV(cmd, Atom(account), "MAILBOX", mailbox, "CLASS", class)
+		return cli.QueryNV(cmd, Atom(account), "MAILBOX", mailbox, "CLASS", class)
 	}
-	return
 }
 
 // SetMailboxSubscription sets the Account "subscribed Mailboxes" list.

@@ -181,7 +181,7 @@ func marshal(w encodeWriter, v any, keyName string) (err error) {
 			w.WriteString(tm.UTC().Format(cgpInternalTimeLayout))
 			err = w.WriteByte('"')
 		}
-		return err
+		return
 
 	case cgpIPSB:
 		w.WriteByte('"')
@@ -189,7 +189,7 @@ func marshal(w encodeWriter, v any, keyName string) (err error) {
 		w.WriteString(net.IP(val).String())
 		w.WriteByte(']')
 		err = w.WriteByte('"')
-		return err
+		return
 
 	case cgpIPSBSA:
 		w.WriteByte('"')
@@ -203,25 +203,25 @@ func marshal(w encodeWriter, v any, keyName string) (err error) {
 			w.WriteByte(']')
 		}
 		err = w.WriteByte('"')
-		return err
+		return
 
 	case cgpSize:
 		_, err = w.WriteString(formatCGPSize(int64(val)))
-		return err
+		return
 
 	case cgpDuration:
 		_, err = w.WriteString(formatCGPDuration(time.Duration(val)))
-		return err
+		return
 
 	case Atom:
 		_, err = w.WriteString(string(val))
-		return err
+		return
 
 	case DataBlock:
 		w.WriteByte('[')
 		w.Write(val)
 		err = w.WriteByte(']')
-		return err
+		return
 
 	case []byte:
 		w.WriteByte('[')
@@ -229,19 +229,19 @@ func marshal(w encodeWriter, v any, keyName string) (err error) {
 		enc.Write(val)
 		enc.Close()
 		err = w.WriteByte(']')
-		return err
+		return
 
 	// --- Строки ---
 	case string:
 		if isCGPSafeString(val) {
 			_, err = w.WriteString(val)
-			return err
+			return
 		}
 		if err = w.WriteByte('"'); err != nil {
-			return err
+			return
 		}
 		if _, err = w.WriteString(replaceSpecChars(val)); err != nil {
-			return err
+			return
 		}
 		return w.WriteByte('"')
 
@@ -253,23 +253,23 @@ func marshal(w encodeWriter, v any, keyName string) (err error) {
 	case time.Time:
 		if val.IsZero() {
 			_, err = w.WriteString("#NULL#")
-			return err
+			return
 		}
 		if val.Equal(TimePast) {
 			_, err = w.WriteString("#TPAST")
-			return err
+			return
 		}
 		if val.Equal(TimeFuture) {
 			_, err = w.WriteString("#TFUTURE")
-			return err
+			return
 		}
 		w.WriteString("#T")
 		_, err = w.WriteString(val.UTC().Format(cgpInternalTimeLayout))
-		return err
+		return
 
 	case time.Duration:
 		_, err = w.WriteString(formatCGPDuration(val))
-		return err
+		return
 
 	// --- Словари (Maps) ---
 	case map[string]any:
@@ -287,8 +287,7 @@ func marshal(w encodeWriter, v any, keyName string) (err error) {
 			}
 			marshal(w, item, "")
 		}
-		err = w.WriteByte(')')
-		return err
+		return w.WriteByte(')')
 
 	case []string:
 		w.WriteByte('(')
@@ -298,33 +297,32 @@ func marshal(w encodeWriter, v any, keyName string) (err error) {
 			}
 			marshal(w, s, "")
 		}
-		err = w.WriteByte(')')
-		return err
+		return w.WriteByte(')')
 
 	// --- Остальное ---
 	case bool:
 		if val {
 			_, err = w.WriteString("YES")
-			return err
+			return
 		}
 		_, err = w.WriteString("NO")
-		return err
+		return
 
 	case nil:
 		_, err = w.WriteString("#NULL#")
-		return err
+		return
 
 	default:
 		strVal := fmt.Sprint(val)
 		if isCGPSafeString(strVal) {
 			_, err = w.WriteString(strVal)
-			return err
+			return
 		}
 		if err = w.WriteByte('"'); err != nil {
-			return err
+			return
 		}
 		if _, err = w.WriteString(replaceSpecChars(strVal)); err != nil {
-			return err
+			return
 		}
 		return w.WriteByte('"')
 	}

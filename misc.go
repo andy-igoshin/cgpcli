@@ -61,14 +61,13 @@ const (
 //
 // Returns:
 //   - error: an error if the command fails.
-func (cli *Cli) DumpAllObjects(file bool) (err error) {
+func (cli *Cli) DumpAllObjects(file bool) error {
 	const cmd = "DUMPALLOBJECTS"
 	if file {
-		err = cli.QueryNV(cmd, "FILE")
+		return cli.QueryNV(cmd, "FILE")
 	} else {
-		err = cli.QueryNV(cmd)
+		return cli.QueryNV(cmd)
 	}
-	return
 }
 
 // Echo produces an output which is a copy of the command parameter object.
@@ -256,13 +255,12 @@ func (cli *Cli) ReconnectClusterAdmin() error {
 //
 // Returns:
 //   - error: an error if the command fails.
-func (cli *Cli) RejectQueueMessage(id int64, report string) (err error) {
+func (cli *Cli) RejectQueueMessage(id int64, report string) error {
 	if report != "" {
-		err = cli.QueryNV("REJECTQUEUEMESSAGE", id, "REPORT", report)
+		return cli.QueryNV("REJECTQUEUEMESSAGE", id, "REPORT", report)
 	} else {
-		err = cli.QueryNV("REJECTQUEUEMESSAGE", id)
+		return cli.QueryNV("REJECTQUEUEMESSAGE", id)
 	}
-	return
 }
 
 // RejectQueueMessages rejects all messages sent by the specified sender from the Server Queue.
@@ -278,17 +276,16 @@ func (cli *Cli) RejectQueueMessage(id int64, report string) (err error) {
 //
 // Returns:
 //   - error: an error if the command fails.
-func (cli *Cli) RejectQueueMessages(sender, report string) (err error) {
+func (cli *Cli) RejectQueueMessages(sender, report string) error {
 	if sender == "" {
 		return fmt.Errorf("sender is required")
 	}
 
 	if report != "" {
-		err = cli.QueryNV("REJECTQUEUEMESSAGES", "SENDER", sender, "REPORT", report)
+		return cli.QueryNV("REJECTQUEUEMESSAGES", "SENDER", sender, "REPORT", report)
 	} else {
-		err = cli.QueryNV("REJECTQUEUEMESSAGES", "SENDER", sender)
+		return cli.QueryNV("REJECTQUEUEMESSAGES", "SENDER", sender)
 	}
-	return
 }
 
 // ReleaseSMTPQueue releases an SMTP queue.
@@ -406,17 +403,16 @@ func (cli *Cli) SetTrace(facility TraceFacility, on bool) error {
 //
 // Returns:
 //   - error: an error if the command fails.
-func (cli *Cli) TempBlacklistIP(ip net.IP, timeout time.Duration) (err error) {
+func (cli *Cli) TempBlacklistIP(ip net.IP, timeout time.Duration) error {
 	if ip == nil {
 		return fmt.Errorf("IP address is required")
 	}
 
 	if timeout <= 0 {
-		err = cli.QueryNV("TEMPBLACKLISTIP", ip.String(), "DELETE")
+		return cli.QueryNV("TEMPBLACKLISTIP", ip.String(), "DELETE")
 	} else {
-		err = cli.QueryNV("TEMPBLACKLISTIP", ip.String(), "TIMEOUT", int(timeout.Seconds()))
+		return cli.QueryNV("TEMPBLACKLISTIP", ip.String(), "TIMEOUT", int(timeout.Seconds()))
 	}
-	return
 }
 
 // TempUnblockIP adds or removes an address from the Temporary UnBlockable IP Addresses set.
@@ -429,17 +425,16 @@ func (cli *Cli) TempBlacklistIP(ip net.IP, timeout time.Duration) (err error) {
 //
 // Returns:
 //   - error: an error if the command fails.
-func (cli *Cli) TempUnblockIP(ip net.IP, timeout time.Duration) (err error) {
+func (cli *Cli) TempUnblockIP(ip net.IP, timeout time.Duration) error {
 	if ip == nil {
 		return fmt.Errorf("IP address is required")
 	}
 
 	if timeout <= 0 {
-		err = cli.QueryNV("TEMPUNBLOCKIP", ip.String(), "DELETE")
+		return cli.QueryNV("TEMPUNBLOCKIP", ip.String(), "DELETE")
 	} else {
-		err = cli.QueryNV("TEMPUNBLOCKIP", ip.String(), "TIMEOUT", int(timeout.Seconds()))
+		return cli.QueryNV("TEMPUNBLOCKIP", ip.String(), "TIMEOUT", int(timeout.Seconds()))
 	}
-	return
 }
 
 // TestLoop tests the server CPU load by executing a calculation loop for the specified number of seconds.
