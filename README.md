@@ -1,6 +1,13 @@
 # cgpcli
 
+[![Go Reference](https://pkg.go.dev/badge/git.vsu.ru/ai/cgpcli.svg)](https://pkg.go.dev/git.vsu.ru/ai/cgpcli)
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](LICENSE.md)
+
 `cgpcli` is a Go client library for the **CommuniGate Pro** CLI. It provides a reliable bridge between CGP's unique syntax and native Go types with a focus on efficiency and correct type mapping.
+
+## Documentation
+
+Full API documentation and usage examples are available at [pkg.go.dev](https://pkg.go.dev/git.vsu.ru/ai/cgpcli).
 
 ## Installation
 
