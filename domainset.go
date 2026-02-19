@@ -32,7 +32,7 @@ import (
 // This method executes the CREATEDIRECTORYDOMAIN CLI command.
 //
 // Returns:
-//   - error: an error if the domain name is empty or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) CreateDirectoryDomain(domain string, settings map[string]any) error {
 	if domain == "" {
 		return fmt.Errorf("domain name is required")
@@ -57,7 +57,7 @@ func (cli *Cli) CreateDirectoryDomain(domain string, settings map[string]any) er
 // This method executes the CREATEDOMAIN CLI command.
 //
 // Returns:
-//   - error: an error if the domain name is empty or the server fails to create the domain.
+//   - error: an error if the command fails.
 func (cli *Cli) CreateDomain(domain string, settings map[string]any, storage string, shared bool) error {
 	if domain == "" {
 		return fmt.Errorf("domain name is required")
@@ -86,7 +86,7 @@ func (cli *Cli) CreateDomain(domain string, settings map[string]any, storage str
 // This method executes the CREATEDOMAINSTORAGE CLI command.
 //
 // Returns:
-//   - error: an error if the storage path is empty or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) CreateDomainStorage(storage string, shared bool) error {
 	if storage == "" {
 		return fmt.Errorf("storage path is required")
@@ -109,7 +109,7 @@ func (cli *Cli) CreateDomainStorage(storage string, shared bool) error {
 // This method executes the DELETEDOMAIN CLI command.
 //
 // Returns:
-//   - error: an error if the domain name is empty or the server fails to remove the domain.
+//   - error: an error if the command fails.
 func (cli *Cli) DeleteDomain(domain string, force bool) error {
 	if domain == "" {
 		return fmt.Errorf("domain name is required")
@@ -129,7 +129,7 @@ func (cli *Cli) DeleteDomain(domain string, force bool) error {
 //
 // Returns:
 //   - map[string]any: a dictionary with the cluster default Account settings.
-//   - error: an error if the command fails or is not executed in a Dynamic Cluster.
+//   - error: an error if the command fails.
 func (cli *Cli) GetClusterAccountDefaults() (map[string]any, error) {
 	return cli.getMapAny("GETCLUSTERACCOUNTDEFAULTS")
 }
@@ -140,7 +140,7 @@ func (cli *Cli) GetClusterAccountDefaults() (map[string]any, error) {
 //
 // Returns:
 //   - map[string]any: a dictionary with the cluster default Preferences.
-//   - error: an error if the command fails or is not executed in a Dynamic Cluster.
+//   - error: an error if the command fails.
 func (cli *Cli) GetClusterAccountPrefs() (map[string]any, error) {
 	return cli.getMapAny("GETCLUSTERACCOUNTPREFS")
 }
@@ -151,7 +151,7 @@ func (cli *Cli) GetClusterAccountPrefs() (map[string]any, error) {
 //
 // Returns:
 //   - map[string]any: a dictionary with the cluster Directory Integration settings.
-//   - error: an error if the command fails or is not executed in a Dynamic Cluster.
+//   - error: an error if the command fails.
 func (cli *Cli) GetClusterDirectoryIntegration() (map[string]any, error) {
 	return cli.getMapAny("GETCLUSTERDIRECTORYINTEGRATION")
 }
@@ -162,7 +162,7 @@ func (cli *Cli) GetClusterDirectoryIntegration() (map[string]any, error) {
 //
 // Returns:
 //   - map[string]any: a dictionary with the cluster-wide default Domain Settings.
-//   - error: an error if the command fails or is not executed in a Dynamic Cluster.
+//   - error: an error if the command fails.
 func (cli *Cli) GetClusterDomainDefaults() (map[string]any, error) {
 	return cli.getMapAny("GETCLUSTERDOMAINDEFAULTS")
 }
@@ -310,7 +310,7 @@ func (cli *Cli) MainDomainName() (string, error) {
 // This method executes the RELOADDIRECTORYDOMAINS CLI command.
 //
 // Returns:
-//   - error: an error if the operation is not enabled or fails.
+//   - error: an error if the command fails.
 func (cli *Cli) ReloadDirectoryDomains() error {
 	return cli.QueryNV("RELOADDIRECTORYDOMAINS")
 }
@@ -325,7 +325,7 @@ func (cli *Cli) ReloadDirectoryDomains() error {
 // This method executes the RENAMEDOMAIN CLI command.
 //
 // Returns:
-//   - error: an error if names are missing or the server fails to rename the domain.
+//   - error: an error if the command fails.
 func (cli *Cli) RenameDomain(oldName, newName string, storage string) error {
 	if oldName == "" || newName == "" {
 		return fmt.Errorf("old and new domain names are required")
@@ -347,7 +347,7 @@ func (cli *Cli) RenameDomain(oldName, newName string, storage string) error {
 // This method executes the SETCLUSTERACCOUNTDEFAULTS CLI command.
 //
 // Returns:
-//   - error: an error if settings are nil or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetClusterAccountDefaults(settings map[string]any) error {
 	if settings == nil {
 		return fmt.Errorf("settings dictionary is required")
@@ -363,7 +363,7 @@ func (cli *Cli) SetClusterAccountDefaults(settings map[string]any) error {
 // This method executes the SETCLUSTERACCOUNTPREFS CLI command.
 //
 // Returns:
-//   - error: an error if settings are nil or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetClusterAccountPrefs(settings map[string]any) error {
 	if settings == nil {
 		return fmt.Errorf("settings dictionary is required")
@@ -379,7 +379,7 @@ func (cli *Cli) SetClusterAccountPrefs(settings map[string]any) error {
 // This method executes the SETCLUSTERDIRECTORYINTEGRATION CLI command.
 //
 // Returns:
-//   - error: an error if settings are nil or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetClusterDirectoryIntegration(settings map[string]any) error {
 	if settings == nil {
 		return fmt.Errorf("settings dictionary is required")
@@ -395,7 +395,7 @@ func (cli *Cli) SetClusterDirectoryIntegration(settings map[string]any) error {
 // This method executes the SETCLUSTERDOMAINDEFAULTS CLI command.
 //
 // Returns:
-//   - error: an error if settings are nil or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetClusterDomainDefaults(settings map[string]any) error {
 	if settings == nil {
 		return fmt.Errorf("settings dictionary is required")
@@ -411,7 +411,7 @@ func (cli *Cli) SetClusterDomainDefaults(settings map[string]any) error {
 // This method executes the SETCLUSTERTRUSTEDCERTS CLI command.
 //
 // Returns:
-//   - error: an error if the input is nil or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetClusterTrustedCerts(certs []string) error {
 	if certs == nil {
 		return fmt.Errorf("certs array is required")
@@ -427,7 +427,7 @@ func (cli *Cli) SetClusterTrustedCerts(certs []string) error {
 // This method executes the SETDIRECTORYINTEGRATION CLI command.
 //
 // Returns:
-//   - error: an error if settings are nil or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetDirectoryIntegration(settings map[string]any) error {
 	if settings == nil {
 		return fmt.Errorf("settings dictionary is required")
@@ -443,7 +443,7 @@ func (cli *Cli) SetDirectoryIntegration(settings map[string]any) error {
 // This method executes the SETDOMAINDEFAULTS CLI command.
 //
 // Returns:
-//   - error: an error if settings are nil or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetDomainDefaults(settings map[string]any) error {
 	if settings == nil {
 		return fmt.Errorf("settings dictionary is required")
@@ -459,7 +459,7 @@ func (cli *Cli) SetDomainDefaults(settings map[string]any) error {
 // This method executes the SETSERVERACCOUNTDEFAULTS CLI command.
 //
 // Returns:
-//   - error: an error if settings are nil or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetServerAccountDefaults(settings map[string]any) error {
 	if settings == nil {
 		return fmt.Errorf("settings dictionary is required")
@@ -475,7 +475,7 @@ func (cli *Cli) SetServerAccountDefaults(settings map[string]any) error {
 // This method executes the SETSERVERACCOUNTPREFS CLI command.
 //
 // Returns:
-//   - error: an error if settings are nil or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetServerAccountPrefs(settings map[string]any) error {
 	if settings == nil {
 		return fmt.Errorf("settings dictionary is required")
@@ -491,7 +491,7 @@ func (cli *Cli) SetServerAccountPrefs(settings map[string]any) error {
 // This method executes the SETSERVERTRUSTEDCERTS CLI command.
 //
 // Returns:
-//   - error: an error if the input is nil or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetServerTrustedCerts(certs []string) error {
 	if certs == nil {
 		return fmt.Errorf("certs array is required")
@@ -507,7 +507,7 @@ func (cli *Cli) SetServerTrustedCerts(certs []string) error {
 // This method executes the UPDATECLUSTERACCOUNTDEFAULTS CLI command.
 //
 // Returns:
-//   - error: an error if settings are empty or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) UpdateClusterAccountDefaults(settings map[string]any) error {
 	if len(settings) == 0 {
 		return fmt.Errorf("settings dictionary is required")
@@ -523,7 +523,7 @@ func (cli *Cli) UpdateClusterAccountDefaults(settings map[string]any) error {
 // This method executes the UPDATECLUSTERACCOUNTPREFS CLI command.
 //
 // Returns:
-//   - error: an error if settings are empty or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) UpdateClusterAccountPrefs(settings map[string]any) error {
 	if len(settings) == 0 {
 		return fmt.Errorf("settings dictionary is required")
@@ -539,7 +539,7 @@ func (cli *Cli) UpdateClusterAccountPrefs(settings map[string]any) error {
 // This method executes the UPDATECLUSTERDOMAINDEFAULTS CLI command.
 //
 // Returns:
-//   - error: an error if settings are empty or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) UpdateClusterDomainDefaults(settings map[string]any) error {
 	if len(settings) == 0 {
 		return fmt.Errorf("settings dictionary is required")
@@ -555,7 +555,7 @@ func (cli *Cli) UpdateClusterDomainDefaults(settings map[string]any) error {
 // This method executes the UPDATEDOMAINDEFAULTS CLI command.
 //
 // Returns:
-//   - error: an error if settings are empty or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) UpdateDomainDefaults(settings map[string]any) error {
 	if len(settings) == 0 {
 		return fmt.Errorf("settings dictionary is required")
@@ -571,7 +571,7 @@ func (cli *Cli) UpdateDomainDefaults(settings map[string]any) error {
 // This method executes the UPDATESERVERACCOUNTDEFAULTS CLI command.
 //
 // Returns:
-//   - error: an error if settings are empty or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) UpdateServerAccountDefaults(settings map[string]any) error {
 	if len(settings) == 0 {
 		return fmt.Errorf("settings dictionary is required")
@@ -587,7 +587,7 @@ func (cli *Cli) UpdateServerAccountDefaults(settings map[string]any) error {
 // This method executes the UPDATESERVERACCOUNTPREFS CLI command.
 //
 // Returns:
-//   - error: an error if settings are empty or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) UpdateServerAccountPrefs(settings map[string]any) error {
 	if len(settings) == 0 {
 		return fmt.Errorf("settings dictionary is required")

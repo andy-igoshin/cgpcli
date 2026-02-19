@@ -44,9 +44,6 @@ type RouterList []RouterEntry
 //   - rule: the routing rule string (e.g., "<*@domain.com> = user@other.com").
 //   - comment: optional text to be placed after the semicolon.
 //   - alignPos: the character position where the semicolon should be placed.
-//
-// Returns:
-//   - None.
 func (l *RouterList) Add(rule, comment string, alignPos int) {
 	*l = append(*l, RouterEntry{
 		Rule:    rule,

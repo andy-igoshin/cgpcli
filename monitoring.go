@@ -71,7 +71,7 @@ func (cli *Cli) GetNextStatName(objectID string) (string, error) {
 //
 // Returns:
 //   - any: a number, string, or other object representing the element value.
-//   - error: an error if the ObjectID is not found.
+//   - error: an error if the command fails.
 func (cli *Cli) GetStatElement(objectID string) (any, error) {
 	if objectID == "" {
 		return nil, fmt.Errorf("objectID is required")
@@ -84,7 +84,7 @@ func (cli *Cli) GetStatElement(objectID string) (any, error) {
 //
 // Returns:
 //   - []string: a slice containing all discovered statistic names.
-//   - error: an error if any part of the iteration fails.
+//   - error: an error if the command fails.
 func (cli *Cli) ListAllStats() ([]string, error) {
 	stats := make([]string, 0, statsCapacity)
 	var current string
@@ -113,7 +113,7 @@ func (cli *Cli) ListAllStats() ([]string, error) {
 // This method executes the SETSTATELEMENT CLI command.
 //
 // Returns:
-//   - error: an error if the element is not "Custom" or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetStatElement(objectID, op string, val int64) error {
 	if objectID == "" {
 		return fmt.Errorf("objectID is required")

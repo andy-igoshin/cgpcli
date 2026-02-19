@@ -38,7 +38,7 @@ import (
 //
 // Returns:
 //   - any: the object returned by the script (string, map, array, etc.).
-//   - error: an error if the command fails or the script execution encounters an error.
+//   - error: an error if the command fails.
 func (cli *Cli) RunScript(account, prog, entry string, param map[string]any) (any, error) {
 	if account == "" || prog == "" {
 		return nil, fmt.Errorf("account name and prog name are required")

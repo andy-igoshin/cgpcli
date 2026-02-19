@@ -26,7 +26,7 @@ import (
 // are removed and replaced by the rights array.
 //
 // Returns:
-//   - error: an error if the account does not exist or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetAccountRights(account string, rights []string) error {
 	if account == "" {
 		return fmt.Errorf("account name is required")

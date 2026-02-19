@@ -274,7 +274,7 @@ func (cli *Cli) GetDNRSettings() (map[string]any, error) {
 // GetIPState retrieves the type assigned to the specified IP address.
 //
 // Parameters:
-//   - ip: specifies the IP address to check.
+//   - ip: the IP address to check.
 //   - temp: if true, the temporary Client IP Addresses set is checked.
 //
 // This method executes the GETIPSTATE CLI command.
@@ -327,7 +327,7 @@ func (cli *Cli) GetMediaServerSettings() (map[string]any, error) {
 // GetModule retrieves settings for a specific Server module.
 //
 // Parameters:
-//   - name: specifies the name of a CommuniGate Pro Server module.
+//   - name: the name of a CommuniGate Pro Server module.
 //
 // This method executes the GETMODULE CLI command.
 //
@@ -516,7 +516,7 @@ func (cli *Cli) RefreshOSData() error {
 // Route retrieves the routing for the specified address.
 //
 // Parameters:
-//   - address: specifies the e-mail address to be processed.
+//   - address: the e-mail address to be processed.
 //   - mode: an optional the routing type (mail, access, or signal).
 //     Defaults to access.
 //
@@ -872,7 +872,7 @@ func (cli *Cli) SetMediaServerSettings(settings map[string]any) error {
 // SetModule replaces the settings for a specific Server module.
 //
 // Parameters:
-//   - module: specifies the name of a CommuniGate Pro Server module.
+//   - module: the name of a CommuniGate Pro Server module.
 //   - settings: a dictionary containing the new module settings.
 //
 // This method executes the SETMODULE CLI command.
@@ -1101,7 +1101,7 @@ func (cli *Cli) UpdateLogSettings(settings map[string]any) error {
 // UpdateModule modifies the settings for a specific Server module.
 //
 // Parameters:
-//   - module: specifies the name of a CommuniGate Pro Server module.
+//   - module: the name of a CommuniGate Pro Server module.
 //   - settings: a dictionary containing settings to be updated.
 //
 // This method executes the UPDATEMODULE CLI command.

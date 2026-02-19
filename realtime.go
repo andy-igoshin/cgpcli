@@ -239,7 +239,7 @@ func (cli *Cli) ListServerPBXFiles(language string) (map[string]*FileInfo, error
 // ListStockPBXFiles lists files in the stock (built-in) Real-Time Application Environment.
 //
 // Parameters:
-//   - language: an optionsl national subset name.
+//   - language: an optional national subset name.
 //
 // This method executes the LISTSTOCKPBXFILES CLI command.
 //
@@ -336,7 +336,7 @@ func (cli *Cli) ReadStockPBXFile(file string) ([]byte, error) {
 // This method executes the STORECLUSTERPBXFILE CLI command.
 //
 // Returns:
-//   - error: an error if the command fails or data is nil.
+//   - error: an error if the command fails.
 func (cli *Cli) StoreClusterPBXFile(file string, data []byte) error {
 	if file == "" || data == nil {
 		return fmt.Errorf("file and data are required")
@@ -357,7 +357,7 @@ func (cli *Cli) StoreClusterPBXFile(file string, data []byte) error {
 // This method executes the STOREDOMAINPBXFILE CLI command.
 //
 // Returns:
-//   - error: an error if the command fails or data is nil.
+//   - error: an error if the command fails.
 func (cli *Cli) StoreDomainPBXFile(domain, file string, data []byte) error {
 	if domain == "" || file == "" || data == nil {
 		return fmt.Errorf("domain, file and data are required")
@@ -378,7 +378,7 @@ func (cli *Cli) StoreDomainPBXFile(domain, file string, data []byte) error {
 // This method executes the STORESERVERPBXFILE CLI command.
 //
 // Returns:
-//   - error: an error if the command fails or data is nil.
+//   - error: an error if the command fails.
 func (cli *Cli) StoreServerPBXFile(file string, data []byte) error {
 	if file == "" || data == nil {
 		return fmt.Errorf("file and data are required")

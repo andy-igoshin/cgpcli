@@ -55,7 +55,7 @@ type DomainObjectsResult struct {
 // This method executes the CREATEACCOUNTSTORAGE CLI command.
 //
 // Returns:
-//   - error: an error if parameters are missing or the server fails to create the storage.
+//   - error: an error if the command fails.
 func (cli *Cli) CreateAccountStorage(domain, storage string) error {
 	if domain == "" || storage == "" {
 		return fmt.Errorf("domain name and storage path are required")
@@ -71,7 +71,7 @@ func (cli *Cli) CreateAccountStorage(domain, storage string) error {
 // This method executes the DELETEDIRECTORYRECORDS CLI command.
 //
 // Returns:
-//   - error: an error if the operation fails or access is denied.
+//   - error: an error if the command fails.
 func (cli *Cli) DeleteDirectoryRecords(domain string) error {
 	const cmd = "DELETEDIRECTORYRECORDS"
 	if domain != "" {
@@ -90,7 +90,7 @@ func (cli *Cli) DeleteDirectoryRecords(domain string) error {
 //
 // Returns:
 //   - map[string]any: a dictionary with the default Preferences.
-//   - error: an error if the retrieval fails.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountDefaultPrefs(domain string) (map[string]any, error) {
 	return cli.getMapAny("GETACCOUNTDEFAULTPREFS", Atom(domain))
 }
@@ -104,7 +104,7 @@ func (cli *Cli) GetAccountDefaultPrefs(domain string) (map[string]any, error) {
 //
 // Returns:
 //   - map[string]any: a dictionary with the default settings.
-//   - error: an error if the retrieval fails.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountDefaults(domain string) (map[string]any, error) {
 	return cli.getMapAny("GETACCOUNTDEFAULTS", Atom(domain))
 }
@@ -118,7 +118,7 @@ func (cli *Cli) GetAccountDefaults(domain string) (map[string]any, error) {
 //
 // Returns:
 //   - map[string]any: a dictionary with the Template settings.
-//   - error: an error if the retrieval fails.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountTemplate(domain string) (map[string]any, error) {
 	return cli.getMapAny("GETACCOUNTTEMPLATE", Atom(domain))
 }
@@ -132,7 +132,7 @@ func (cli *Cli) GetAccountTemplate(domain string) (map[string]any, error) {
 //
 // Returns:
 //   - []string: an array with the Domain alias names.
-//   - error: an error if the domain name is empty or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) GetDomainAliases(domain string) ([]string, error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain name is required")
@@ -163,7 +163,7 @@ func (cli *Cli) GetDomainEffectiveSettings(domain string) (map[string]any, error
 //
 // Returns:
 //   - string: the Domain file path.
-//   - error: an error if the domain name is empty or retrieval fails.
+//   - error: an error if the command fails.
 func (cli *Cli) GetDomainLocation(domain string) (string, error) {
 	return cli.getString("GETDOMAINLOCATION", Atom(domain))
 }
@@ -224,7 +224,7 @@ func (cli *Cli) GetDomainSignalRules(domain string) ([]SignalRule, error) {
 // This method executes the INSERTDIRECTORYRECORDS CLI command.
 //
 // Returns:
-//   - error: an error if the operation fails or access is denied.
+//   - error: an error if the command fails.
 func (cli *Cli) InsertDirectoryRecords(domain string) error {
 	return cli.QueryNV("INSERTDIRECTORYRECORDS", Atom(domain))
 }
@@ -236,7 +236,7 @@ func (cli *Cli) InsertDirectoryRecords(domain string) error {
 //
 // Returns:
 //   - bool: true if the domain exists.
-//   - error: an error if the check fails.
+//   - error: an error if the command fails.
 func (cli *Cli) IsDomainExists(domain string) (bool, error) {
 	location, err := cli.GetDomainLocation(domain)
 	if err != nil {
@@ -254,7 +254,7 @@ func (cli *Cli) IsDomainExists(domain string) (bool, error) {
 //
 // Returns:
 //   - []string: an array with "storage mount points" names.
-//   - error: an error if the retrieval fails.
+//   - error: an error if the command fails.
 func (cli *Cli) ListAccountStorage(domain string) ([]string, error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain name is required")
@@ -303,7 +303,7 @@ func (cli *Cli) ListAdminDomains(domain string) ([]string, error) {
 //
 // Returns:
 //   - *[DomainObjectsResult]: a structure containing the objects found and the next cookie.
-//   - error: an error if the retrieval or parsing fails.
+//   - error: an error if the command fails.
 func (cli *Cli) ListDomainObjects(domain string, limit int, filter string, what ObjectType, cookie string) (*DomainObjectsResult, error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain name is required")
@@ -385,7 +385,7 @@ func (cli *Cli) ListDomainObjects(domain string, limit int, filter string, what 
 //
 // Returns:
 //   - map[string]string: a dictionary where each key is a Telnum, and the value is the Account.
-//   - error: an error if the retrieval fails.
+//   - error: an error if the command fails.
 func (cli *Cli) ListDomainTelnums(domain, filter string, limit int) (map[string]string, error) {
 	if domain == "" {
 		return nil, fmt.Errorf("domain name is required")
@@ -415,7 +415,7 @@ func (cli *Cli) ListDomainTelnums(domain, filter string, limit int) (map[string]
 // This method executes the RESUMEDOMAIN CLI command.
 //
 // Returns:
-//   - error: an error if the domain name is empty or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) ResumeDomain(domain string) error {
 	if domain == "" {
 		return fmt.Errorf("domain name is required")
@@ -432,7 +432,7 @@ func (cli *Cli) ResumeDomain(domain string) error {
 // This method executes the SETACCOUNTDEFAULTPREFS CLI command.
 //
 // Returns:
-//   - error: an error if settings are nil or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetAccountDefaultPrefs(domain string, settings map[string]any) error {
 	if settings == nil {
 		return fmt.Errorf("settings dictionary is required")
@@ -449,7 +449,7 @@ func (cli *Cli) SetAccountDefaultPrefs(domain string, settings map[string]any) e
 // This method executes the SETACCOUNTDEFAULTS CLI command.
 //
 // Returns:
-//   - error: an error if settings are nil or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetAccountDefaults(domain string, settings map[string]any) error {
 	if settings == nil {
 		return fmt.Errorf("settings dictionary is required")
@@ -466,7 +466,7 @@ func (cli *Cli) SetAccountDefaults(domain string, settings map[string]any) error
 // This method executes the SETACCOUNTTEMPLATE CLI command.
 //
 // Returns:
-//   - error: an error if settings are nil or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetAccountTemplate(domain string, settings map[string]any) error {
 	if settings == nil {
 		return fmt.Errorf("settings dictionary is required")
@@ -483,7 +483,7 @@ func (cli *Cli) SetAccountTemplate(domain string, settings map[string]any) error
 // This method executes the SETDOMAINALIASES CLI command.
 //
 // Returns:
-//   - error: an error if parameters are invalid or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetDomainAliases(domain string, aliases []string) error {
 	if domain == "" || aliases == nil {
 		return fmt.Errorf("domain name and aliases array are required")
@@ -500,7 +500,7 @@ func (cli *Cli) SetDomainAliases(domain string, aliases []string) error {
 // This method executes the SETDOMAINMAILRULES CLI command.
 //
 // Returns:
-//   - error: an error if parameters are invalid or access is denied.
+//   - error: an error if the command fails.
 func (cli *Cli) SetDomainMailRules(domain string, rules []MailRule) error {
 	if domain == "" || rules == nil {
 		return fmt.Errorf("domain name and rules array are required")
@@ -517,7 +517,7 @@ func (cli *Cli) SetDomainMailRules(domain string, rules []MailRule) error {
 // This method executes the SETDOMAINSETTINGS CLI command.
 //
 // Returns:
-//   - error: an error if parameters are invalid or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetDomainSettings(domain string, settings map[string]any) error {
 	if domain == "" || settings == nil {
 		return fmt.Errorf("domain name and settings dictionary are required")
@@ -534,7 +534,7 @@ func (cli *Cli) SetDomainSettings(domain string, settings map[string]any) error 
 // This method executes the SETDOMAINSIGNALRULES CLI command.
 //
 // Returns:
-//   - error: an error if parameters are invalid or access is denied.
+//   - error: an error if the command fails.
 func (cli *Cli) SetDomainSignalRules(domain string, rules []SignalRule) error {
 	if domain == "" || rules == nil {
 		return fmt.Errorf("domain name and rules array are required")
@@ -550,7 +550,7 @@ func (cli *Cli) SetDomainSignalRules(domain string, rules []SignalRule) error {
 // This method executes the SUSPENDDOMAIN CLI command.
 //
 // Returns:
-//   - error: an error if the domain name is empty or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SuspendDomain(domain string) error {
 	if domain == "" {
 		return fmt.Errorf("domain name is required")
@@ -567,7 +567,7 @@ func (cli *Cli) SuspendDomain(domain string) error {
 // This method executes the UPDATEACCOUNTDEFAULTPREFS CLI command.
 //
 // Returns:
-//   - error: an error if settings are empty or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) UpdateAccountDefaultPrefs(domain string, settings map[string]any) error {
 	if len(settings) == 0 {
 		return fmt.Errorf("settings dictionary is required")
@@ -584,7 +584,7 @@ func (cli *Cli) UpdateAccountDefaultPrefs(domain string, settings map[string]any
 // This method executes the UPDATEACCOUNTDEFAULTS CLI command.
 //
 // Returns:
-//   - error: an error if settings are empty or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) UpdateAccountDefaults(domain string, settings map[string]any) error {
 	if len(settings) == 0 {
 		return fmt.Errorf("settings dictionary is required")
@@ -601,7 +601,7 @@ func (cli *Cli) UpdateAccountDefaults(domain string, settings map[string]any) er
 // This method executes the UPDATEACCOUNTTEMPLATE CLI command.
 //
 // Returns:
-//   - error: an error if settings are empty or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) UpdateAccountTemplate(domain string, settings map[string]any) error {
 	if len(settings) == 0 {
 		return fmt.Errorf("settings dictionary is required")
@@ -618,7 +618,7 @@ func (cli *Cli) UpdateAccountTemplate(domain string, settings map[string]any) er
 // This method executes the UPDATEDOMAINSETTINGS CLI command.
 //
 // Returns:
-//   - error: an error if settings are empty or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) UpdateDomainSettings(domain string, settings map[string]any) error {
 	if len(settings) == 0 {
 		return fmt.Errorf("settings dictionary is required")

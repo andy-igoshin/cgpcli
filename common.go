@@ -92,6 +92,9 @@ type Cli struct {
 }
 
 // Close gracefully terminates the CommuniGate Pro CLI session.
+//
+// Returns:
+//   - error: an error if the command fails.
 func (cli *Cli) Close() (err error) {
 	if cli.conn == nil {
 		return nil
@@ -130,12 +133,11 @@ func (cli *Cli) IsSuccess() bool {
 	return (cli.respCode == CodeOk || cli.respCode == CodeOkInline)
 }
 
-// Logout terminates the current session by sending the QUIT command.
+// Logout gracefully terminates the CommuniGate Pro CLI session.
 // It is an alias for [Cli.Close].
 //
 // Returns:
-//   - error: an error if the server fails to acknowledge the termination or
-//     the connection cannot be closed gracefully.
+//   - error: an error if the command fails.
 func (cli *Cli) Logout() error {
 	return cli.Close()
 }
@@ -153,8 +155,7 @@ func (cli *Cli) Logout() error {
 //
 // Returns:
 //   - *Cli: a pointer to the initialized session.
-//   - error: an error if connection, authentication, or protocol
-//     negotiation fails.
+//   - error: an error if the command fails.
 func New(host, login, password string, secure Secure, tls bool) (*Cli, error) {
 
 	cli := new(Cli)
@@ -179,8 +180,7 @@ func New(host, login, password string, secure Secure, tls bool) (*Cli, error) {
 //
 // Returns:
 //   - any: the unmarshaled result from the server.
-//   - error: an error if sending, parsing, or unmarshaling fails, or
-//     if the server returns a non-success code.
+//   - error: an error if the command fails.
 func (cli *Cli) Query(cmd string, args ...any) (res any, err error) {
 	if err = cli.Send(cmd, args...); err != nil {
 		return
@@ -205,8 +205,7 @@ func (cli *Cli) Query(cmd string, args ...any) (res any, err error) {
 //   - args: variadic arguments for the command.
 //
 // Returns:
-//   - error: an error if the command fails or if the server returns a
-//     status code other than 200 or 201.
+//   - error: an error if the command fails.
 func (cli *Cli) QueryNV(cmd string, args ...any) (err error) {
 	if err = cli.Send(cmd, args...); err != nil {
 		return
@@ -228,8 +227,7 @@ func (cli *Cli) QueryNV(cmd string, args ...any) (err error) {
 //   - args: variadic arguments to be appended to the command.
 //
 // Returns:
-//   - error: an error if connection recovery fails or data cannot be
-//     written to the transport.
+//   - error: an error if the command fails.
 func (cli *Cli) Send(cmd string, args ...any) (err error) {
 	if time.Since(cli.lastAccess) > cgpTimeout || cli.conn == nil {
 		cli.close()

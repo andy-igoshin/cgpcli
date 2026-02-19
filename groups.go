@@ -112,7 +112,7 @@ func (cli *Cli) GetGroup(group string) (*GroupResult, error) {
 //
 // Returns:
 //   - bool: true if the group exists.
-//   - error: an error if the check fails (excluding 'not found' errors).
+//   - error: an error if the command fails.
 func (cli *Cli) IsGroupExists(group string) (bool, error) {
 	if group == "" {
 		return false, fmt.Errorf("group name is required")

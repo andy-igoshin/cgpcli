@@ -32,7 +32,7 @@ import (
 //
 // Returns:
 //   - map[string]any: a dictionary with the billing operation results.
-//   - error: an error if the command fails or permissions are insufficient.
+//   - error: an error if the command fails.
 func (cli *Cli) Balance(account string, params map[string]any) (map[string]any, error) {
 	if account == "" || len(params) == 0 {
 		return nil, fmt.Errorf("account name and params are required")
@@ -80,7 +80,7 @@ func (cli *Cli) Dataset(account string, params map[string]any) (map[string]any, 
 // This method executes the REMOVEACCOUNTSUBSET CLI command.
 //
 // Returns:
-//   - error: an error if the account or subset is not found.
+//   - error: an error if the command fails.
 func (cli *Cli) RemoveAccountSubset(account, subset string) error {
 	if account == "" || subset == "" {
 		return fmt.Errorf("account name and subset name are required")

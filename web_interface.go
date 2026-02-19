@@ -46,7 +46,7 @@ const (
 // process for the given session.
 //
 // Parameters:
-//   - sessionID: specifies the Session ID.
+//   - sessionID: the Session ID.
 //   - secret: an optional the one-time secret used with Two-factor
 //     Authentication.
 //   - account: an optional the name of the Account the session belongs to.
@@ -74,7 +74,7 @@ func (cli *Cli) BlessSession(sessionID string, secret, account string) error {
 // CreateLiteSession creates a LITE session.
 //
 // Parameters:
-//   - addr: specifies the IP address and port of the client browser.
+//   - addr: the IP address and port of the client browser.
 //   - origAddr: an optional the original IP address of the client
 //     browser, if the client connects via a proxy.
 //
@@ -99,8 +99,8 @@ func (cli *Cli) CreateLiteSession(addr, origAddr string) (string, error) {
 // CreateWebUserSession creates a WebUser session for the specified Account.
 //
 // Parameters:
-//   - account: specifies the Account name.
-//   - addr: specifies the IP address and port of the client browser.
+//   - account: the Account name.
+//   - addr: the IP address and port of the client browser.
 //   - origAddr: an optional the original IP address of the client
 //     browser, if the client connects via a proxy.
 //   - skin: an optional the Skin to use for the newly created session.
@@ -130,8 +130,8 @@ func (cli *Cli) CreateWebUserSession(account, addr, origAddr, skin string) (stri
 // CreateXimssSession creates a XIMSS session for the specified Account.
 //
 // Parameters:
-//   - account: specifies the Account name.
-//   - addr: specifies the IP address and port of the client browser.
+//   - account: the Account name.
+//   - addr: the IP address and port of the client browser.
 //   - origAddr: an optional the original IP address of the client
 //     browser, if the client connects via a proxy.
 //
@@ -156,7 +156,7 @@ func (cli *Cli) CreateXimssSession(account, addr, origAddr string) (string, erro
 // FindAccountSession finds an existing session for the specified Account.
 //
 // Parameters:
-//   - account: specifies the Account name.
+//   - account: the Account name.
 //   - addr: an optional the IP address of the client browser.
 //   - origAddr: an optional the IP address of the client browser,
 //     if this browser is located behind an HTTP proxy.
@@ -197,7 +197,7 @@ func (cli *Cli) FindAccountSession(account, addr, origAddr, protocol, transport,
 // GetSession retrieves Session data.
 //
 // Parameters:
-//   - sessionID: specifies the Session ID.
+//   - sessionID: the Session ID.
 //   - domain: an optional the name of Domain the session Account belongs to.
 //
 // This method executes the GETSESSION CLI command.
@@ -221,7 +221,7 @@ func (cli *Cli) GetSession(sessionID, domain string) (map[string]any, error) {
 // KillSession terminates a Session.
 //
 // Parameters:
-//   - sessionID: specifies the Session ID.
+//   - sessionID: the Session ID.
 //   - domain: an optional the name of Domain the session Account belongs to.
 //
 // This method executes the KILLSESSION CLI command.
@@ -243,7 +243,7 @@ func (cli *Cli) KillSession(sessionID, domain string) error {
 // ListAccountSessions retrieves all existing sessions for the specified Account.
 //
 // Parameters:
-//   - account: specifies the Account name.
+//   - account: the Account name.
 //   - addr: an optional the IP address of the client browser.
 //   - origAddr: an optional the IP address of the client browser,
 //     if this browser is located behind an HTTP proxy.
@@ -308,9 +308,9 @@ func (cli *Cli) ListLiteSessions(addr, origAddr string) ([]string, error) {
 // as a File Storage file.
 //
 // Parameters:
-//   - sessionID: specifies the Session ID.
+//   - sessionID: the Session ID.
 //   - domain: an optional the name of Domain the session Account belongs to.
-//   - file: specifies the name for the File Storage file.
+//   - file: the name for the File Storage file.
 //   - uploadID: identifies a file in the "uploaded file set".
 //   - offset: an optional the file position. Can be a positive number,
 //     or constants OffsetBeg, OffsetEnd, OffsetNew.
@@ -350,9 +350,9 @@ func (cli *Cli) StoreSessionFile(sessionID, domain, file, uploadID string, offse
 // UpdateSession modifies custom parameters of a Session.
 //
 // Parameters:
-//   - sessionID: specifies the Session ID.
+//   - sessionID: the Session ID.
 //   - domain: an optional the name of Domain the session Account belongs to.
-//   - data: specifies the dictionary that lists new values for the attributes
+//   - data: the dictionary that lists new values for the attributes
 //     to be updated.
 //
 // This method executes the UPDATESESSION CLI command.

@@ -148,7 +148,7 @@ func (cli *Cli) GetMessageQueueInfo(module, queue string) (map[string]any, error
 //
 // Returns:
 //   - any: an object returned by the SystemInfo function.
-//   - error: an error if the function returns a null-object.
+//   - error: an error if the command fails.
 func (cli *Cli) GetSystemInfo(what SystemInfoKey) (any, error) {
 	if what == "" {
 		return nil, fmt.Errorf("system info key is required")
@@ -228,7 +228,7 @@ func (cli *Cli) ListCLICommands() ([]string, error) {
 // This method executes the NOOP CLI command.
 //
 // Returns:
-//   - error: an error if the connection fails.
+//   - error: an error if the command fails.
 func (cli *Cli) Noop() error {
 	return cli.QueryNV("NOOP")
 }

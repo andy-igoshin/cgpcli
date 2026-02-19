@@ -29,7 +29,7 @@ import (
 // This method executes the KILLNODE CLI command.
 //
 // Returns:
-//   - error: an error if the task cannot be found or the command fails.
+//   - error: an error if the command fails.
 func (cli *Cli) KillNode(taskID string) error {
 	if taskID == "" {
 		return fmt.Errorf("taskID is required")

@@ -42,8 +42,7 @@ type DirAccessRight struct {
 // This method executes the CREATEDIRECTORYUNIT CLI command.
 //
 // Returns:
-//   - error: an error if the unit name or mount point is empty, or if
-//     the server fails to create the unit.
+//   - error: an error if the command fails.
 func (cli *Cli) CreateDirectoryUnit(unit, mountPoint string, shared, remote bool) error {
 	if unit == "" || mountPoint == "" {
 		return fmt.Errorf("unit name and mount point are required")
@@ -70,8 +69,7 @@ func (cli *Cli) CreateDirectoryUnit(unit, mountPoint string, shared, remote bool
 // This method executes the DELETEDIRECTORYUNIT CLI command.
 //
 // Returns:
-//   - error: an error if the unit name is empty or if the server
-//     fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) DeleteDirectoryUnit(unit string, shared bool) error {
 	if unit == "" {
 		return fmt.Errorf("unit name is required")
@@ -94,7 +92,7 @@ func (cli *Cli) DeleteDirectoryUnit(unit string, shared bool) error {
 //
 // Returns:
 //   - [][DirAccessRight]: a slice of Access Rights rules.
-//   - error: an error if the server fails to retrieve or parse the data.
+//   - error: an error if the command fails.
 func (cli *Cli) GetDirectoryAccessRights(shared bool) ([]DirAccessRight, error) {
 	const cmd = "GETDIRECTORYACCESSRIGHTS"
 	var res []any
@@ -157,8 +155,7 @@ func (cli *Cli) GetDirectoryAccessRights(shared bool) ([]DirAccessRight, error) 
 //
 // Returns:
 //   - map[string]any: a dictionary with the Directory Unit settings.
-//   - error: an error if the unit name is empty or the server fails
-//     to retrieve the data.
+//   - error: an error if the command fails.
 func (cli *Cli) GetDirectoryUnit(unit string, shared bool) (map[string]any, error) {
 	if unit == "" {
 		return nil, fmt.Errorf("unit name is required")
@@ -182,7 +179,7 @@ func (cli *Cli) GetDirectoryUnit(unit string, shared bool) (map[string]any, erro
 // Returns:
 //   - map[string]string: a dictionary where keys are Directory Unit mount points
 //     and values are Directory Unit names.
-//   - error: an error if the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) ListDirectoryUnits(shared bool) (map[string]string, error) {
 	const cmd = "LISTDIRECTORYUNITS"
 	var res map[string]any
@@ -215,8 +212,7 @@ func (cli *Cli) ListDirectoryUnits(shared bool) (map[string]string, error) {
 // This method executes the RELOCATEDIRECTORYUNIT CLI command.
 //
 // Returns:
-//   - error: an error if the unit name or mount point is empty, or if
-//     the server fails to relocate the unit.
+//   - error: an error if the command fails.
 func (cli *Cli) RelocateDirectoryUnit(unit, mountPoint string, shared bool) error {
 	if unit == "" || mountPoint == "" {
 		return fmt.Errorf("unit name and new mount point are required")
@@ -239,8 +235,7 @@ func (cli *Cli) RelocateDirectoryUnit(unit, mountPoint string, shared bool) erro
 // This method executes the SETDIRECTORYACCESSRIGHTS CLI command.
 //
 // Returns:
-//   - error: an error if the rights array is nil or if the server
-//     fails to apply the new settings.
+//   - error: an error if the command fails.
 func (cli *Cli) SetDirectoryAccessRights(shared bool, rights []DirAccessRight) error {
 	if rights == nil {
 		return fmt.Errorf("rights array is required")
@@ -272,8 +267,7 @@ func (cli *Cli) SetDirectoryAccessRights(shared bool, rights []DirAccessRight) e
 // This method executes the SETDIRECTORYUNIT CLI command.
 //
 // Returns:
-//   - error: an error if the unit name or settings dictionary is empty,
-//     or if the server fails to update the unit.
+//   - error: an error if the command fails.
 func (cli *Cli) SetDirectoryUnit(unit string, shared bool, settings map[string]any) error {
 	if unit == "" || settings == nil {
 		return fmt.Errorf("unit name and settings dictionary are required")

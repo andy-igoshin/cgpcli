@@ -104,7 +104,7 @@ func (cli *Cli) CheckAccountPassword(account, password string) (bool, error) {
 // This method executes the CREATEACCOUNT CLI command.
 //
 // Returns:
-//   - error: an error if the account name is empty or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) CreateAccount(account string, settings map[string]any, accType AccountType, storage string, legacy bool) error {
 	if account == "" {
 		return fmt.Errorf("account name is required")
@@ -135,7 +135,7 @@ func (cli *Cli) CreateAccount(account string, settings map[string]any, accType A
 // This method executes the DELETEACCOUNT CLI command.
 //
 // Returns:
-//   - error: an error if the account name is empty or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) DeleteAccount(account string) error {
 	if account == "" {
 		return fmt.Errorf("account name is required")
@@ -155,7 +155,7 @@ func (cli *Cli) DeleteAccount(account string) error {
 // This method executes the UPDATEACCOUNTMAILRULE CLI command with the DELETE keyword.
 //
 // Returns:
-//   - error: an error if the account name or rule name is empty, or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) DeleteAccountMailRule(account, rule string) error {
 	if account == "" || rule == "" {
 		return fmt.Errorf("account name and rule name are required")
@@ -175,7 +175,7 @@ func (cli *Cli) DeleteAccountMailRule(account, rule string) error {
 // This method executes the UPDATEACCOUNTSIGNALRULE CLI command with the DELETE keyword.
 //
 // Returns:
-//   - error: an error if the account name or rule name is empty, or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) DeleteAccountSignalRule(account, rule string) error {
 	if account == "" || rule == "" {
 		return fmt.Errorf("account name and rule name are required")
@@ -196,7 +196,7 @@ func (cli *Cli) DeleteAccountSignalRule(account, rule string) error {
 //
 // Returns:
 //   - map[string]any: a dictionary containing the ACL elements.
-//   - error: an error if the account name is empty or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountACL(account, authAccount string) (map[string]any, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -222,7 +222,7 @@ func (cli *Cli) GetAccountACL(account, authAccount string) (map[string]any, erro
 //
 // Returns:
 //   - string: a string with the effective access rights.
-//   - error: an error if target account or auth account names are empty, or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountACLRights(account, authAccount string) (string, error) {
 	if account == "" || authAccount == "" {
 		return "", fmt.Errorf("target account and auth account names are required")
@@ -251,7 +251,7 @@ func (cli *Cli) GetAccountACLRights(account, authAccount string) (string, error)
 //
 // Returns:
 //   - []string: a slice containing the names of enabled services.
-//   - error: an error if the account name is empty or settings cannot be retrieved.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountAccessModes(account string) ([]string, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -289,7 +289,7 @@ func (cli *Cli) GetAccountAccessModes(account string) ([]string, error) {
 //
 // Returns:
 //   - []string: a slice of alias name strings.
-//   - error: an error if the account name is empty or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountAliases(account string) ([]string, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -310,7 +310,7 @@ func (cli *Cli) GetAccountAliases(account string) ([]string, error) {
 //
 // Returns:
 //   - map[string]any: a dictionary with the effective Account Preferences.
-//   - error: an error if the account name is empty or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountEffectivePrefs(account string) (map[string]any, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -332,7 +332,7 @@ func (cli *Cli) GetAccountEffectivePrefs(account string) (map[string]any, error)
 //
 // Returns:
 //   - map[string]any: a dictionary with the effective Account settings.
-//   - error: an error if the account name is empty or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountEffectiveSettings(account string) (map[string]any, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -357,7 +357,7 @@ func (cli *Cli) GetAccountEffectiveSettings(account string) (map[string]any, err
 //
 // Returns:
 //   - map[string]any: a dictionary with the requested info elements.
-//   - error: an error if the account name is empty or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountInfo(account string, keys []string) (map[string]any, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -384,7 +384,7 @@ func (cli *Cli) GetAccountInfo(account string, keys []string) (map[string]any, e
 //
 // Returns:
 //   - string: the Account file path.
-//   - error: an error if the account name is empty or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountLocation(account string) (string, error) {
 	if account == "" {
 		return "", fmt.Errorf("account name is required")
@@ -401,7 +401,7 @@ func (cli *Cli) GetAccountLocation(account string) (string, error) {
 //
 // Returns:
 //   - [][MailRule]: a slice of MailRule structures.
-//   - error: an error if the account name is empty or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountMailRules(account string) ([]MailRule, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -425,7 +425,7 @@ func (cli *Cli) GetAccountMailRules(account string) ([]MailRule, error) {
 //
 // Returns:
 //   - any: the specified info element.
-//   - error: an error if the account or key names are empty, or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountOneInfo(account, key string) (any, error) {
 	if account == "" || key == "" {
 		return nil, fmt.Errorf("account name and key name are required")
@@ -449,7 +449,7 @@ func (cli *Cli) GetAccountOneInfo(account, key string) (any, error) {
 //
 // Returns:
 //   - any: the setting value (string, array, dictionary, or nil).
-//   - error: an error if the account or key names are empty, or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountOneSetting(account, key string) (any, error) {
 	if account == "" || key == "" {
 		return nil, fmt.Errorf("account name and key name are required")
@@ -472,7 +472,7 @@ func (cli *Cli) GetAccountOneSetting(account, key string) (any, error) {
 //
 // Returns:
 //   - string: the plain-text password.
-//   - error: an error if the account name is empty or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountPlainPassword(account string, method string) (string, error) {
 	if account == "" {
 		return "", fmt.Errorf("account name is required")
@@ -501,7 +501,7 @@ func (cli *Cli) GetAccountPlainPassword(account string, method string) (string, 
 //
 // Returns:
 //   - map[string]any: a dictionary with the Account Preferences.
-//   - error: an error if the account name is empty or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountPrefs(account string) (map[string]any, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -524,7 +524,7 @@ func (cli *Cli) GetAccountPrefs(account string) (map[string]any, error) {
 //
 // Returns:
 //   - any: the presence data.
-//   - error: an error if the account name is empty or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountPresence(account string) (any, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -543,7 +543,7 @@ func (cli *Cli) GetAccountPresence(account string) (any, error) {
 //
 // Returns:
 //   - map[string]any: a dictionary containing the RIMAP records.
-//   - error: an error if the account name is empty or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountRIMAPs(account string) (map[string]any, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -562,7 +562,7 @@ func (cli *Cli) GetAccountRIMAPs(account string) (map[string]any, error) {
 //
 // Returns:
 //   - map[string]any: a dictionary containing the RPOP records.
-//   - error: an error if the account name is empty or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountRPOPs(account string) (map[string]any, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -582,7 +582,7 @@ func (cli *Cli) GetAccountRPOPs(account string) (map[string]any, error) {
 //
 // Returns:
 //   - map[string]any: a dictionary containing the RSIP records.
-//   - error: an error if the account name is empty or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountRSIPs(account string) (map[string]any, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -603,7 +603,7 @@ func (cli *Cli) GetAccountRSIPs(account string) (map[string]any, error) {
 //
 // Returns:
 //   - []string: a slice of access right strings.
-//   - error: an error if the account name is empty or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountRights(account string) ([]string, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -627,7 +627,7 @@ func (cli *Cli) GetAccountRights(account string) ([]string, error) {
 //
 // Returns:
 //   - map[string]any: a dictionary with the Account settings.
-//   - error: an error if the account name is empty or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountSettings(account string) (map[string]any, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -646,7 +646,7 @@ func (cli *Cli) GetAccountSettings(account string) (map[string]any, error) {
 //
 // Returns:
 //   - [][SignalRule]: a slice of SignalRule structures.
-//   - error: an error if the account name is empty or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountSignalRules(account string) ([]SignalRule, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -665,7 +665,7 @@ func (cli *Cli) GetAccountSignalRules(account string) ([]SignalRule, error) {
 //
 // Returns:
 //   - []string: a slice of telephone number strings.
-//   - error: an error if the account name is empty or the server fails to execute the command.
+//   - error: an error if the command fails.
 func (cli *Cli) GetAccountTelnums(account string) ([]string, error) {
 	if account == "" {
 		return nil, fmt.Errorf("account name is required")
@@ -710,7 +710,7 @@ func (cli *Cli) IsAccountExists(account string) (bool, error) {
 // This method executes the KILLACCOUNTSESSIONS CLI command.
 //
 // Returns:
-//   - error: an error if the account name is empty or the server fails to terminate the sessions.
+//   - error: an error if the command fails.
 func (cli *Cli) KillAccountSessions(account string) error {
 	if account == "" {
 		return fmt.Errorf("account name is required")
@@ -735,7 +735,7 @@ func (cli *Cli) KillAccountSessions(account string) error {
 //
 // Returns:
 //   - map[string]any: for the "pop" operation, may contain the "telnum" key with the removed number.
-//   - error: an error if parameters are invalid or the server operation fails.
+//   - error: an error if the command fails.
 func (cli *Cli) ModifyAccountTelnums(account string, params map[string]any) (map[string]any, error) {
 	if account == "" || params == nil {
 		return nil, fmt.Errorf("account name and parameters dictionary are required")
@@ -754,7 +754,7 @@ func (cli *Cli) ModifyAccountTelnums(account string, params map[string]any) (map
 // This method executes the RENAMEACCOUNT CLI command.
 //
 // Returns:
-//   - error: an error if names are empty or the server fails to complete the rename/move operation.
+//   - error: an error if the command fails.
 func (cli *Cli) RenameAccount(oldName, newName, storage string) error {
 	if oldName == "" || newName == "" {
 		return fmt.Errorf("both old and new names are required")
@@ -786,7 +786,7 @@ func (cli *Cli) RenameAccount(oldName, newName, storage string) error {
 // This method executes the SETACCOUNTACL CLI command.
 //
 // Returns:
-//   - error: an error if account or acl are missing, or the server operation fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetAccountACL(account string, acl map[string]any, authAccount string) error {
 	if account == "" || acl == nil {
 		return fmt.Errorf("account name and acl dictionary are required")
@@ -816,7 +816,7 @@ func (cli *Cli) SetAccountACL(account string, acl map[string]any, authAccount st
 // modify the "AccessModes" key.
 //
 // Returns:
-//   - error: an error if the account name is empty or the update operation fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetAccountAccessModes(account string, modes []string) error {
 	if account == "" {
 		return fmt.Errorf("account name is required")
@@ -851,7 +851,7 @@ func (cli *Cli) SetAccountAccessModes(account string, modes []string) error {
 // This method executes the SETACCOUNTALIASES CLI command.
 //
 // Returns:
-//   - error: an error if the account name is empty, the aliases slice is nil, or the server fails to update the alias list.
+//   - error: an error if the command fails.
 func (cli *Cli) SetAccountAliases(account string, aliases []string) error {
 	if account == "" || aliases == nil {
 		return fmt.Errorf("account name and aliases array are required")
@@ -874,7 +874,7 @@ func (cli *Cli) SetAccountAliases(account string, aliases []string) error {
 // This method executes the SETACCOUNTMAILRULES CLI command.
 //
 // Returns:
-//   - error: an error if the account name is empty, the rules slice is nil, or the server fails to update the rules.
+//   - error: an error if the command fails.
 func (cli *Cli) SetAccountMailRules(account string, rules []MailRule) error {
 	if account == "" || rules == nil {
 		return fmt.Errorf("account name and rules array are required")
@@ -900,7 +900,7 @@ func (cli *Cli) SetAccountMailRules(account string, rules []MailRule) error {
 // This method executes the SETACCOUNTPASSWORD CLI command.
 //
 // Returns:
-//   - error: an error if account/password are missing or the server rejects the password change.
+//   - error: an error if the command fails.
 func (cli *Cli) SetAccountPassword(account, password, method, tag string, check bool) error {
 	if account == "" || password == "" {
 		return fmt.Errorf("account name and password are required")
@@ -933,7 +933,7 @@ func (cli *Cli) SetAccountPassword(account, password, method, tag string, check 
 // This method executes the SETACCOUNTPREFS CLI command.
 //
 // Returns:
-//   - error: an error if the account name is empty, the settings dictionary is nil, or the server rejects the operation.
+//   - error: an error if the command fails.
 func (cli *Cli) SetAccountPrefs(account string, settings map[string]any) error {
 	if account == "" || settings == nil {
 		return fmt.Errorf("account name and settings dictionary are required")
@@ -952,7 +952,7 @@ func (cli *Cli) SetAccountPrefs(account string, settings map[string]any) error {
 // This method executes the SETACCOUNTRIMAPS CLI command.
 //
 // Returns:
-//   - error: an error if the account name is empty, the records dictionary is nil, or the server operation fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetAccountRIMAPs(account string, records map[string]any) error {
 	if account == "" || records == nil {
 		return fmt.Errorf("account name and records dictionary are required")
@@ -971,7 +971,7 @@ func (cli *Cli) SetAccountRIMAPs(account string, records map[string]any) error {
 // This method executes the SETACCOUNTRPOPS CLI command.
 //
 // Returns:
-//   - error: an error if the account name is empty, the records dictionary is nil, or the server operation fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetAccountRPOPs(account string, records map[string]any) error {
 	if account == "" || records == nil {
 		return fmt.Errorf("account name and records dictionary are required")
@@ -990,7 +990,7 @@ func (cli *Cli) SetAccountRPOPs(account string, records map[string]any) error {
 // This method executes the SETACCOUNTRSIPS CLI command.
 //
 // Returns:
-//   - error: an error if the account name is empty, the records dictionary is nil, or the server operation fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetAccountRSIPs(account string, records map[string]any) error {
 	if account == "" || records == nil {
 		return fmt.Errorf("account name and records dictionary are required")
@@ -1009,7 +1009,7 @@ func (cli *Cli) SetAccountRSIPs(account string, records map[string]any) error {
 // This method executes the SETACCOUNTSETTINGS CLI command.
 //
 // Returns:
-//   - error: an error if the account name is empty, the settings dictionary is nil, or the server fails to update the settings.
+//   - error: an error if the command fails.
 func (cli *Cli) SetAccountSettings(account string, settings map[string]any) error {
 	if account == "" || settings == nil {
 		return fmt.Errorf("account name and settings dictionary are required")
@@ -1028,7 +1028,7 @@ func (cli *Cli) SetAccountSettings(account string, settings map[string]any) erro
 // This method executes the SETACCOUNTSIGNALRULES CLI command.
 //
 // Returns:
-//   - error: an error if the account name is empty, the rules slice is nil, or the server operation fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetAccountSignalRules(account string, rules []SignalRule) error {
 	if account == "" || rules == nil {
 		return fmt.Errorf("account name and rules array are required")
@@ -1047,7 +1047,7 @@ func (cli *Cli) SetAccountSignalRules(account string, rules []SignalRule) error 
 // This method executes the SETACCOUNTTELNUMS CLI command.
 //
 // Returns:
-//   - error: an error if the account name is empty, the telnums slice is nil, or the server operation fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetAccountTelnums(account string, telnums []string) error {
 	if account == "" || telnums == nil {
 		return fmt.Errorf("account name and telnums array are required")
@@ -1067,7 +1067,7 @@ func (cli *Cli) SetAccountTelnums(account string, telnums []string) error {
 // This method executes the SETACCOUNTTYPE CLI command.
 //
 // Returns:
-//   - error: an error if the account name is empty, the account type is TypeDefault, or the server operation fails.
+//   - error: an error if the command fails.
 func (cli *Cli) SetAccountType(account string, accType AccountType) error {
 	if account == "" || accType == TypeDefault {
 		return fmt.Errorf("account name and account type are required")
@@ -1088,7 +1088,7 @@ func (cli *Cli) SetAccountType(account string, accType AccountType) error {
 // This method executes the UPDATEACCOUNTINFO CLI command.
 //
 // Returns:
-//   - error: an error if the account name is empty, the info dictionary is empty, or the server operation fails.
+//   - error: an error if the command fails.
 func (cli *Cli) UpdateAccountInfo(account string, info map[string]any) error {
 	if account == "" || len(info) == 0 {
 		return fmt.Errorf("account name and info are required")
@@ -1112,7 +1112,7 @@ func (cli *Cli) UpdateAccountInfo(account string, info map[string]any) error {
 // This method executes the UPDATEACCOUNTMAILRULE CLI command.
 //
 // Returns:
-//   - error: an error if the account name is empty or the server operation fails.
+//   - error: an error if the command fails.
 func (cli *Cli) UpdateAccountMailRule(account string, rule MailRule) error {
 	if account == "" {
 		return fmt.Errorf("account name is required")
@@ -1134,7 +1134,7 @@ func (cli *Cli) UpdateAccountMailRule(account string, rule MailRule) error {
 // This method executes the UPDATEACCOUNTPREFS CLI command.
 //
 // Returns:
-//   - error: an error if the account name is empty, the settings dictionary is empty, or the server operation fails.
+//   - error: an error if the command fails.
 func (cli *Cli) UpdateAccountPrefs(account string, settings map[string]any) error {
 	if account == "" || len(settings) == 0 {
 		return fmt.Errorf("account name and settings dictionary are required")
@@ -1156,7 +1156,7 @@ func (cli *Cli) UpdateAccountPrefs(account string, settings map[string]any) erro
 // This method executes the UPDATEACCOUNTSETTINGS CLI command.
 //
 // Returns:
-//   - error: an error if the account name is empty, the settings dictionary is empty, or the server operation fails.
+//   - error: an error if the command fails.
 func (cli *Cli) UpdateAccountSettings(account string, settings map[string]any) error {
 	if account == "" || len(settings) == 0 {
 		return fmt.Errorf("account name and settings dictionary are required")
@@ -1181,7 +1181,7 @@ func (cli *Cli) UpdateAccountSettings(account string, settings map[string]any) e
 // This method executes the UPDATEACCOUNTSIGNALRULE CLI command.
 //
 // Returns:
-//   - error: an error if the account name is empty or the server operation fails.
+//   - error: an error if the command fails.
 func (cli *Cli) UpdateAccountSignalRule(account string, rule SignalRule) error {
 	if account == "" {
 		return fmt.Errorf("account name is required")
@@ -1205,7 +1205,7 @@ func (cli *Cli) UpdateAccountSignalRule(account string, rule SignalRule) error {
 // This method executes the UPDATESCHEDULEDTASK CLI command.
 //
 // Returns:
-//   - error: an error if the account name is empty, the task dictionary is empty, or the server operation fails.
+//   - error: an error if the command fails.
 func (cli *Cli) UpdateScheduledTask(account string, task map[string]any) error {
 	if account == "" || len(task) == 0 {
 		return fmt.Errorf("account name and task dictionary are required")
