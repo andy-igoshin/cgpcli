@@ -49,7 +49,7 @@ const (
 //   - sessionID: the Session ID.
 //   - secret: an optional the one-time secret used with Two-factor
 //     Authentication.
-//   - account: an optional the name of the Account the session belongs to.
+//   - account: an optional Account name the session belongs to.
 //
 // This method executes the BLESSSESSION CLI command.
 //

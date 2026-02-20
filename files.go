@@ -39,7 +39,8 @@ type StorageFileInfo struct {
 // DeleteStorageFile removes a file or a file directory from the Account File Storage.
 //
 // Parameters:
-//   - account: the name of an existing Account. Use "*" for current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - file: the name of the existing File Storage file or directory.
 //   - authAccount: an optional name of an Account on whose behalf the operation is executed.
 //
@@ -63,7 +64,8 @@ func (cli *Cli) DeleteStorageFile(account, file, authAccount string) error {
 // GetFileSubscription retrieves the list of Account "subscribed files".
 //
 // Parameters:
-//   - account: the name of an existing Account. Use "*" for current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //
 // This method executes the GETFILESUBSCRIPTION CLI command.
 //
@@ -80,7 +82,8 @@ func (cli *Cli) GetFileSubscription(account string) ([]string, error) {
 // GetStorageFileInfo retrieves statistical information about all files in the Account File Storage.
 //
 // Parameters:
-//   - account: the name of an existing Account. Use "*" for current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - path: an optional name of the File Storage subdirectory.
 //   - authAccount: an optional name of an Account on whose behalf the operation is executed.
 //
@@ -123,7 +126,8 @@ func (cli *Cli) GetStorageFileInfo(account, path, authAccount string) (*StorageF
 // ListStorageFiles lists all files in the File Storage directory or its subdirectories.
 //
 // Parameters:
-//   - account: the name of an existing Account. Use "*" for current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - path: an optional name of the File Storage subdirectory.
 //   - authAccount: an optional name of an Account on whose behalf the operation is executed.
 //
@@ -156,7 +160,8 @@ func (cli *Cli) ListStorageFiles(account, path, authAccount string) (map[string]
 // ReadStorageFile retrieves a file or its slice from the Account File Storage.
 //
 // Parameters:
-//   - account: the name of an existing Account. Use "*" for current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - file: the name of the File Storage file to be retrieved.
 //   - offset: file position to start reading from.
 //   - size: maximum number of data bytes to return. Use 0 for no limit.
@@ -215,7 +220,8 @@ func (cli *Cli) ReadStorageFile(account, file string, offset, size int64, authAc
 // ReadStorageFileAttr reads attributes of an Account File Storage file or directory.
 //
 // Parameters:
-//   - account: the name of an existing Account. Use "*" for current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - file: the name of the file or directory.
 //   - attrs: an optional array of attribute names to retrieve.
 //   - authAccount: an optional name of an Account on whose behalf the operation is executed.
@@ -244,7 +250,8 @@ func (cli *Cli) ReadStorageFileAttr(account, file string, attrs []string, authAc
 // RenameStorageFile renames a file or a file directory in the Account File Storage.
 //
 // Parameters:
-//   - account: the name of an existing Account. Use "*" for current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - oldName: the name of the existing File Storage file or directory.
 //   - newName: the new name for the file or directory.
 //   - authAccount: an optional name of an Account on whose behalf the operation is executed.
@@ -269,7 +276,8 @@ func (cli *Cli) RenameStorageFile(account, oldName, newName, authAccount string)
 // SetFileSubscription sets the Account "subscribed files" list.
 //
 // Parameters:
-//   - account: the name of an existing Account. Use "*" for current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - subs: an array of strings where each element is a file name.
 //
 // This method executes the SETFILESUBSCRIPTION CLI command.
@@ -286,7 +294,8 @@ func (cli *Cli) SetFileSubscription(account string, subs []string) error {
 // UpdateStorageFileAttr updates attributes of an Account File Storage file or directory.
 //
 // Parameters:
-//   - account: the name of an existing Account. Use "*" for current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - file: the name of an existing file or directory.
 //   - attrs: an array of XML elements representing the new attribute values.
 //   - authAccount: an optional name of an Account on whose behalf the operation is executed.
@@ -311,7 +320,8 @@ func (cli *Cli) UpdateStorageFileAttr(account, file string, attrs []any, authAcc
 // WriteStorageFile stores a file or creates a directory in the Account File Storage.
 //
 // Parameters:
-//   - account: the name of an existing Account. Use "*" for current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - file: the name for the File Storage file (ends with "/" to create a directory).
 //   - offset: write position. Can be int (position), or string ("BEG", "END", "NEW").
 //   - data: datablock containing the file content. Must be empty for directory creation.

@@ -17,9 +17,8 @@ import (
 // GetAccountAlerts retrieves the Account Alerts.
 //
 // Parameters:
-//   - account: the name of an existing Account.
-//     The asterisk (*) symbol can be used to specify the current
-//     authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //
 // This method executes the GETACCOUNTALERTS CLI command.
 //
@@ -79,9 +78,8 @@ func (cli *Cli) GetServerAlerts() (map[string]string, error) {
 // PostAccountAlert posts an alert message to a specific Account.
 //
 // Parameters:
-//   - account: the name of an existing Account.
-//     The asterisk (*) symbol can be used to specify the current
-//     authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - alert: the text of the alert to be posted.
 //
 // This method executes the POSTACCOUNTALERT CLI command.
@@ -155,9 +153,8 @@ func (cli *Cli) PostServerAlert(alert string) error {
 // RemoveAccountAlert removes a specific alert message from an Account.
 //
 // Parameters:
-//   - account: the name of an existing Account.
-//     The asterisk (*) symbol can be used to specify the current
-//     authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - timeStamp: the exact timestamp string of the alert to be removed,
 //     as retrieved by GetAccountAlerts.
 //
@@ -235,9 +232,8 @@ func (cli *Cli) RemoveServerAlert(timeStamp string) error {
 // SetAccountAlerts replaces the entire Account alert dictionary.
 //
 // Parameters:
-//   - account: the name of an existing Account.
-//     The asterisk (*) symbol can be used to specify the current
-//     authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - alerts: a dictionary used to replace the current Account alert dictionary.
 //
 // This method executes the SETACCOUNTALERTS CLI command.

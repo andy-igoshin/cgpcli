@@ -23,7 +23,8 @@ import (
 // Balance manages Account Billing Balances.
 //
 // Parameters:
-//   - account: the name of an existing Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - params: a dictionary containing the "op" string element (list, reserve, release,
 //     charge, credit, read, readAll, history, remove) and operation-specific data.
@@ -44,7 +45,8 @@ func (cli *Cli) Balance(account string, params map[string]any) (map[string]any, 
 //
 // Parameters:
 //
-//   - account: the name of an existing Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - params: a dictionary containing:
 //     subsetName: (string) Target dataset or dataset subset;
@@ -73,7 +75,8 @@ func (cli *Cli) Dataset(account string, params map[string]any) (map[string]any, 
 // RemoveAccountSubset removes a specific Account "dataset" by name.
 //
 // Parameters:
-//   - account: the name of an existing Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - subset: the name of an existing data subset in the specified Account.
 //
@@ -91,7 +94,8 @@ func (cli *Cli) RemoveAccountSubset(account, subset string) error {
 // Roster manages the Account contact list (IM/Presence).
 //
 // Parameters:
-//   - account: the name of an existing Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - params: a dictionary containing the "what" string element (List, Update,
 //     remove, Presence, probe) and operation-specific elements.

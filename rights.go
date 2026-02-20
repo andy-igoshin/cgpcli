@@ -18,7 +18,7 @@ import (
 // SetAccountRights sets the Account Server Access rights.
 //
 // Parameters:
-//   - account: the name of an existing Account.
+//   - account: the Account name. The name can include the Domain name.
 //     The name can include the Domain name.
 //   - rights: this array should contain the Access Right codes.
 //

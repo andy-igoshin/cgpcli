@@ -22,8 +22,8 @@ import (
 // GetAccountStat retrieves statistics data about the specified Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The asterisk (*) symbol can
-//     be used to specify the current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - key: an optional the name of the statistical entry to retrieve.
 //
 // This method executes the GETACCOUNTSTAT CLI command.
@@ -75,8 +75,8 @@ func (cli *Cli) GetDomainStat(domain string, key string) (any, error) {
 // ResetAccountStat resets statistics data about the specified Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The asterisk (*) symbol can
-//     be used to specify the current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - key: an optional the name of the statistical entry to reset.
 //     If the key is not specified, all Account statistical entries are reset.
 //

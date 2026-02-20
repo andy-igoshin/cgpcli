@@ -24,7 +24,8 @@ import (
 // CreateMailbox creates a Mailbox in the specified Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - mailbox: the name for the new Mailbox.
 //   - class: mailbox class for the new Mailbox.
 //   - authAccount: an optional name of an Account on whose behalf the operation is executed.
@@ -52,7 +53,8 @@ func (cli *Cli) CreateMailbox(account, mailbox, class, authAccount string) error
 // DeleteMailbox removes a Mailbox from the specified Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - mailbox: the name of the Mailbox to be deleted.
 //   - recursive: if true, the keyword MAILBOXES is used, and all nested Mailboxes (submailboxes) are deleted, too.
 //   - authAccount: an optional name of an Account on whose behalf the operation is executed.
@@ -80,7 +82,8 @@ func (cli *Cli) DeleteMailbox(account, mailbox string, recursive bool, authAccou
 // GetMailboxACL retrieves the access control list for the Account Mailbox.
 //
 // Parameters:
-//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - mailbox: the name of an existing Mailbox in the specified Account.
 //   - authAccount: an optional name of an Account on whose behalf the operation is executed.
 //
@@ -105,7 +108,8 @@ func (cli *Cli) GetMailboxACL(account, mailbox, authAccount string) (map[string]
 // GetMailboxAliases retrieves the Account Mailbox aliases.
 //
 // Parameters:
-//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //
 // This method executes the GETMAILBOXALIASES CLI command.
 //
@@ -122,7 +126,8 @@ func (cli *Cli) GetMailboxAliases(account string) (map[string]string, error) {
 // GetMailboxInfo retrieves the internal information about the Account Mailbox.
 //
 // Parameters:
-//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - mailbox: the name of an existing Mailbox in the specified Account.
 //   - authAccount: an optional name of an Account on whose behalf the operation is executed.
 //
@@ -147,7 +152,8 @@ func (cli *Cli) GetMailboxInfo(account, mailbox, authAccount string) (map[string
 // GetMailboxRights retrieves the effective Mailbox access rights based on the Mailbox ACL for the given authAccountName.
 //
 // Parameters:
-//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - mailbox: the name of an existing Mailbox in the specified Account.
 //   - authAccount: the name of an Account whose access rights should be retrieved.
 //
@@ -166,7 +172,8 @@ func (cli *Cli) GetMailboxRights(account, mailbox, authAccount string) (string, 
 // GetMailboxSubscription retrieves the list of Account "subscribed Mailboxes".
 //
 // Parameters:
-//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //
 // This method executes the GETMAILBOXSUBSCRIPTION CLI command.
 //
@@ -183,7 +190,8 @@ func (cli *Cli) GetMailboxSubscription(account string) ([]string, error) {
 // ListMailboxes retrieves the list of Account Mailboxes.
 //
 // Parameters:
-//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - filter: an optional filter string for Account Mailbox names (wildcards "*" and "%" are supported).
 //   - authAccount: an optional name of an Account on whose behalf the LIST operation is executed.
 //
@@ -211,7 +219,8 @@ func (cli *Cli) ListMailboxes(account, filter, authAccount string) (map[string]a
 // RenameMailbox renames a Mailbox in the specified Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - oldName: the name of the Mailbox to be renamed.
 //   - newName: the new name for the Mailbox.
 //   - recursive: if true, the keyword MAILBOXES is used, and all nested Mailboxes (submailboxes) are renamed, too.
@@ -241,7 +250,8 @@ func (cli *Cli) RenameMailbox(account, oldName, newName string, recursive bool, 
 // SetMailboxACL modifies the access control list for the Account Mailbox.
 //
 // Parameters:
-//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - mailbox: the name of an existing Mailbox in the specified Account.
 //   - acl: the access right elements to be modified. Use "+" or "-" prefixes to add or remove rights.
 //   - authAccount: an optional name of an Account on whose behalf the operation is executed.
@@ -266,7 +276,8 @@ func (cli *Cli) SetMailboxACL(account, mailbox string, acl map[string]string, au
 // SetMailboxAliases sets the Account Mailbox aliases.
 //
 // Parameters:
-//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - aliases: the set of new Mailbox aliases.
 //
 // This method executes the SETMAILBOXALIASES CLI command.
@@ -283,7 +294,8 @@ func (cli *Cli) SetMailboxAliases(account string, aliases map[string]string) err
 // SetMailboxClass sets the "class" of an Account Mailbox.
 //
 // Parameters:
-//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - mailbox: the name of an existing Mailbox in the specified Account.
 //   - class: the Mailbox class.
 //   - authAccount: an optional name of an Account whose Mailbox access rights should be used.
@@ -308,7 +320,8 @@ func (cli *Cli) SetMailboxClass(account, mailbox, class, authAccount string) err
 // SetMailboxSubscription sets the Account "subscribed Mailboxes" list.
 //
 // Parameters:
-//   - account: the name of an existing Account. The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - subs: the list of subscribed Mailboxes. Each array element should be a string with a Mailbox name.
 //
 // This method executes the SETMAILBOXSUBSCRIPTION CLI command.

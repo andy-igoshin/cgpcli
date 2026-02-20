@@ -81,7 +81,7 @@ func (cli *Cli) SendTaskEvent(taskID, event string, param any) error {
 // StartPBXTask starts a new PBX Task on behalf of the specified Account.
 //
 // Parameters:
-//   - account: the name of the Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //     If the Domain name is not specified, the current user Domain is used.
 //   - program: the name of the program (the .sppr file) to start.
 //   - entry: an optional program entry point. If empty, "main" is used.

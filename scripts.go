@@ -27,8 +27,8 @@ import (
 // and returns the result object directly.
 //
 // Parameters:
-//   - account: the name of the Account. The script is started on this Account behalf.
-//     The name can include the Domain name. If the Domain name is not specified, the current user Domain is used.
+//   - account: the Account name. The name can include the Domain name.
+//     The script is executed on behalf of this Account.
 //   - prog: the name of the script file (the .scgp file) to start.
 //   - entry: an optional script entry point. If empty, "main" is used.
 //   - param: an optional map of parameters passed to the script.

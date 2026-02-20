@@ -58,7 +58,7 @@ func (t AccountType) String() string {
 // CheckAccountPassword verifies if the provided password matches the Account's password.
 //
 // Parameters:
-//   - account: the name of the Account to check.
+//   - account: the Account name.
 //   - password: the plain-text password to verify against the server record.
 //
 // This is a helper method that performs a client-side comparison by retrieving
@@ -90,9 +90,7 @@ func (cli *Cli) CheckAccountPassword(account, password string) (bool, error) {
 // CreateAccount creates a new Account.
 //
 // Parameters:
-//   - account: the name for the new Account. The name can contain the @ symbol
-//     followed by the Domain name; otherwise, the Account is created in the
-//     administrator Domain.
+//   - account: the Account name. The name can include the Domain name.
 //   - settings: an optional dictionary with the initial Account settings.
 //     If specified, it is used to modify the Template settings for the target Domain.
 //   - accType: an optional Account type (e.g., MultiMailbox, MailDirMailbox).
@@ -130,7 +128,7 @@ func (cli *Cli) CreateAccount(account string, settings map[string]any, accType A
 // DeleteAccount removes an existing Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //
 // This method executes the DELETEACCOUNT CLI command.
 //
@@ -146,7 +144,7 @@ func (cli *Cli) DeleteAccount(account string) error {
 // DeleteAccountMailRule removes a Mail Rule from an existing Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - rule: the name of the [MailRule] to be removed.
 //
 // If the specified Mail Rule does not exist, the command does nothing and
@@ -166,7 +164,7 @@ func (cli *Cli) DeleteAccountMailRule(account, rule string) error {
 // DeleteAccountSignalRule removes a Signal Rule from an existing Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - rule: the name of the [SignalRule] to be removed.
 //
 // If the specified Signal Rule does not exist, the command does nothing and
@@ -186,7 +184,7 @@ func (cli *Cli) DeleteAccountSignalRule(account, rule string) error {
 // GetAccountACL retrieves the Access Control Lists (ACLs) for an Account.
 //
 // Parameters:
-//   - account: the name of an existing Account (target Account).
+//   - account: the Account name.
 //     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - authAccount: an optional name of an Account on whose behalf the operation
 //     is executed. If specified, the ACL info is returned only if that Account
@@ -213,7 +211,7 @@ func (cli *Cli) GetAccountACL(account, authAccount string) (map[string]any, erro
 // GetAccountACLRights retrieves the effective access rights for a specific Account.
 //
 // Parameters:
-//   - account: the name of an existing Account (target Account).
+//   - account: the Account name.
 //     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - authAccount: the name of an Account whose effective access rights for the
 //     target Account should be retrieved.
@@ -233,7 +231,7 @@ func (cli *Cli) GetAccountACLRights(account, authAccount string) (string, error)
 // GetAccountAccessModes retrieves the enabled services (AccessModes) for an Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //
 // The AccessMode setting specifies Enabled Services. The returned slice of strings
 // represents the names of the enabled services.
@@ -283,7 +281,7 @@ func (cli *Cli) GetAccountAccessModes(account string) ([]string, error) {
 // GetAccountAliases retrieves the list of Account aliases.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //
 // This method executes the GETACCOUNTALIASES CLI command.
 //
@@ -300,7 +298,7 @@ func (cli *Cli) GetAccountAliases(account string) ([]string, error) {
 // GetAccountEffectivePrefs retrieves the effective Account Preferences.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //
 // Both the explicitly set and the default preferences are included in the result.
 //
@@ -321,8 +319,8 @@ func (cli *Cli) GetAccountEffectivePrefs(account string) (map[string]any, error)
 // GetAccountEffectiveSettings retrieves the effective Account settings.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
-//     The single asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the Account name. The name can include the Domain name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //
 // Both the explicitly set and the default Account settings are included in the result.
 //
@@ -343,8 +341,8 @@ func (cli *Cli) GetAccountEffectiveSettings(account string) (map[string]any, err
 // GetAccountInfo retrieves multiple elements from the Account "info" dictionary.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
-//     The single asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the Account name. The name can include the Domain name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - keys: an optional slice of info key names to retrieve (e.g., "LastLogin", "LastAddress").
 //     If empty, the entire "info" dictionary is returned.
 //
@@ -374,7 +372,7 @@ func (cli *Cli) GetAccountInfo(account string, keys []string) (map[string]any, e
 // GetAccountLocation retrieves the storage path for an Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //
 // The path is relative to the file directory of the Account Domain. For multi-mailbox
 // Accounts it points to the Account file directory; for single-mailbox Accounts it
@@ -395,7 +393,7 @@ func (cli *Cli) GetAccountLocation(account string) (string, error) {
 // GetAccountMailRules retrieves the list of Account Queue Mail Rules.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //
 // This method executes the GETACCOUNTMAILRULES CLI command.
 //
@@ -412,8 +410,8 @@ func (cli *Cli) GetAccountMailRules(account string) ([]MailRule, error) {
 // GetAccountOneInfo retrieves a single element from the Account "info" dictionary.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
-//     The single asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the Account name. The name can include the Domain name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - key: the name of the requested "info" element. The key name is case-sensitive.
 //     Do NOT include the hash (#) symbol.
 //
@@ -436,8 +434,8 @@ func (cli *Cli) GetAccountOneInfo(account, key string) (any, error) {
 // GetAccountOneSetting retrieves a single setting from the effective Account settings list.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
-//     The single asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the Account name. The name can include the Domain name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - key: the name of the setting to read.
 //
 // The command produces an object which can be a string, an array, a dictionary,
@@ -460,7 +458,7 @@ func (cli *Cli) GetAccountOneSetting(account, key string) (any, error) {
 // GetAccountPlainPassword retrieves the clear-text password for an Account.
 //
 // Parameters:
-//   - account: the name of an existing Account.
+//   - account: the Account name.
 //   - method: an optional authentication method. Supported values are "SIP" and "RADIUS".
 //     If empty, the main Account password is retrieved.
 //
@@ -489,7 +487,7 @@ func (cli *Cli) GetAccountPlainPassword(account string, method string) (string, 
 // GetAccountPrefs retrieves the Account Preferences.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //
 // Only the explicitly set (non-default) preferences are included in the result.
 // To get the combined set of explicit and default preferences, use
@@ -512,7 +510,7 @@ func (cli *Cli) GetAccountPrefs(account string) (map[string]any, error) {
 // GetAccountPresence retrieves the current "presence" status of an Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //
 // The method returns the presence information in one of the following formats:
 //   - []any (array of two strings): the first element is the presence status
@@ -535,7 +533,7 @@ func (cli *Cli) GetAccountPresence(account string) (any, error) {
 // GetAccountRIMAPs retrieves the list of Account RIMAP (Remote IMAP) records.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //
 // RIMAP records are used to poll external mailboxes and fetch messages into the local Account.
 //
@@ -554,7 +552,7 @@ func (cli *Cli) GetAccountRIMAPs(account string) (map[string]any, error) {
 // GetAccountRPOPs retrieves the list of Account RPOP (Remote POP) records.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //
 // RPOP records are used to collect mail from external POP3 servers into the local Account.
 //
@@ -573,7 +571,7 @@ func (cli *Cli) GetAccountRPOPs(account string) (map[string]any, error) {
 // GetAccountRSIPs retrieves the list of Account RSIP (Remote SIP) records.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //
 // RSIP records are used for registering on remote SIP servers or managing remote
 // SIP-related configurations for the Account.
@@ -593,7 +591,7 @@ func (cli *Cli) GetAccountRSIPs(account string) (map[string]any, error) {
 // GetAccountRights retrieves the access rights granted to the specified Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //
 // The method produces an array listing all Account Server or Domain Access rights.
 // These rights determine what administrative or service-level actions the user
@@ -614,8 +612,8 @@ func (cli *Cli) GetAccountRights(account string) ([]string, error) {
 // GetAccountSettings retrieves the explicitly set Account settings.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
-//     The single asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - account: the Account name. The name can include the Domain name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //
 // Only the explicitly set (non-default) settings are included in the result.
 // To get the combined set of explicit and default settings, use
@@ -638,7 +636,7 @@ func (cli *Cli) GetAccountSettings(account string) (map[string]any, error) {
 // GetAccountSignalRules retrieves the list of Account Signal Rules.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //
 // Signal Rules are used to manage real-time communication events.
 //
@@ -657,7 +655,7 @@ func (cli *Cli) GetAccountSignalRules(account string) ([]SignalRule, error) {
 // GetAccountTelnums retrieves the list of telephone numbers assigned to the Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //
 // These numbers are used for telephony services such as PBX routing or SMS.
 //
@@ -676,7 +674,7 @@ func (cli *Cli) GetAccountTelnums(account string) ([]string, error) {
 // IsAccountExists checks for the existence of an account on the server.
 //
 // Parameters:
-//   - account: the name of the account to check. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //
 // This is a helper method that does not correspond to a single CLI command.
 // It internally calls GetAccountLocation to verify existence. If the account
@@ -701,7 +699,7 @@ func (cli *Cli) IsAccountExists(account string) (bool, error) {
 // KillAccountSessions interrupts all active sessions for the specified Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //
 // This command immediately terminates all active connections and sessions
 // associated with the account, including POP, IMAP, FTP, WebUser,
@@ -721,7 +719,7 @@ func (cli *Cli) KillAccountSessions(account string) error {
 // ModifyAccountTelnums changes the telephone numbers assigned to the Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - params: a dictionary specifying the operation to perform.
 //
 // The params dictionary must contain an "op" key with one of the following values:
@@ -771,7 +769,8 @@ func (cli *Cli) RenameAccount(oldName, newName, storage string) error {
 // SetAccountACL modifies the Access Control List (ACL) for Account Access Rights.
 //
 // Parameters:
-//   - account: the name of the target Account. Use "*" for the current authenticated user.
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
 //   - acl: a dictionary where keys are identifiers (e.g., "anyone" or "user@domain")
 //     and values are strings with access right symbols.
 //   - authAccount: an optional name of an Account on whose behalf the operation
@@ -803,7 +802,7 @@ func (cli *Cli) SetAccountACL(account string, acl map[string]any, authAccount st
 // SetAccountAccessModes updates the allowed access protocols/modes for an Account.
 //
 // Parameters:
-//   - account: the name of an existing Account.
+//   - account: the Account name.
 //   - modes: a slice of strings representing allowed protocols (e.g., "IMAP", "POP", "HTTP").
 //
 // Behavior:
@@ -841,7 +840,7 @@ func (cli *Cli) SetAccountAccessModes(account string, modes []string) error {
 // SetAccountAliases sets the list of aliases for the specified Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - aliases: a slice of strings containing the new Account alias names.
 //
 // This is an "all-or-nothing" operation: all existing aliases for the Account are
@@ -862,7 +861,7 @@ func (cli *Cli) SetAccountAliases(account string, aliases []string) error {
 // SetAccountMailRules sets the list of Account Queue Mail Rules.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - rules: a slice of [MailRule] structures containing the new rules.
 //
 // This command replaces all existing Mail Rules for the account with the provided set.
@@ -885,7 +884,7 @@ func (cli *Cli) SetAccountMailRules(account string, rules []MailRule) error {
 // SetAccountPassword updates the password for the specified Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - password: the new password string. If empty and a tag is provided, the
 //     corresponding application-specific password is removed.
 //   - method: an optional Account Access Mode. "SIP" modifies the Alternative SIP Password;
@@ -923,7 +922,7 @@ func (cli *Cli) SetAccountPassword(account, password, method, tag string, check 
 // SetAccountPrefs sets the Preferences for the specified Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - settings: a dictionary containing the new preference settings.
 //
 // This command completely replaces all existing Account Preferences with the provided ones.
@@ -944,7 +943,7 @@ func (cli *Cli) SetAccountPrefs(account string, settings map[string]any) error {
 // SetAccountRIMAPs sets the Account RIMAP records.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - records: a dictionary containing the Account RIMAP records.
 //
 // All existing Account RIMAP records are removed and replaced with the provided dictionary.
@@ -963,7 +962,7 @@ func (cli *Cli) SetAccountRIMAPs(account string, records map[string]any) error {
 // SetAccountRPOPs sets the Account RPOP records.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - records: a dictionary containing the Account RPOP records.
 //
 // All existing Account RPOP records are removed and replaced with the provided dictionary.
@@ -982,7 +981,7 @@ func (cli *Cli) SetAccountRPOPs(account string, records map[string]any) error {
 // SetAccountRSIPs sets the Account RSIP records.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - records: a dictionary containing the Account RSIP records.
 //
 // All existing Account RSIP records are removed and replaced with the provided dictionary.
@@ -1001,7 +1000,7 @@ func (cli *Cli) SetAccountRSIPs(account string, records map[string]any) error {
 // SetAccountSettings changes the Account settings.
 //
 // Parameters:
-//   - account: the name of an existing Account.
+//   - account: the Account name.
 //   - settings: a dictionary used to replace the Account settings dictionary.
 //
 // All existing Account settings are removed and replaced with the provided dictionary.
@@ -1020,7 +1019,7 @@ func (cli *Cli) SetAccountSettings(account string, settings map[string]any) erro
 // SetAccountSignalRules sets the Account Signal Rules.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - rules: a slice of [SignalRule] structures containing the new Signal Rules.
 //
 // All existing Account Signal Rules are removed and replaced with the provided slice.
@@ -1039,7 +1038,7 @@ func (cli *Cli) SetAccountSignalRules(account string, rules []SignalRule) error 
 // SetAccountTelnums assigns telephone numbers to the Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - telnums: a slice containing the telephone number strings.
 //
 // All existing numbers assigned to the Account are removed and replaced with the provided slice.
@@ -1058,7 +1057,7 @@ func (cli *Cli) SetAccountTelnums(account string, telnums []string) error {
 // SetAccountType changes the Account type.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - accType: the new Account type (e.g., MultiMailbox, AGrade).
 //
 // Note: the current Account type must also belong to the target type set for the
@@ -1078,7 +1077,7 @@ func (cli *Cli) SetAccountType(account string, accType AccountType) error {
 // UpdateAccountInfo updates the Account "info" fields.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - info: a dictionary containing the Account "info" fields to be updated or added.
 //
 // This method performs a partial update of the Account "info" dictionary.
@@ -1099,7 +1098,7 @@ func (cli *Cli) UpdateAccountInfo(account string, info map[string]any) error {
 // UpdateAccountMailRule updates or creates a specific Mail Rule for the Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - rule: a [MailRule] structure containing the rule definition.
 //
 // Behavior depends on the content of the rule structure:
@@ -1123,7 +1122,7 @@ func (cli *Cli) UpdateAccountMailRule(account string, rule MailRule) error {
 // UpdateAccountPrefs modifies the Account Preferences.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - settings: a dictionary containing the preference settings to update.
 //
 // This method performs a partial update of the Account Preferences. Omitted elements
@@ -1145,7 +1144,7 @@ func (cli *Cli) UpdateAccountPrefs(account string, settings map[string]any) erro
 // UpdateAccountSettings updates the Account settings.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - settings: a dictionary containing the settings to be updated.
 //
 // This method performs a partial update of the Account settings dictionary. Omitted
@@ -1167,7 +1166,7 @@ func (cli *Cli) UpdateAccountSettings(account string, settings map[string]any) e
 // UpdateAccountSignalRule updates or creates a specific Signal Rule for the Account.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - rule: a [SignalRule] structure containing the rule definition.
 //
 // Behavior depends on the content of the rule structure:
@@ -1192,7 +1191,7 @@ func (cli *Cli) UpdateAccountSignalRule(account string, rule SignalRule) error {
 // UpdateScheduledTask sets the Account Scheduled Task record.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - task: a dictionary containing the Scheduled Task data (id, program/script, etc.).
 //
 // Behavior:
@@ -1217,7 +1216,7 @@ func (cli *Cli) UpdateScheduledTask(account string, task map[string]any) error {
 // 'From:' header value.
 //
 // Parameters:
-//   - account: the name of an existing Account. The name can include the Domain name.
+//   - account: the Account name. The name can include the Domain name.
 //   - identity: the 'From:' header value to verify (e.g., "Name <user@domain.com>").
 //
 // This method executes the VERIFYACCOUNTIDENTITY CLI command.
@@ -1236,7 +1235,7 @@ func (cli *Cli) VerifyAccountIdentity(account, identity string) (bool, error) {
 // VerifyAccountPassword verifies the Account password.
 //
 // Parameters:
-//   - account: the name of an existing Account.
+//   - account: the Account name. The name can include the Domain name.
 //   - password: the password to check (clear text).
 //
 // This method executes the VERIFYACCOUNTPASSWORD CLI command.
