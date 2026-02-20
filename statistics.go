@@ -24,7 +24,7 @@ import (
 // Parameters:
 //   - account: the Account name.
 //     The asterisk (*) symbol can be used to specify the current authenticated Account.
-//   - key: an optional the name of the statistical entry to retrieve.
+//   - key: an optional name of the statistical entry to retrieve.
 //
 // This method executes the GETACCOUNTSTAT CLI command.
 //
@@ -51,7 +51,7 @@ func (cli *Cli) GetAccountStat(account string, key string) (any, error) {
 // Parameters:
 //   - domain: the Domain name. The asterisk (*) symbol can
 //     be used to specify the Domain of the current authenticated Account.
-//   - key: an optional the name of the statistical entry to retrieve.
+//   - key: an optional name of the statistical entry to retrieve.
 //
 // This method executes the GETDOMAINSTAT CLI command.
 //
@@ -77,7 +77,7 @@ func (cli *Cli) GetDomainStat(domain string, key string) (any, error) {
 // Parameters:
 //   - account: the Account name.
 //     The asterisk (*) symbol can be used to specify the current authenticated Account.
-//   - key: an optional the name of the statistical entry to reset.
+//   - key: an optional name of the statistical entry to reset.
 //     If the key is not specified, all Account statistical entries are reset.
 //
 // This method executes the RESETACCOUNTSTAT CLI command.
@@ -102,7 +102,7 @@ func (cli *Cli) ResetAccountStat(account string, key string) error {
 // Parameters:
 //   - domain: the Domain name. The asterisk (*) symbol can
 //     be used to specify the Domain of the current authenticated Account.
-//   - key: an optional the name of the statistical entry to reset.
+//   - key: an optional name of the statistical entry to reset.
 //     If the key is not specified, all Domain statistical entries are reset.
 //
 // This method executes the RESETDOMAINSTAT CLI command.

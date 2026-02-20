@@ -422,7 +422,7 @@ func (cli *Cli) ResumeDomain(domain string) error {
 //
 // Parameters:
 //   - domain: an optional Domain name. If empty, applies to the authenticated user Domain.
-//   - settings: a dictionary used to replace the Default Account Preferences.
+//   - settings: a dictionary of Default Account Preferences.
 //
 // This method executes the SETACCOUNTDEFAULTPREFS CLI command.
 //
@@ -439,7 +439,7 @@ func (cli *Cli) SetAccountDefaultPrefs(domain string, settings map[string]any) e
 //
 // Parameters:
 //   - domain: an optional Domain name.
-//   - settings: a dictionary used to replace the Domain Default Account settings.
+//   - settings: a dictionary of Default Account settings.
 //
 // This method executes the SETACCOUNTDEFAULTS CLI command.
 //
@@ -456,7 +456,7 @@ func (cli *Cli) SetAccountDefaults(domain string, settings map[string]any) error
 //
 // Parameters:
 //   - domain: an optional Domain name. If empty, applies to the administrator Domain.
-//   - settings: a dictionary used to replace the Domain Account Template.
+//   - settings: a dictionary of Account Template settings.
 //
 // This method executes the SETACCOUNTTEMPLATE CLI command.
 //
@@ -507,7 +507,7 @@ func (cli *Cli) SetDomainMailRules(domain string, rules []MailRule) error {
 //
 // Parameters:
 //   - domain: the Domain name.
-//   - settings: a dictionary used to replace the Domain settings.
+//   - settings: a dictionary of Domain settings.
 //
 // This method executes the SETDOMAINSETTINGS CLI command.
 //
@@ -557,7 +557,7 @@ func (cli *Cli) SuspendDomain(domain string) error {
 //
 // Parameters:
 //   - domain: an optional Domain name. If empty, applies to the authenticated user Domain.
-//   - settings: a dictionary used to modify the Domain Default Account Preferences.
+//   - settings: a dictionary of Default Account Preferences.
 //
 // This method executes the UPDATEACCOUNTDEFAULTPREFS CLI command.
 //
@@ -574,7 +574,7 @@ func (cli *Cli) UpdateAccountDefaultPrefs(domain string, settings map[string]any
 //
 // Parameters:
 //   - domain: an optional Domain name. If empty, applies to the administrator Domain.
-//   - settings: a dictionary used to modify the Domain Default Account settings.
+//   - settings: a dictionary of Default Account settings.
 //
 // This method executes the UPDATEACCOUNTDEFAULTS CLI command.
 //
@@ -591,7 +591,7 @@ func (cli *Cli) UpdateAccountDefaults(domain string, settings map[string]any) er
 //
 // Parameters:
 //   - domain: an optional Domain name. If empty, applies to the administrator Domain.
-//   - settings: a dictionary used to modify the Domain Account Template.
+//   - settings: a dictionary of Account Template settings.
 //
 // This method executes the UPDATEACCOUNTTEMPLATE CLI command.
 //
@@ -608,7 +608,7 @@ func (cli *Cli) UpdateAccountTemplate(domain string, settings map[string]any) er
 //
 // Parameters:
 //   - domain: an optional Domain name.
-//   - settings: a dictionary containing the settings to update.
+//   - settings: a dictionary of Domain settings.
 //
 // This method executes the UPDATEDOMAINSETTINGS CLI command.
 //

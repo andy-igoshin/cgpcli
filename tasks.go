@@ -130,7 +130,7 @@ func (cli *Cli) RenameNamedTask(oldTask, newTask string) error {
 //
 // Parameters:
 //   - task: the name of an existing Named Task. The name can include the Domain name.
-//   - settings: a dictionary used to update the Named Task settings dictionary.
+//   - settings: a dictionary of Named Task settings.
 //
 // This method executes the UPDATENAMEDTASK CLI command.
 //

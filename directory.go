@@ -35,7 +35,7 @@ type DirAccessRight struct {
 // Parameters:
 //   - unit: the new Unit name.
 //   - mountPoint: the new Unit mount point (mount DN).
-//   - shared: if true, a cluster-wide Directory Unit is created.
+//   - shared: if true, a Cluster-wide Directory Unit is created.
 //   - remote: if true, a Remote (LDAP-based) Directory Unit is created,
 //     otherwise a Local (File-based) Directory Unit is created.
 //
@@ -64,7 +64,7 @@ func (cli *Cli) CreateDirectoryUnit(unit, mountPoint string, shared, remote bool
 //
 // Parameters:
 //   - unit: the Directory Unit name.
-//   - shared: if true, this is a cluster-wide Directory Unit name.
+//   - shared: if true, this is a Cluster-wide Directory Unit name.
 //
 // This method executes the DELETEDIRECTORYUNIT CLI command.
 //
@@ -86,7 +86,7 @@ func (cli *Cli) DeleteDirectoryUnit(unit string, shared bool) error {
 // GetDirectoryAccessRights retrieves the Directory Access Rights.
 //
 // Parameters:
-//   - shared: if true, the cluster-wide Access Rights are retrieved.
+//   - shared: if true, the Cluster-wide Access Rights are retrieved.
 //
 // This method executes the GETDIRECTORYACCESSRIGHTS CLI command.
 //
@@ -149,7 +149,7 @@ func (cli *Cli) GetDirectoryAccessRights(shared bool) ([]DirAccessRight, error) 
 //
 // Parameters:
 //   - unit: the Directory Unit name.
-//   - shared: if true, this is a cluster-wide Directory Unit name.
+//   - shared: if true, this is a Cluster-wide Directory Unit name.
 //
 // This method executes the GETDIRECTORYUNIT CLI command.
 //
@@ -172,7 +172,7 @@ func (cli *Cli) GetDirectoryUnit(unit string, shared bool) (map[string]any, erro
 // ListDirectoryUnits retrieves the list of all created Directory units.
 //
 // Parameters:
-//   - shared: if true, the cluster-wide Units are listed.
+//   - shared: if true, the Cluster-wide Units are listed.
 //
 // This method executes the LISTDIRECTORYUNITS CLI command.
 //
@@ -207,7 +207,7 @@ func (cli *Cli) ListDirectoryUnits(shared bool) (map[string]string, error) {
 // Parameters:
 //   - unit: the Directory Unit name.
 //   - mountPoint: the new mount point (mount DN).
-//   - shared: if true, this is a cluster-wide Directory Unit name.
+//   - shared: if true, this is a Cluster-wide Directory Unit name.
 //
 // This method executes the RELOCATEDIRECTORYUNIT CLI command.
 //
@@ -229,7 +229,7 @@ func (cli *Cli) RelocateDirectoryUnit(unit, mountPoint string, shared bool) erro
 // SetDirectoryAccessRights sets the Directory Access Rights.
 //
 // Parameters:
-//   - shared: if true, the cluster-wide Access Rights are set.
+//   - shared: if true, the Cluster-wide Access Rights are set.
 //   - rights: a slice of [DirAccessRight] structures specifying the new ACLs.
 //
 // This method executes the SETDIRECTORYACCESSRIGHTS CLI command.
@@ -261,8 +261,8 @@ func (cli *Cli) SetDirectoryAccessRights(shared bool, rights []DirAccessRight) e
 //
 // Parameters:
 //   - unit: the Directory Unit name.
-//   - shared: if true, this is a cluster-wide Directory Unit name.
-//   - settings: a dictionary specifying the new Directory Unit settings.
+//   - shared: if true, this is a Cluster-wide Directory Unit name.
+//   - settings: a dictionary of Directory Unit settings.
 //
 // This method executes the SETDIRECTORYUNIT CLI command.
 //

@@ -30,7 +30,7 @@ type GroupResult struct {
 // Parameters:
 //   - group: the name for the new Group. The name can include the Domain name, in this case the Group is created in the specified Domain.
 //     If the Domain name is not specified, the command applies to the administrator Domain.
-//   - settings: an optional initial Group settings and the members list.
+//   - settings: an optional dictionary of initial Group settings and members.
 //
 // This method executes the CREATEGROUP CLI command.
 //
@@ -160,7 +160,7 @@ func (cli *Cli) RenameGroup(oldName, newName string) error {
 //
 // Parameters:
 //   - group: the name of an existing Group. The name can include the Domain name.
-//   - settings: this dictionary is used to replace the Group settings dictionary.
+//   - settings: a dictionary of Group settings.
 //   - members: an optional list of group members to be included in the settings dictionary.
 //
 // This method executes the SETGROUP CLI command.

@@ -27,7 +27,7 @@ import (
 //
 // Parameters:
 //   - domain: the Domain name.
-//   - settings: an optional dictionary specifying the Domain settings.
+//   - settings: an optional dictionary of Domain settings.
 //
 // This method executes the CREATEDIRECTORYDOMAIN CLI command.
 //
@@ -52,7 +52,7 @@ func (cli *Cli) CreateDirectoryDomain(domain string, settings map[string]any) er
 //   - domain: the Domain name.
 //   - shared: if true, creates a Cluster-wide Domain (Dynamic Cluster only).
 //   - storage: an optional "storage mount point" directory name (without .mnt suffix).
-//   - settings: an optional dictionary specifying the initial Domain settings.
+//   - settings: an optional dictionary of initial Domain settings.
 //
 // This method executes the CREATEDOMAIN CLI command.
 //
@@ -123,7 +123,7 @@ func (cli *Cli) DeleteDomain(domain string, force bool) error {
 	}
 }
 
-// GetClusterAccountDefaults retrieves the cluster-wide Default Account settings.
+// GetClusterAccountDefaults retrieves the Cluster-wide Default Account settings.
 //
 // This method executes the GETCLUSTERACCOUNTDEFAULTS CLI command.
 //
@@ -134,7 +134,7 @@ func (cli *Cli) GetClusterAccountDefaults() (map[string]any, error) {
 	return cli.getMapAny("GETCLUSTERACCOUNTDEFAULTS")
 }
 
-// GetClusterAccountPrefs retrieves the cluster-wide Default Account Preferences.
+// GetClusterAccountPrefs retrieves the Cluster-wide Default Account Preferences.
 //
 // This method executes the GETCLUSTERACCOUNTPREFS CLI command.
 //
@@ -145,7 +145,7 @@ func (cli *Cli) GetClusterAccountPrefs() (map[string]any, error) {
 	return cli.getMapAny("GETCLUSTERACCOUNTPREFS")
 }
 
-// GetClusterDirectoryIntegration retrieves the cluster-wide Directory Integration settings.
+// GetClusterDirectoryIntegration retrieves the Cluster-wide Directory Integration settings.
 //
 // This method executes the GETCLUSTERDIRECTORYINTEGRATION CLI command.
 //
@@ -156,18 +156,18 @@ func (cli *Cli) GetClusterDirectoryIntegration() (map[string]any, error) {
 	return cli.getMapAny("GETCLUSTERDIRECTORYINTEGRATION")
 }
 
-// GetClusterDomainDefaults retrieves the cluster-wide default Domain Settings.
+// GetClusterDomainDefaults retrieves the Cluster-wide default Domain Settings.
 //
 // This method executes the GETCLUSTERDOMAINDEFAULTS CLI command.
 //
 // Returns:
-//   - map[string]any: a dictionary with the cluster-wide default Domain Settings.
+//   - map[string]any: a dictionary with the Cluster-wide default Domain Settings.
 //   - error: an error if the command fails.
 func (cli *Cli) GetClusterDomainDefaults() (map[string]any, error) {
 	return cli.getMapAny("GETCLUSTERDOMAINDEFAULTS")
 }
 
-// GetClusterTrustedCerts retrieves the cluster-wide set of Trusted Certificates.
+// GetClusterTrustedCerts retrieves the Cluster-wide set of Trusted Certificates.
 //
 // This method executes the GETCLUSTERTRUSTEDCERTS CLI command.
 //
@@ -178,7 +178,7 @@ func (cli *Cli) GetClusterTrustedCerts() ([]string, error) {
 	return cli.getTrustedCerts("GETCLUSTERTRUSTEDCERTS")
 }
 
-// GetDirectoryIntegration retrieves the server-wide Directory Integration settings.
+// GetDirectoryIntegration retrieves the Server-wide Directory Integration settings.
 //
 // This method executes the GETDIRECTORYINTEGRATION CLI command.
 //
@@ -189,7 +189,7 @@ func (cli *Cli) GetDirectoryIntegration() (map[string]any, error) {
 	return cli.getMapAny("GETDIRECTORYINTEGRATION")
 }
 
-// GetDomainDefaults retrieves the server-wide default Domain Settings.
+// GetDomainDefaults retrieves the Server-wide default Domain Settings.
 //
 // This method executes the GETDOMAINDEFAULTS CLI command.
 //
@@ -200,7 +200,7 @@ func (cli *Cli) GetDomainDefaults() (map[string]any, error) {
 	return cli.getMapAny("GETDOMAINDEFAULTS")
 }
 
-// GetServerAccountDefaults retrieves the server-wide Default Account settings.
+// GetServerAccountDefaults retrieves the Server-wide Default Account settings.
 //
 // This method executes the GETSERVERACCOUNTDEFAULTS CLI command.
 //
@@ -211,7 +211,7 @@ func (cli *Cli) GetServerAccountDefaults() (map[string]any, error) {
 	return cli.getMapAny("GETSERVERACCOUNTDEFAULTS")
 }
 
-// GetServerAccountPrefs retrieves the server-wide Default Account Preferences.
+// GetServerAccountPrefs retrieves the Server-wide Default Account Preferences.
 //
 // This method executes the GETSERVERACCOUNTPREFS CLI command.
 //
@@ -222,7 +222,7 @@ func (cli *Cli) GetServerAccountPrefs() (map[string]any, error) {
 	return cli.getMapAny("GETSERVERACCOUNTPREFS")
 }
 
-// GetServerTrustedCerts retrieves the server-wide set of Trusted Certificates.
+// GetServerTrustedCerts retrieves the Server-wide set of Trusted Certificates.
 //
 // This method executes the GETSERVERTRUSTEDCERTS CLI command.
 //
@@ -339,10 +339,10 @@ func (cli *Cli) RenameDomain(oldName, newName string, storage string) error {
 	}
 }
 
-// SetClusterAccountDefaults replaces the cluster-wide Default Account settings.
+// SetClusterAccountDefaults replaces the Cluster-wide Default Account settings.
 //
 // Parameters:
-//   - settings: a dictionary used to replace the Default Account settings.
+//   - settings: a dictionary of Default Account settings.
 //
 // This method executes the SETCLUSTERACCOUNTDEFAULTS CLI command.
 //
@@ -355,10 +355,10 @@ func (cli *Cli) SetClusterAccountDefaults(settings map[string]any) error {
 	return cli.QueryNV("SETCLUSTERACCOUNTDEFAULTS", settings)
 }
 
-// SetClusterAccountPrefs replaces the cluster-wide Default Account Preferences.
+// SetClusterAccountPrefs replaces the Cluster-wide Default Account Preferences.
 //
 // Parameters:
-//   - settings: a dictionary used to replace the Default Account Preferences.
+//   - settings: a dictionary of Default Account Preferences.
 //
 // This method executes the SETCLUSTERACCOUNTPREFS CLI command.
 //
@@ -371,10 +371,10 @@ func (cli *Cli) SetClusterAccountPrefs(settings map[string]any) error {
 	return cli.QueryNV("SETCLUSTERACCOUNTPREFS", settings)
 }
 
-// SetClusterDirectoryIntegration replaces the cluster-wide Directory Integration settings.
+// SetClusterDirectoryIntegration replaces the Cluster-wide Directory Integration settings.
 //
 // Parameters:
-//   - settings: a dictionary used to replace the Directory Integration settings.
+//   - settings: a dictionary of Directory Integration settings.
 //
 // This method executes the SETCLUSTERDIRECTORYINTEGRATION CLI command.
 //
@@ -387,10 +387,10 @@ func (cli *Cli) SetClusterDirectoryIntegration(settings map[string]any) error {
 	return cli.QueryNV("SETCLUSTERDIRECTORYINTEGRATION", settings)
 }
 
-// SetClusterDomainDefaults replaces the cluster-wide default Domain settings.
+// SetClusterDomainDefaults replaces the Cluster-wide default Domain settings.
 //
 // Parameters:
-//   - settings: a dictionary used to replace the default Domain settings.
+//   - settings: a dictionary of default Domain settings.
 //
 // This method executes the SETCLUSTERDOMAINDEFAULTS CLI command.
 //
@@ -403,7 +403,7 @@ func (cli *Cli) SetClusterDomainDefaults(settings map[string]any) error {
 	return cli.QueryNV("SETCLUSTERDOMAINDEFAULTS", settings)
 }
 
-// SetClusterTrustedCerts replaces the cluster-wide list of Trusted Certificates.
+// SetClusterTrustedCerts replaces the Cluster-wide list of Trusted Certificates.
 //
 // Parameters:
 //   - certs: an array of Base64-encoded X.509 certificate data or PEM.
@@ -419,10 +419,10 @@ func (cli *Cli) SetClusterTrustedCerts(certs []string) error {
 	return cli.setTrustedCerts("SETCLUSTERTRUSTEDCERTS", certs)
 }
 
-// SetDirectoryIntegration replaces the server-wide Directory Integration settings.
+// SetDirectoryIntegration replaces the Server-wide Directory Integration settings.
 //
 // Parameters:
-//   - settings: a dictionary used to replace the Directory Integration settings.
+//   - settings: a dictionary of Directory Integration settings.
 //
 // This method executes the SETDIRECTORYINTEGRATION CLI command.
 //
@@ -435,10 +435,10 @@ func (cli *Cli) SetDirectoryIntegration(settings map[string]any) error {
 	return cli.QueryNV("SETDIRECTORYINTEGRATION", settings)
 }
 
-// SetDomainDefaults replaces the server-wide default Domain settings.
+// SetDomainDefaults replaces the Server-wide default Domain settings.
 //
 // Parameters:
-//   - settings: a dictionary used to replace the default Domain settings.
+//   - settings: a dictionary of default Domain settings.
 //
 // This method executes the SETDOMAINDEFAULTS CLI command.
 //
@@ -451,10 +451,10 @@ func (cli *Cli) SetDomainDefaults(settings map[string]any) error {
 	return cli.QueryNV("SETDOMAINDEFAULTS", settings)
 }
 
-// SetServerAccountDefaults replaces the server-wide Default Account settings.
+// SetServerAccountDefaults replaces the Server-wide Default Account settings.
 //
 // Parameters:
-//   - settings: a dictionary used to replace the Default Account settings.
+//   - settings: a dictionary of Default Account settings.
 //
 // This method executes the SETSERVERACCOUNTDEFAULTS CLI command.
 //
@@ -467,10 +467,10 @@ func (cli *Cli) SetServerAccountDefaults(settings map[string]any) error {
 	return cli.QueryNV("SETSERVERACCOUNTDEFAULTS", settings)
 }
 
-// SetServerAccountPrefs replaces the server-wide Default Account Preferences.
+// SetServerAccountPrefs replaces the Server-wide Default Account Preferences.
 //
 // Parameters:
-//   - settings: a dictionary used to replace the Default Account Preferences.
+//   - settings: a dictionary of Default Account Preferences.
 //
 // This method executes the SETSERVERACCOUNTPREFS CLI command.
 //
@@ -483,7 +483,7 @@ func (cli *Cli) SetServerAccountPrefs(settings map[string]any) error {
 	return cli.QueryNV("SETSERVERACCOUNTPREFS", settings)
 }
 
-// SetServerTrustedCerts replaces the server-wide list of Trusted Certificates.
+// SetServerTrustedCerts replaces the Server-wide list of Trusted Certificates.
 //
 // Parameters:
 //   - certs: an array of Base64-encoded X.509 certificate data or PEM.
@@ -499,10 +499,10 @@ func (cli *Cli) SetServerTrustedCerts(certs []string) error {
 	return cli.setTrustedCerts("SETSERVERTRUSTEDCERTS", certs)
 }
 
-// UpdateClusterAccountDefaults modifies specific cluster-wide Default Account settings.
+// UpdateClusterAccountDefaults modifies specific Cluster-wide Default Account settings.
 //
 // Parameters:
-//   - settings: a dictionary containing settings to update.
+//   - settings: a dictionary of Default Account settings.
 //
 // This method executes the UPDATECLUSTERACCOUNTDEFAULTS CLI command.
 //
@@ -515,10 +515,10 @@ func (cli *Cli) UpdateClusterAccountDefaults(settings map[string]any) error {
 	return cli.QueryNV("UPDATECLUSTERACCOUNTDEFAULTS", settings)
 }
 
-// UpdateClusterAccountPrefs modifies specific cluster-wide Default Account Preferences.
+// UpdateClusterAccountPrefs modifies specific Cluster-wide Default Account Preferences.
 //
 // Parameters:
-//   - settings: a dictionary containing preferences to update.
+//   - settings: a dictionary of Account Preferences.
 //
 // This method executes the UPDATECLUSTERACCOUNTPREFS CLI command.
 //
@@ -531,10 +531,10 @@ func (cli *Cli) UpdateClusterAccountPrefs(settings map[string]any) error {
 	return cli.QueryNV("UPDATECLUSTERACCOUNTPREFS", settings)
 }
 
-// UpdateClusterDomainDefaults modifies specific cluster-wide default Domain settings.
+// UpdateClusterDomainDefaults modifies specific Cluster-wide default Domain settings.
 //
 // Parameters:
-//   - settings: a dictionary containing settings to update.
+//   - settings: a dictionary of default Domain settings.
 //
 // This method executes the UPDATECLUSTERDOMAINDEFAULTS CLI command.
 //
@@ -547,10 +547,10 @@ func (cli *Cli) UpdateClusterDomainDefaults(settings map[string]any) error {
 	return cli.QueryNV("UPDATECLUSTERDOMAINDEFAULTS", settings)
 }
 
-// UpdateDomainDefaults modifies specific server-wide default Domain settings.
+// UpdateDomainDefaults modifies specific Server-wide default Domain settings.
 //
 // Parameters:
-//   - settings: a dictionary containing settings to update.
+//   - settings: a dictionary of default Domain settings.
 //
 // This method executes the UPDATEDOMAINDEFAULTS CLI command.
 //
@@ -563,10 +563,10 @@ func (cli *Cli) UpdateDomainDefaults(settings map[string]any) error {
 	return cli.QueryNV("UPDATEDOMAINDEFAULTS", settings)
 }
 
-// UpdateServerAccountDefaults modifies specific server-wide Default Account settings.
+// UpdateServerAccountDefaults modifies specific Server-wide Default Account settings.
 //
 // Parameters:
-//   - settings: a dictionary containing settings to update.
+//   - settings: a dictionary of Default Account settings.
 //
 // This method executes the UPDATESERVERACCOUNTDEFAULTS CLI command.
 //
@@ -579,10 +579,10 @@ func (cli *Cli) UpdateServerAccountDefaults(settings map[string]any) error {
 	return cli.QueryNV("UPDATESERVERACCOUNTDEFAULTS", settings)
 }
 
-// UpdateServerAccountPrefs modifies specific server-wide Default Account Preferences.
+// UpdateServerAccountPrefs modifies specific Server-wide Default Account Preferences.
 //
 // Parameters:
-//   - settings: a dictionary containing preferences to update.
+//   - settings: a dictionary of Account Preferences.
 //
 // This method executes the UPDATESERVERACCOUNTPREFS CLI command.
 //

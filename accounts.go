@@ -91,8 +91,7 @@ func (cli *Cli) CheckAccountPassword(account, password string) (bool, error) {
 //
 // Parameters:
 //   - account: the Account name. The name can include the Domain name.
-//   - settings: an optional dictionary with the initial Account settings.
-//     If specified, it is used to modify the Template settings for the target Domain.
+//   - settings: an optional dictionary of initial Account settings.
 //   - accType: an optional Account type (e.g., MultiMailbox, MailDirMailbox).
 //     If [TypeDefault] is used, a MultiMailbox-type Account is created.
 //   - storage: an optional "storage mount point" directory for the Account data
@@ -923,7 +922,7 @@ func (cli *Cli) SetAccountPassword(account, password, method, tag string, check 
 //
 // Parameters:
 //   - account: the Account name. The name can include the Domain name.
-//   - settings: a dictionary containing the new preference settings.
+//   - settings: a dictionary of Account Preferences.
 //
 // This command completely replaces all existing Account Preferences with the provided ones.
 // Preferences typically include user interface settings (WebUser), language parameters,
@@ -1001,7 +1000,7 @@ func (cli *Cli) SetAccountRSIPs(account string, records map[string]any) error {
 //
 // Parameters:
 //   - account: the Account name.
-//   - settings: a dictionary used to replace the Account settings dictionary.
+//   - settings: a dictionary of Account settings.
 //
 // All existing Account settings are removed and replaced with the provided dictionary.
 //
@@ -1123,7 +1122,7 @@ func (cli *Cli) UpdateAccountMailRule(account string, rule MailRule) error {
 //
 // Parameters:
 //   - account: the Account name. The name can include the Domain name.
-//   - settings: a dictionary containing the preference settings to update.
+//   - settings: a dictionary of Account Preferences.
 //
 // This method performs a partial update of the Account Preferences. Omitted elements
 // remain unmodified. If a value is set to the string "default", that specific
@@ -1145,7 +1144,7 @@ func (cli *Cli) UpdateAccountPrefs(account string, settings map[string]any) erro
 //
 // Parameters:
 //   - account: the Account name. The name can include the Domain name.
-//   - settings: a dictionary containing the settings to be updated.
+//   - settings: a dictionary of Account settings.
 //
 // This method performs a partial update of the Account settings dictionary. Omitted
 // settings remain unmodified. If a setting value is specified as the string "default",

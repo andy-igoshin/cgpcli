@@ -2,7 +2,7 @@
 //
 // The Server Settings section is the core of the library, providing comprehensive
 // access to the CommuniGate Pro configuration engine. It allows for the
-// management of both node-local and cluster-wide parameters, ensuring
+// management of both node-local and Cluster-wide parameters, ensuring
 // consistency across multi-server environments.
 //
 // Key capabilities include:
@@ -29,7 +29,7 @@ type BannedLines struct {
 	HeaderLines []string // banned strings in the message headers.
 }
 
-// GetBanned retrieves the server-wide Banned Message Lines settings.
+// GetBanned retrieves the Server-wide Banned Message Lines settings.
 //
 // This method executes the GETBANNED CLI command.
 //
@@ -40,7 +40,7 @@ func (cli *Cli) GetBanned() (*BannedLines, error) {
 	return cli.getBannedGeneric("GETBANNED")
 }
 
-// GetBlacklistedIPs retrieves the server-wide Blacklisted IP Addresses.
+// GetBlacklistedIPs retrieves the Server-wide Blacklisted IP Addresses.
 //
 // This method executes the GETBLACKLISTEDIPS CLI command.
 //
@@ -51,7 +51,7 @@ func (cli *Cli) GetBlacklistedIPs() (IPList, error) {
 	return cli.getIPList("GETBLACKLISTEDIPS")
 }
 
-// GetClientIPs retrieves the server-wide Client (trusted) IP Addresses.
+// GetClientIPs retrieves the Server-wide Client (trusted) IP Addresses.
 //
 // This method executes the GETCLIENTIPS CLI command.
 //
@@ -238,7 +238,7 @@ func (cli *Cli) GetClusterWhiteHoleIPs() (IPList, error) {
 	return cli.getIPList("GETCLUSTERWHITEHOLEIPS")
 }
 
-// GetDebugIPs retrieves the server-wide Debug IP Addresses.
+// GetDebugIPs retrieves the Server-wide Debug IP Addresses.
 //
 // This method executes the GETDEBUGIPS CLI command.
 //
@@ -249,7 +249,7 @@ func (cli *Cli) GetDebugIPs() (IPList, error) {
 	return cli.getIPList("GETDEBUGIPS")
 }
 
-// GetDeniedIPs retrieves the server-wide Denied IP Addresses.
+// GetDeniedIPs retrieves the Server-wide Denied IP Addresses.
 //
 // This method executes the GETDENIEDIPS CLI command.
 //
@@ -338,7 +338,7 @@ func (cli *Cli) GetModule(name string) (map[string]any, error) {
 	return cli.getMapAny("GETMODULE", name)
 }
 
-// GetNatedIPs retrieves the server-wide NATed IP Addresses.
+// GetNatedIPs retrieves the Server-wide NATed IP Addresses.
 //
 // This method executes the GETNATEDIPS CLI command.
 //
@@ -349,7 +349,7 @@ func (cli *Cli) GetNatedIPs() (IPList, error) {
 	return cli.getIPList("GETNATEDIPS")
 }
 
-// GetNatSiteIPs retrieves the server-wide NAT Site IP Addresses.
+// GetNatSiteIPs retrieves the Server-wide NAT Site IP Addresses.
 //
 // This method executes the GETNATSITEIPS CLI command.
 //
@@ -481,7 +481,7 @@ func (cli *Cli) GetSMTPSendProfiles() (map[string]any, error) {
 	return cli.getMapAny("GETSMTPSENDPROFILES")
 }
 
-// GetWhiteHoleIPs retrieves the server-wide WhiteHole IP Addresses.
+// GetWhiteHoleIPs retrieves the Server-wide WhiteHole IP Addresses.
 //
 // This method executes the GETWHITEHOLEIPS CLI command.
 //
@@ -517,7 +517,7 @@ func (cli *Cli) RefreshOSData() error {
 //
 // Parameters:
 //   - address: the e-mail address to be processed.
-//   - mode: an optional the routing type (mail, access, or signal).
+//   - mode: an optional routing type (mail, access, or signal).
 //     Defaults to access.
 //
 // This method executes the ROUTE CLI command.
@@ -533,10 +533,10 @@ func (cli *Cli) Route(address string, mode string) ([]string, error) {
 	}
 }
 
-// SetBanned sets the server-wide Banned Message Lines settings.
+// SetBanned sets the Server-wide Banned Message Lines settings.
 //
 // Parameters:
-//   - settings: new server Banned settings.
+//   - settings: a pointer to a [BannedLines] structure with the Banned Message Lines settings.
 //
 // This method executes the SETBANNED CLI command.
 //
@@ -546,7 +546,7 @@ func (cli *Cli) SetBanned(settings *BannedLines) error {
 	return cli.setBannedGeneric("SETBANNED", settings)
 }
 
-// SetBlacklistedIPs updates the server-wide Blacklisted IP Addresses.
+// SetBlacklistedIPs updates the Server-wide Blacklisted IP Addresses.
 //
 // Parameters:
 //   - list: the new set of IP addresses and ranges.
@@ -559,7 +559,7 @@ func (cli *Cli) SetBlacklistedIPs(list IPList) error {
 	return cli.QueryNV("SETBLACKLISTEDIPS", list)
 }
 
-// SetClientIPs updates the server-wide Client IP Addresses.
+// SetClientIPs updates the Server-wide Client IP Addresses.
 //
 // Parameters:
 //   - list: the new set of IP addresses and ranges.
@@ -575,7 +575,7 @@ func (cli *Cli) SetClientIPs(list IPList) error {
 // SetClusterBanned sets the Cluster-wide Banned Message Lines settings.
 //
 // Parameters:
-//   - settings: new cluster-wide Banned settings.
+//   - settings: a pointer to a [BannedLines] structure with the Banned Message Lines settings.
 //
 // This method executes the SETCLUSTERBANNED CLI command.
 //
@@ -640,7 +640,7 @@ func (cli *Cli) SetClusterDeniedIPs(list IPList) error {
 // SetClusterIntercept updates the Cluster-wide Lawful Intercept settings.
 //
 // Parameters:
-//   - settings: a dictionary containing the new Intercept settings.
+//   - settings: a dictionary of Intercept settings.
 //
 // This method executes the SETCLUSTERINTERCEPT CLI command.
 //
@@ -711,7 +711,7 @@ func (cli *Cli) SetClusterNatSiteIPs(list IPList) error {
 // SetClusterNetwork updates the Cluster-wide Network settings.
 //
 // Parameters:
-//   - settings: a dictionary containing the new network settings.
+//   - settings: a dictionary of Network settings.
 //
 // This method executes the SETCLUSTERNETWORK CLI command.
 //
@@ -727,7 +727,7 @@ func (cli *Cli) SetClusterNetwork(settings map[string]any) error {
 // SetClusterRouterSettings updates the Cluster-wide Router settings.
 //
 // Parameters:
-//   - settings: a dictionary containing new Router settings.
+//   - settings: a dictionary of Router settings.
 //
 // This method executes the SETCLUSTERROUTERSETTINGS CLI command.
 //
@@ -756,7 +756,7 @@ func (cli *Cli) SetClusterRouterTable(table RouterList) error {
 // SetClusterSettings sets the Cluster-wide settings.
 //
 // Parameters:
-//   - settings: a dictionary containing the new Cluster settings.
+//   - settings: a dictionary of Cluster settings.
 //
 // This method executes the SETCLUSTERSETTINGS CLI command.
 //
@@ -798,7 +798,7 @@ func (cli *Cli) SetClusterWhiteHoleIPs(list IPList) error {
 	return cli.QueryNV("SETCLUSTERWHITEHOLEIPS", list)
 }
 
-// SetDebugIPs updates the server-wide Debug IP Addresses.
+// SetDebugIPs updates the Server-wide Debug IP Addresses.
 //
 // Parameters:
 //   - list: the new set of IP addresses and ranges.
@@ -811,7 +811,7 @@ func (cli *Cli) SetDebugIPs(list IPList) error {
 	return cli.QueryNV("SETDEBUGIPS", list)
 }
 
-// SetDeniedIPs updates the server-wide Denied IP Addresses.
+// SetDeniedIPs updates the Server-wide Denied IP Addresses.
 //
 // Parameters:
 //   - list: the new set of IP addresses and ranges.
@@ -827,7 +827,7 @@ func (cli *Cli) SetDeniedIPs(list IPList) error {
 // SetDNRSettings updates the DNR (Domain Name Resolver) settings.
 //
 // Parameters:
-//   - settings: a dictionary containing new DNR settings.
+//   - settings: a dictionary of DNR settings.
 //
 // This method executes the SETDNRSETTINGS CLI command.
 //
@@ -856,7 +856,7 @@ func (cli *Cli) SetLANIPs(list IPList) error {
 // SetMediaServerSettings sets the Media Server component settings.
 //
 // Parameters:
-//   - settings: a dictionary containing new Media Server settings.
+//   - settings: a dictionary of Media Server settings.
 //
 // This method executes the SETMEDIASERVERSETTINGS CLI command.
 //
@@ -873,7 +873,7 @@ func (cli *Cli) SetMediaServerSettings(settings map[string]any) error {
 //
 // Parameters:
 //   - module: the name of a CommuniGate Pro Server module.
-//   - settings: a dictionary containing the new module settings.
+//   - settings: a dictionary of module settings.
 //
 // This method executes the SETMODULE CLI command.
 //
@@ -886,7 +886,7 @@ func (cli *Cli) SetModule(module string, settings map[string]any) error {
 	return cli.QueryNV("SETMODULE", module, settings)
 }
 
-// SetNatedIPs updates the server-wide NATed IP Addresses.
+// SetNatedIPs updates the Server-wide NATed IP Addresses.
 //
 // Parameters:
 //   - list: the new set of IP addresses and ranges.
@@ -899,7 +899,7 @@ func (cli *Cli) SetNatedIPs(list IPList) error {
 	return cli.QueryNV("SETNATEDIPS", list)
 }
 
-// SetNatSiteIPs updates the server-wide NAT Site IP Addresses.
+// SetNatSiteIPs updates the Server-wide NAT Site IP Addresses.
 //
 // Parameters:
 //   - list: the new set of IP addresses and ranges.
@@ -915,7 +915,7 @@ func (cli *Cli) SetNatSiteIPs(list IPList) error {
 // SetNetwork updates the Server Network settings.
 //
 // Parameters:
-//   - settings: a dictionary containing new network settings.
+//   - settings: a dictionary of Network settings.
 //
 // This method executes the SETNETWORK CLI command.
 //
@@ -931,7 +931,7 @@ func (cli *Cli) SetNetwork(settings map[string]any) error {
 // SetQueueSettings sets the Queue settings.
 //
 // Parameters:
-//   - settings: a dictionary containing new Queue settings.
+//   - settings: a dictionary of Queue settings.
 //
 // This method executes the SETQUEUESETTINGS CLI command.
 //
@@ -947,7 +947,7 @@ func (cli *Cli) SetQueueSettings(settings map[string]any) error {
 // SetRouterSettings updates the Router settings.
 //
 // Parameters:
-//   - settings: a dictionary containing new Router settings.
+//   - settings: a dictionary of Router settings.
 //
 // This method executes the SETROUTERSETTINGS CLI command.
 //
@@ -976,7 +976,7 @@ func (cli *Cli) SetRouterTable(table RouterList) error {
 // SetServerIntercept updates the Lawful Intercept settings.
 //
 // Parameters:
-//   - settings: a dictionary containing new Intercept settings.
+//   - settings: a dictionary of Intercept settings.
 //
 // This method executes the SETSERVERINTERCEPT CLI command.
 //
@@ -1024,7 +1024,7 @@ func (cli *Cli) SetServerSignalRules(rules []SignalRule) error {
 // SetSessionSettings sets the user Sessions settings.
 //
 // Parameters:
-//   - settings: a dictionary containing new Sessions settings.
+//   - settings: a dictionary of Sessions settings.
 //
 // This method executes the SETSESSIONSETTINGS CLI command.
 //
@@ -1040,7 +1040,7 @@ func (cli *Cli) SetSessionSettings(settings map[string]any) error {
 // SetSignalSettings sets the Signal component settings.
 //
 // Parameters:
-//   - settings: a dictionary containing new component settings.
+//   - settings: a dictionary of component settings.
 //
 // This method executes the SETSIGNALSETTINGS CLI command.
 //
@@ -1056,7 +1056,7 @@ func (cli *Cli) SetSignalSettings(settings map[string]any) error {
 // SetSMTPSendProfiles sets the Target Host Profiles of the SMTP module.
 //
 // Parameters:
-//   - settings: a dictionary containing the new profile settings.
+//   - settings: a dictionary of profile settings.
 //
 // This method executes the SETSMTPSENDPROFILES CLI command.
 //
@@ -1069,7 +1069,7 @@ func (cli *Cli) SetSMTPSendProfiles(settings map[string]any) error {
 	return cli.QueryNV("SETSMTPSENDPROFILES", settings)
 }
 
-// SetWhiteHoleIPs updates the server-wide WhiteHole IP Addresses.
+// SetWhiteHoleIPs updates the Server-wide WhiteHole IP Addresses.
 //
 // Parameters:
 //   - list: the new set of IP addresses and ranges.
@@ -1085,7 +1085,7 @@ func (cli *Cli) SetWhiteHoleIPs(list IPList) error {
 // UpdateLogSettings modifies the Main Log settings.
 //
 // Parameters:
-//   - settings: a dictionary containing settings to be updated.
+//   - settings: a dictionary of Log settings.
 //
 // This method executes the UPDATELOGSETTINGS CLI command.
 //
@@ -1102,7 +1102,7 @@ func (cli *Cli) UpdateLogSettings(settings map[string]any) error {
 //
 // Parameters:
 //   - module: the name of a CommuniGate Pro Server module.
-//   - settings: a dictionary containing settings to be updated.
+//   - settings: a dictionary of module settings.
 //
 // This method executes the UPDATEMODULE CLI command.
 //
@@ -1118,7 +1118,7 @@ func (cli *Cli) UpdateModule(module string, settings map[string]any) error {
 // UpdateServerSettings modifies the "other" Server settings.
 //
 // Parameters:
-//   - settings: a dictionary containing settings to be updated.
+//   - settings: a dictionary of Server settings.
 //
 // This method executes the UPDATESERVERSETTINGS CLI command.
 //

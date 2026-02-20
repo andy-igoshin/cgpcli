@@ -41,7 +41,7 @@ type StorageFileInfo struct {
 // Parameters:
 //   - account: the Account name.
 //     The asterisk (*) symbol can be used to specify the current authenticated Account.
-//   - file: the name of the existing File Storage file or directory.
+//   - file: the file name or directory.
 //   - authAccount: an optional name of an Account on whose behalf the operation is executed.
 //
 // This method executes the DELETESTORAGEFILE CLI command.
@@ -162,7 +162,7 @@ func (cli *Cli) ListStorageFiles(account, path, authAccount string) (map[string]
 // Parameters:
 //   - account: the Account name.
 //     The asterisk (*) symbol can be used to specify the current authenticated Account.
-//   - file: the name of the File Storage file to be retrieved.
+//   - file: the file name.
 //   - offset: file position to start reading from.
 //   - size: maximum number of data bytes to return. Use 0 for no limit.
 //   - authAccount: an optional name of an Account on whose behalf the operation is executed.
@@ -222,7 +222,7 @@ func (cli *Cli) ReadStorageFile(account, file string, offset, size int64, authAc
 // Parameters:
 //   - account: the Account name.
 //     The asterisk (*) symbol can be used to specify the current authenticated Account.
-//   - file: the name of the file or directory.
+//   - file: the file name or directory.
 //   - attrs: an optional array of attribute names to retrieve.
 //   - authAccount: an optional name of an Account on whose behalf the operation is executed.
 //
@@ -296,7 +296,7 @@ func (cli *Cli) SetFileSubscription(account string, subs []string) error {
 // Parameters:
 //   - account: the Account name.
 //     The asterisk (*) symbol can be used to specify the current authenticated Account.
-//   - file: the name of an existing file or directory.
+//   - file: the file name or directory.
 //   - attrs: an array of XML elements representing the new attribute values.
 //   - authAccount: an optional name of an Account on whose behalf the operation is executed.
 //
@@ -322,7 +322,7 @@ func (cli *Cli) UpdateStorageFileAttr(account, file string, attrs []any, authAcc
 // Parameters:
 //   - account: the Account name.
 //     The asterisk (*) symbol can be used to specify the current authenticated Account.
-//   - file: the name for the File Storage file (ends with "/" to create a directory).
+//   - file: the file name. Append "/" to create a directory instead.
 //   - offset: write position. Can be int (position), or string ("BEG", "END", "NEW").
 //   - data: datablock containing the file content. Must be empty for directory creation.
 //   - authAccount: an optional name of an Account on whose behalf the operation is executed.

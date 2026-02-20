@@ -21,7 +21,7 @@ import (
 	"fmt"
 )
 
-// CreateClusterPBX creates the cluster-wide Real-Time Application Environment or its national subset.
+// CreateClusterPBX creates the Cluster-wide Real-Time Application Environment or its national subset.
 //
 // Parameters:
 //   - language: a national subset name.
@@ -76,7 +76,7 @@ func (cli *Cli) CreateServerPBX(language string) error {
 	return cli.QueryNV("CREATESERVERPBX", language)
 }
 
-// DeleteClusterPBX removes a national subset from the cluster-wide Real-Time Application Environment.
+// DeleteClusterPBX removes a national subset from the Cluster-wide Real-Time Application Environment.
 //
 // Parameters:
 //   - language: a national subset name.
@@ -92,7 +92,7 @@ func (cli *Cli) DeleteClusterPBX(language string) error {
 	return cli.QueryNV("DELETECLUSTERPBX", language)
 }
 
-// DeleteClusterPBXFile removes a specific file from the cluster-wide Real-Time Application Environment.
+// DeleteClusterPBXFile removes a specific file from the Cluster-wide Real-Time Application Environment.
 //
 // Parameters:
 //   - file: the file name. For national subsets, specify "language/fileName".
@@ -174,7 +174,7 @@ func (cli *Cli) DeleteServerPBXFile(file string) error {
 	return cli.QueryNV("STORESERVERPBXFILE", file, "DELETE")
 }
 
-// ListClusterPBXFiles lists files in the cluster-wide Real-Time Application Environment.
+// ListClusterPBXFiles lists files in the Cluster-wide Real-Time Application Environment.
 //
 // Parameters:
 //   - language: an optional national subset name.
@@ -254,7 +254,7 @@ func (cli *Cli) ListStockPBXFiles(language string) (map[string]*FileInfo, error)
 	return parseFileInfoMap(raw), nil
 }
 
-// ReadClusterPBXFile reads a file from the cluster-wide Real-Time Application Environment.
+// ReadClusterPBXFile reads a file from the Cluster-wide Real-Time Application Environment.
 //
 // Parameters:
 //   - file: the file name. For national subsets, specify "language/fileName".
@@ -323,12 +323,12 @@ func (cli *Cli) ReadStockPBXFile(file string) ([]byte, error) {
 	return cli.getSliceByte("READSTOCKPBXFILE", file)
 }
 
-// StoreClusterPBXFile stores a file into the cluster-wide Real-Time Application Environment.
+// StoreClusterPBXFile stores a file into the Cluster-wide Real-Time Application Environment.
 // Available in the Dynamic Cluster only.
 //
 // Parameters:
 //   - file: the file name. For national subsets, specify "language/fileName".
-//   - data: a datablock with the file contents.
+//   - data: the file content.
 //
 // Note: If the environment contains a file with the specified name, the old file is replaced.
 // The file is automatically removed from the Environment cache on all cluster members.
@@ -349,7 +349,7 @@ func (cli *Cli) StoreClusterPBXFile(file string, data []byte) error {
 // Parameters:
 //   - domain: the Domain name.
 //   - file: the file name. For national subsets, specify "language/fileName".
-//   - data: a datablock with the file contents.
+//   - data: the file content.
 //
 // Note: If the environment contains a file with the specified name, the old file is replaced.
 // The file is automatically removed from the Environment cache.
@@ -370,7 +370,7 @@ func (cli *Cli) StoreDomainPBXFile(domain, file string, data []byte) error {
 //
 // Parameters:
 //   - file: the file name. For national subsets, specify "language/fileName".
-//   - data: a datablock with the file contents.
+//   - data: the file content.
 //
 // Note: If the environment contains a file with the specified name, the old file is replaced.
 // The file is automatically removed from the Environment cache.

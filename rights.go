@@ -2,7 +2,7 @@
 //
 // The Access Rights section handles the assignment of administrative privileges to accounts.
 // In CommuniGate Pro, "Rights" represent a set of permissions that grant an account
-// authority over server-wide or domain-specific administrative tasks.
+// authority over Server-wide or domain-specific administrative tasks.
 //
 // Key capabilities include:
 //   - Privilege Management: using [Cli.SetAccountRights] to define a specific set

@@ -352,7 +352,7 @@ func (cli *Cli) SetPostingMode(list, subscriber string, mode any) error {
 //
 // Parameters:
 //   - list: the name of an existing mailing list. It can include the Domain name. If the Domain name is not specified, the user Domain is used by default.
-//   - settings: this dictionary is used to update the mailing list settings dictionary. The omitted settings will be left unmodified.
+//   - settings: a dictionary of mailing list settings.
 //
 // This method executes the UPDATELIST CLI command.
 //

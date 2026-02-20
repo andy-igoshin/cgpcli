@@ -47,7 +47,7 @@ const (
 //
 // Parameters:
 //   - sessionID: the Session ID.
-//   - secret: an optional the one-time secret used with Two-factor
+//   - secret: an optional one-time secret used with Two-factor
 //     Authentication.
 //   - account: an optional Account name the session belongs to.
 //
@@ -75,7 +75,7 @@ func (cli *Cli) BlessSession(sessionID string, secret, account string) error {
 //
 // Parameters:
 //   - addr: the IP address and port of the client browser.
-//   - origAddr: an optional the original IP address of the client
+//   - origAddr: an optional original IP address of the client
 //     browser, if the client connects via a proxy.
 //
 // This method executes the CREATELITESESSION CLI command.
@@ -101,9 +101,9 @@ func (cli *Cli) CreateLiteSession(addr, origAddr string) (string, error) {
 // Parameters:
 //   - account: the Account name.
 //   - addr: the IP address and port of the client browser.
-//   - origAddr: an optional the original IP address of the client
+//   - origAddr: an optional original IP address of the client
 //     browser, if the client connects via a proxy.
-//   - skin: an optional the Skin to use for the newly created session.
+//   - skin: an optional Skin name to use for the newly created session.
 //
 // This method executes the CREATEWEBUSERSESSION CLI command.
 //
@@ -132,7 +132,7 @@ func (cli *Cli) CreateWebUserSession(account, addr, origAddr, skin string) (stri
 // Parameters:
 //   - account: the Account name.
 //   - addr: the IP address and port of the client browser.
-//   - origAddr: an optional the original IP address of the client
+//   - origAddr: an optional original IP address of the client
 //     browser, if the client connects via a proxy.
 //
 // This method executes the CREATEXIMSSSESSION CLI command.
@@ -157,12 +157,12 @@ func (cli *Cli) CreateXimssSession(account, addr, origAddr string) (string, erro
 //
 // Parameters:
 //   - account: the Account name.
-//   - addr: an optional the IP address of the client browser.
-//   - origAddr: an optional the IP address of the client browser,
+//   - addr: an optional IP address of the client browser.
+//   - origAddr: an optional IP address of the client browser,
 //     if this browser is located behind an HTTP proxy.
-//   - protocol: an optional the Session protocol (WebUser, XIMSS, XMPP, etc.).
-//   - transport: an optional the Session transport (HTTP, XIMSS, XMPP, etc.).
-//   - client: an optional the Session client.
+//   - protocol: an optional Session protocol (WebUser, XIMSS, XMPP, etc.).
+//   - transport: an optional Session transport (HTTP, XIMSS, XMPP, etc.).
+//   - client: an optional Session client.
 //
 // This method executes the ADDRESS CLI command.
 //
@@ -244,12 +244,12 @@ func (cli *Cli) KillSession(sessionID, domain string) error {
 //
 // Parameters:
 //   - account: the Account name.
-//   - addr: an optional the IP address of the client browser.
-//   - origAddr: an optional the IP address of the client browser,
+//   - addr: an optional IP address of the client browser.
+//   - origAddr: an optional IP address of the client browser,
 //     if this browser is located behind an HTTP proxy.
-//   - protocol: an optional the Session protocol (WebUser, XIMSS, XMPP, etc.).
-//   - transport: an optional the Session transport (HTTP, XIMSS, XMPP, etc.).
-//   - client: an optional the Session client.
+//   - protocol: an optional Session protocol (WebUser, XIMSS, XMPP, etc.).
+//   - transport: an optional Session transport (HTTP, XIMSS, XMPP, etc.).
+//   - client: an optional Session client.
 //
 // This method executes the ADDRESS CLI command.
 //
@@ -284,8 +284,8 @@ func (cli *Cli) ListAccountSessions(account, addr, origAddr, protocol, transport
 // ListLiteSessions retrieves all LITE sessions.
 //
 // Parameters:
-//   - addr: an optional the IP address of the client browser.
-//   - origAddr: an optional the IP address of the client browser,
+//   - addr: an optional IP address of the client browser.
+//   - origAddr: an optional IP address of the client browser,
 //     if this browser is located behind an HTTP proxy.
 //
 // This method executes the ADDRESS CLI command.
@@ -310,9 +310,9 @@ func (cli *Cli) ListLiteSessions(addr, origAddr string) ([]string, error) {
 // Parameters:
 //   - sessionID: the Session ID.
 //   - domain: an optional Domain name the session Account belongs to.
-//   - file: the name for the File Storage file.
+//   - file: the file name.
 //   - uploadID: identifies a file in the "uploaded file set".
-//   - offset: an optional the file position. Can be a positive number,
+//   - offset: an optional file position. Can be a positive number,
 //     or constants OffsetBeg, OffsetEnd, OffsetNew.
 //
 // This method executes the DOMAIN CLI command.
@@ -352,17 +352,17 @@ func (cli *Cli) StoreSessionFile(sessionID, domain, file, uploadID string, offse
 // Parameters:
 //   - sessionID: the Session ID.
 //   - domain: an optional Domain name the session Account belongs to.
-//   - data: the dictionary that lists new values for the attributes
-//     to be updated.
+//   - param: a dictionary of Session attribute names and their new values.
+//     Set a value to nil to remove the attribute.
 //
 // This method executes the UPDATESESSION CLI command.
 //
 // Returns:
 //   - error: an error if the command fails.
-func (cli *Cli) UpdateSession(sessionID, domain string, data map[string]any) error {
+func (cli *Cli) UpdateSession(sessionID, domain string, param map[string]any) error {
 	if domain != "" {
-		return cli.QueryNV("UPDATESESSION", sessionID, "DOMAIN", domain, data)
+		return cli.QueryNV("UPDATESESSION", sessionID, "DOMAIN", domain, param)
 	} else {
-		return cli.QueryNV("UPDATESESSION", sessionID, data)
+		return cli.QueryNV("UPDATESESSION", sessionID, param)
 	}
 }

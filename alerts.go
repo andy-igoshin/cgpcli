@@ -34,7 +34,7 @@ func (cli *Cli) GetAccountAlerts(account string) (map[string]string, error) {
 	return cli.getMapString("GETACCOUNTALERTS", Atom(account))
 }
 
-// GetClusterAlerts retrieves the cluster-wide Alerts.
+// GetClusterAlerts retrieves the Cluster-wide Alerts.
 //
 // This method executes the GETCLUSTERALERTS CLI command.
 //
@@ -63,7 +63,7 @@ func (cli *Cli) GetDomainAlerts(domain string) (map[string]string, error) {
 	return cli.getMapString("GETDOMAINALERTS", Atom(domain))
 }
 
-// GetServerAlerts retrieves the server-wide Alerts.
+// GetServerAlerts retrieves the Server-wide Alerts.
 //
 // This method executes the GETSERVERALERTS CLI command.
 //
@@ -95,7 +95,7 @@ func (cli *Cli) PostAccountAlert(account, alert string) error {
 	return cli.QueryNV("POSTACCOUNTALERT", Atom(account), "ALERT", alert)
 }
 
-// PostClusterAlert posts a cluster-wide Alert message.
+// PostClusterAlert posts a Cluster-wide Alert message.
 //
 // Parameters:
 //   - alert: the text of the alert to be posted.
@@ -132,7 +132,7 @@ func (cli *Cli) PostDomainAlert(domain, alert string) error {
 	return cli.QueryNV("POSTDOMAINALERT", domain, "ALERT", alert)
 }
 
-// PostServerAlert posts a server-wide Alert message.
+// PostServerAlert posts a Server-wide Alert message.
 //
 // Parameters:
 //   - alert: the text of the alert to be posted.
@@ -171,10 +171,10 @@ func (cli *Cli) RemoveAccountAlert(account, timeStamp string) error {
 	return cli.QueryNV("REMOVEACCOUNTALERT", Atom(account), "ALERT", timeStamp)
 }
 
-// RemoveClusterAlert removes a specific cluster-wide alert message.
+// RemoveClusterAlert removes a specific Cluster-wide alert message.
 //
 // Parameters:
-//   - timeStamp: the exact timestamp string of the cluster-wide alert
+//   - timeStamp: the exact timestamp string of the Cluster-wide alert
 //     to be removed, as retrieved by GetClusterAlerts.
 //
 // This method executes the REMOVECLUSTERALERT CLI command.
@@ -210,10 +210,10 @@ func (cli *Cli) RemoveDomainAlert(domain, timeStamp string) error {
 	return cli.QueryNV("REMOVEDOMAINALERT", domain, "ALERT", timeStamp)
 }
 
-// RemoveServerAlert removes a specific server-wide alert message.
+// RemoveServerAlert removes a specific Server-wide alert message.
 //
 // Parameters:
-//   - timeStamp: the exact timestamp string of the server-wide alert
+//   - timeStamp: the exact timestamp string of the Server-wide alert
 //     to be removed, as retrieved by GetServerAlerts.
 //
 // This method executes the REMOVESERVERALERT CLI command.
@@ -249,7 +249,7 @@ func (cli *Cli) SetAccountAlerts(account string, alerts map[string]any) error {
 	return cli.QueryNV("SETACCOUNTALERTS", Atom(account), alerts)
 }
 
-// SetClusterAlerts replaces the entire cluster-wide Alert dictionary.
+// SetClusterAlerts replaces the entire Cluster-wide Alert dictionary.
 //
 // Parameters:
 //   - alerts: a dictionary used to replace the current Cluster alert dictionary.
@@ -279,7 +279,7 @@ func (cli *Cli) SetDomainAlerts(domain string, alerts map[string]any) error {
 	return cli.QueryNV("SETDOMAINALERTS", Atom(domain), alerts)
 }
 
-// SetServerAlerts replaces the entire server-wide Alert dictionary.
+// SetServerAlerts replaces the entire Server-wide Alert dictionary.
 //
 // Parameters:
 //   - alerts: a dictionary used to replace the current Server alert dictionary.
