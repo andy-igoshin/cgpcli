@@ -50,7 +50,7 @@ func (cli *Cli) GetClusterAlerts() (map[string]string, error) {
 // GetDomainAlerts retrieves the domain-wide Alerts.
 //
 // Parameters:
-//   - domain: an optional name of an existing Domain.
+//   - domain: an optional Domain name.
 //     If an empty string is provided, the command typically targets the
 //     current domain context.
 //
@@ -118,7 +118,7 @@ func (cli *Cli) PostClusterAlert(alert string) error {
 // PostDomainAlert posts a domain-wide Alert message.
 //
 // Parameters:
-//   - domain: the name of an existing Domain.
+//   - domain: the Domain name.
 //   - alert: the text of the alert to be posted.
 //
 // This method executes the POSTDOMAINALERT CLI command.
@@ -196,7 +196,7 @@ func (cli *Cli) RemoveClusterAlert(timeStamp string) error {
 // RemoveDomainAlert removes a specific domain-wide alert message.
 //
 // Parameters:
-//   - domain: the name of an existing Domain.
+//   - domain: the Domain name.
 //   - timeStamp: the exact timestamp string of the domain alert
 //     to be removed, as retrieved by GetDomainAlerts.
 //
@@ -270,7 +270,7 @@ func (cli *Cli) SetClusterAlerts(alerts map[string]any) error {
 // SetDomainAlerts replaces the entire Domain alert dictionary.
 //
 // Parameters:
-//   - domain: an optional name of an existing Domain.
+//   - domain: an optional Domain name.
 //     If an empty string is provided, the command targets the current domain context.
 //   - alerts: a dictionary used to replace the current Domain alert dictionary.
 //

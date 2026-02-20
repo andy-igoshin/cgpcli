@@ -87,7 +87,7 @@ func (cli *Cli) GetForwarder(forwarder string) (string, error) {
 // ListForwarders retrieves the list of all Forwarders in the Domain.
 //
 // Parameters:
-//   - domain: an optional Domain name. If not specified, the command applies to the administrator Domain.
+//   - domain: an optional Domain name. If empty, applies to the administrator Domain.
 //
 // This method executes the LISTFORWARDERS CLI command.
 //

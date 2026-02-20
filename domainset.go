@@ -26,7 +26,7 @@ import (
 // This operation is allowed only when the Directory-based Domains are enabled.
 //
 // Parameters:
-//   - domain: the Domain name to create.
+//   - domain: the Domain name.
 //   - settings: an optional dictionary specifying the Domain settings.
 //
 // This method executes the CREATEDIRECTORYDOMAIN CLI command.
@@ -49,7 +49,7 @@ func (cli *Cli) CreateDirectoryDomain(domain string, settings map[string]any) er
 // CreateDomain creates a new secondary Domain.
 //
 // Parameters:
-//   - domain: the Domain name to create.
+//   - domain: the Domain name.
 //   - shared: if true, creates a Cluster-wide Domain (Dynamic Cluster only).
 //   - storage: an optional "storage mount point" directory name (without .mnt suffix).
 //   - settings: an optional dictionary specifying the initial Domain settings.
@@ -103,7 +103,7 @@ func (cli *Cli) CreateDomainStorage(storage string, shared bool) error {
 // DeleteDomain removes an existing Domain.
 //
 // Parameters:
-//   - domain: the name of the Domain to be removed.
+//   - domain: the Domain name.
 //   - force: if true, removes the Domain even if it contains accounts or other objects.
 //
 // This method executes the DELETEDOMAIN CLI command.

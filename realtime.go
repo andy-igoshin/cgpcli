@@ -195,7 +195,7 @@ func (cli *Cli) ListClusterPBXFiles(language string) (map[string]*FileInfo, erro
 // ListDomainPBXFiles lists files in the Domain Real-Time Application Environment.
 //
 // Parameters:
-//   - domain: an optional Domain name. If not specified, the administrator Domain is used.
+//   - domain: an optional Domain name. If empty, applies to the administrator Domain.
 //   - language: an optional national subset name.
 //
 // This method executes the LISTDOMAINPBXFILES CLI command.

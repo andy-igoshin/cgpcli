@@ -128,7 +128,7 @@ func (cli *Cli) IsGroupExists(group string) (bool, error) {
 // ListGroups retrieves the list of all Groups in the Domain.
 //
 // Parameters:
-//   - domain: an optional Domain name. If the Domain name is not specified, the command applies to the administrator Domain.
+//   - domain: an optional Domain name. If empty, applies to the administrator Domain.
 //
 // This method executes the LISTGROUPS CLI command.
 //

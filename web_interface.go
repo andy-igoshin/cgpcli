@@ -198,7 +198,7 @@ func (cli *Cli) FindAccountSession(account, addr, origAddr, protocol, transport,
 //
 // Parameters:
 //   - sessionID: the Session ID.
-//   - domain: an optional the name of Domain the session Account belongs to.
+//   - domain: an optional Domain name the session Account belongs to.
 //
 // This method executes the GETSESSION CLI command.
 //
@@ -222,7 +222,7 @@ func (cli *Cli) GetSession(sessionID, domain string) (map[string]any, error) {
 //
 // Parameters:
 //   - sessionID: the Session ID.
-//   - domain: an optional the name of Domain the session Account belongs to.
+//   - domain: an optional Domain name the session Account belongs to.
 //
 // This method executes the KILLSESSION CLI command.
 //
@@ -309,7 +309,7 @@ func (cli *Cli) ListLiteSessions(addr, origAddr string) ([]string, error) {
 //
 // Parameters:
 //   - sessionID: the Session ID.
-//   - domain: an optional the name of Domain the session Account belongs to.
+//   - domain: an optional Domain name the session Account belongs to.
 //   - file: the name for the File Storage file.
 //   - uploadID: identifies a file in the "uploaded file set".
 //   - offset: an optional the file position. Can be a positive number,
@@ -351,7 +351,7 @@ func (cli *Cli) StoreSessionFile(sessionID, domain, file, uploadID string, offse
 //
 // Parameters:
 //   - sessionID: the Session ID.
-//   - domain: an optional the name of Domain the session Account belongs to.
+//   - domain: an optional Domain name the session Account belongs to.
 //   - data: the dictionary that lists new values for the attributes
 //     to be updated.
 //

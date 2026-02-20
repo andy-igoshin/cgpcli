@@ -97,8 +97,7 @@ func (cli *Cli) ListAccountNamedTasks(account string) (map[string]any, error) {
 // ListDomainNamedTasks retrieves the list of all Named Tasks in the Domain.
 //
 // Parameters:
-//   - domain: an optional Domain name. If the Domain name is not specified,
-//     the command applies to the administrator Domain.
+//   - domain: an optional Domain name. If empty, applies to the administrator Domain.
 //
 // This method executes the LISTDOMAINNAMEDTASKS CLI command.
 //
