@@ -121,7 +121,7 @@ func (cli *Cli) GetAccountTemplate(domain string) (map[string]any, error) {
 // GetDomainAliases retrieves the list of Domain Aliases.
 //
 // Parameters:
-//   - domain: the name of an existing Domain.
+//   - domain: the Domain name.
 //
 // This method executes the GETDOMAINALIASES CLI command.
 //
@@ -138,7 +138,7 @@ func (cli *Cli) GetDomainAliases(domain string) ([]string, error) {
 // GetDomainEffectiveSettings retrieves both explicitly set and default Domain settings.
 //
 // Parameters:
-//   - domain: an optional name of an existing Domain. If empty, uses the current context.
+//   - domain: an optional Domain name.
 //
 // This method executes the GETDOMAINEFFECTIVESETTINGS CLI command.
 //
@@ -152,7 +152,7 @@ func (cli *Cli) GetDomainEffectiveSettings(domain string) (map[string]any, error
 // GetDomainLocation retrieves the Domain file directory path relative to the Server base.
 //
 // Parameters:
-//   - domain: the Domain name. If empty, applies to the administrator Domain.
+//   - domain: an optional Domain name. If empty, applies to the administrator Domain.
 //
 // This method executes the GETDOMAINLOCATION CLI command.
 //
@@ -166,7 +166,7 @@ func (cli *Cli) GetDomainLocation(domain string) (string, error) {
 // GetDomainMailRules retrieves the list of Domain Queue Mail Rules.
 //
 // Parameters:
-//   - domain: the name of an existing Domain.
+//   - domain: the Domain name.
 //
 // This method executes the GETDOMAINMAILRULES CLI command.
 //
@@ -183,7 +183,7 @@ func (cli *Cli) GetDomainMailRules(domain string) ([]MailRule, error) {
 // GetDomainSettings retrieves explicitly set (non-default) Domain settings.
 //
 // Parameters:
-//   - domain: an optional name of an existing Domain. If empty, uses the current context.
+//   - domain: an optional Domain name.
 //
 // This method executes the GETDOMAINSETTINGS CLI command.
 //
@@ -197,7 +197,7 @@ func (cli *Cli) GetDomainSettings(domain string) (map[string]any, error) {
 // GetDomainSignalRules retrieves the list of Domain Signal Rules.
 //
 // Parameters:
-//   - domain: the name of an existing Domain.
+//   - domain: the Domain name.
 //
 // This method executes the GETDOMAINSIGNALRULES CLI command.
 //
@@ -227,7 +227,7 @@ func (cli *Cli) InsertDirectoryRecords(domain string) error {
 // IsDomainExists checks if a domain exists by attempting to retrieve its location.
 //
 // Parameters:
-//   - domain: the name of the domain to check.
+//   - domain: the Domain name.
 //
 // Returns:
 //   - bool: true if the domain exists.
@@ -405,7 +405,7 @@ func (cli *Cli) ListDomainTelnums(domain, filter string, limit int) (map[string]
 // ResumeDomain resumes a suspended Domain so Accounts can be opened.
 //
 // Parameters:
-//   - domain: the name of the Domain to be resumed.
+//   - domain: the Domain name.
 //
 // This method executes the RESUMEDOMAIN CLI command.
 //
@@ -421,7 +421,7 @@ func (cli *Cli) ResumeDomain(domain string) error {
 // SetAccountDefaultPrefs replaces the Default Account Preferences for the Domain.
 //
 // Parameters:
-//   - domain: the Domain name. If empty, applies to the authenticated user Domain.
+//   - domain: an optional Domain name. If empty, applies to the authenticated user Domain.
 //   - settings: a dictionary used to replace the Default Account Preferences.
 //
 // This method executes the SETACCOUNTDEFAULTPREFS CLI command.
@@ -472,7 +472,7 @@ func (cli *Cli) SetAccountTemplate(domain string, settings map[string]any) error
 // SetDomainAliases sets the Domain aliases, replacing all existing ones.
 //
 // Parameters:
-//   - domain: the name of an existing Domain.
+//   - domain: the Domain name.
 //   - aliases: an array of Domain alias name strings.
 //
 // This method executes the SETDOMAINALIASES CLI command.
@@ -489,7 +489,7 @@ func (cli *Cli) SetDomainAliases(domain string, aliases []string) error {
 // SetDomainMailRules sets the Domain Queue Mail Rules, replacing all old ones.
 //
 // Parameters:
-//   - domain: the name of an existing Domain.
+//   - domain: the Domain name.
 //   - rules: an array containing the new Domain Queue Rules.
 //
 // This method executes the SETDOMAINMAILRULES CLI command.
@@ -506,7 +506,7 @@ func (cli *Cli) SetDomainMailRules(domain string, rules []MailRule) error {
 // SetDomainSettings replaces the entire Domain settings dictionary.
 //
 // Parameters:
-//   - domain: the name of an existing Domain.
+//   - domain: the Domain name.
 //   - settings: a dictionary used to replace the Domain settings.
 //
 // This method executes the SETDOMAINSETTINGS CLI command.
@@ -523,7 +523,7 @@ func (cli *Cli) SetDomainSettings(domain string, settings map[string]any) error 
 // SetDomainSignalRules sets the Domain Signal Rules, replacing all old ones.
 //
 // Parameters:
-//   - domain: the name of an existing Domain.
+//   - domain: the Domain name.
 //   - rules: an array containing the new Domain Signal Rules.
 //
 // This method executes the SETDOMAINSIGNALRULES CLI command.
@@ -540,7 +540,7 @@ func (cli *Cli) SetDomainSignalRules(domain string, rules []SignalRule) error {
 // SuspendDomain suspends a Domain, closing active accounts and preventing new ones.
 //
 // Parameters:
-//   - domain: the name of the Domain to be suspended.
+//   - domain: the Domain name.
 //
 // This method executes the SUSPENDDOMAIN CLI command.
 //
@@ -607,7 +607,7 @@ func (cli *Cli) UpdateAccountTemplate(domain string, settings map[string]any) er
 // UpdateDomainSettings updates specific Domain settings without modifying others.
 //
 // Parameters:
-//   - domain: an optional name of an existing Domain. If empty, uses the current context.
+//   - domain: an optional Domain name.
 //   - settings: a dictionary containing the settings to update.
 //
 // This method executes the UPDATEDOMAINSETTINGS CLI command.
