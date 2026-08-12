@@ -1,0 +1,84 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+my @argv = @ARGV;
+my @files;
+my $cli_html = 'docs/api/CLI.html';
+my %go_funcs;
+my $verbose = 0;
+
+while (@argv) {
+    my $item = shift @argv;
+    if ($item eq '-v') {
+        $verbose = 1;
+    } elsif ($item eq '-a') {
+        $cli_html = shift @argv;
+    } else {
+        push @files, $item;
+    }
+}
+
+die "Usage: $0 [-v] [-a CLI.html] <source.go|*.go>\n" if @files == 0;
+
+# 1. Индексируем функции в Go файлах
+foreach my $file (@files) {
+    open my $fh, '<', $file or die "Can't open $file: $!";
+    while (<$fh>) {
+        # Извлекаем имя метода (экспортируемого)
+        if (/func\s+\([^)]+\)\s+([A-Z]\w*)\s*\(/) {
+            $go_funcs{lc $1} = $1;
+        }
+    }
+    close $fh;
+}
+
+# 2. Парсим минифицированный CLI.html
+open my $fh_cli, '<:encoding(UTF-8)', $cli_html or die "Can't open $cli_html: $!";
+my $html_content = do { local $/; <$fh_cli> };
+close $fh_cli;
+
+my %commands;
+
+# Ищем все <h3> с <code> внутри. 
+# Захватываем первое слово из заглавных букв (минимум 4 символа) внутри <code>
+while ($html_content =~ /<h3[^>]*>.*?<code>\s*([A-Z]{4,})(?:\s|<\/code>)/gs) {
+    $commands{$1} = 1;
+}
+
+# 3. Вывод отчета
+print "CGP CLI IMPLEMENTATION REPORT (HTML Parser)\n";
+print "=" x 43 . "\n";
+
+my @all_cmds = sort keys %commands;
+my @missing;
+my $found = 0;
+
+foreach my $cmd (@all_cmds) {
+    if (exists $go_funcs{lc $cmd}) {
+        $found++;
+        if ($verbose) {
+            print "[+] Implemented: $cmd -> $go_funcs{lc $cmd}\n";
+        }
+    } else {
+        push @missing, $cmd;
+    }
+}
+
+print "\nSummary:\n";
+print "-------------------------------------------\n";
+printf "Total commands found in HTML: %d\n", scalar @all_cmds;
+printf "Implemented in Go SDK:       %d\n", $found;
+printf "Coverage:                    %.2f%%\n", (@all_cmds ? ($found / scalar @all_cmds) * 100 : 0);
+
+print "\n";
+
+if (@missing) {
+    print "Missing in Go SDK (" . scalar(@missing) . "):\n";
+    print "  - $_\n" for @missing;
+} else {
+    print "  [+] All commands from CLI.html are successfully implemented!\n";
+}
+
+exit;
