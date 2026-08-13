@@ -7,6 +7,20 @@ import (
 	"time"
 )
 
+// getInt — получение целого числа (int64) от сервера.
+func (cli *Cli) getInt(cmd string, args ...any) (int64, error) {
+	res, err := cli.Query(cmd, args...)
+	if err != nil {
+		return 0, err
+	}
+
+	d, ok := res.(int64)
+	if !ok {
+		return 0, fmt.Errorf("%s: response is %T, expected string", cmd, res)
+	}
+	return d, nil
+}
+
 // getMapAny — получение словаря (map[string]any) от сервера.
 func (cli *Cli) getMapAny(cmd string, args ...any) (map[string]any, error) {
 	res, err := cli.Query(cmd, args...)
