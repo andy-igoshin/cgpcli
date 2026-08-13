@@ -41,11 +41,14 @@ const (
 	BGrade
 	CGrade
 	DGrade
+
+	// ResourceMailbox is a special type of account
+	ResourceMailbox
 )
 
 var accountTypeNames = [...]string{
-	"", "MultiMailbox", "TextMailbox", "MailDirMailbox",
-	"SlicedMailbox", "AGrade", "BGrade", "CGrade", "DGrade",
+	"", "MultiMailbox", "TextMailbox", "MailDirMailbox", "SlicedMailbox",
+	"AGrade", "BGrade", "CGrade", "DGrade", "ResourceMailbox",
 }
 
 func (t AccountType) String() string {
