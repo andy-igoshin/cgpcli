@@ -58,6 +58,82 @@ func (t AccountType) String() string {
 	return accountTypeNames[t]
 }
 
+// BlockMode represents the blocking mode of a CommuniGate Pro account.
+type BlockMode int
+
+const (
+	// BlockFull specifies full account blocking.
+	BlockFull BlockMode = iota + 1
+	// BlockPart specifies partial account blocking with specific restrictions.
+	BlockPart
+)
+
+var blockModeNames = [...]string{"", "Full", "Part"}
+
+func (m BlockMode) String() string {
+	if int(m) < 1 || int(m) >= len(blockModeNames) {
+		return ""
+	}
+	return blockModeNames[m]
+}
+
+// BlockFlags represents optional restriction flags applied during partial account blocking.
+type BlockFlags int
+
+const (
+	PreventNone BlockFlags = 0
+	// PreventLogin prevents user authorization in the system by any means.
+	PreventLogin BlockFlags = 1 << (iota - 1)
+	// PreventDel prevents deletion or movement of emails from the user's mailboxes.
+	PreventDel
+	// PreventShowFolders prevents showing delegated folders of this account to other users.
+	PreventShowFolders
+)
+
+// BlockAccount blocks an existing Account using full or partial restrictions.
+//
+// Parameters:
+//   - account: the Account name. The name can include the Domain name.
+//   - mode: the blocking mode ([BlockFull] or [BlockPart]).
+//   - flags: a bitmask of optional restriction flags ([PreventLogin], [PreventDel], [PreventShowFolders]).
+//     Important: These flags are applied to [BlockPart] mode only. For partial blocking,
+//     you must specify at least one flag for the command to execute successfully.
+//
+// This method executes the BLOCKACCOUNT CLI command.
+//
+// Returns:
+//   - error: an error if the command fails or if validation constraints are violated.
+func (cli *Cli) BlockAccount(account string, mode BlockMode, flags BlockFlags) error {
+	if account == "" {
+		return fmt.Errorf("account name is required")
+	}
+
+	modeStr := mode.String()
+	if modeStr == "" {
+		return fmt.Errorf("invalid block mode")
+	}
+
+	args := make([]any, 0, 6)
+	args = append(args, account, "MODE", modeStr)
+
+	if mode == BlockPart {
+		if flags == 0 {
+			return fmt.Errorf("at least one block flag must be specified for partial blocking")
+		}
+		if flags&PreventLogin != 0 {
+			args = append(args, "PREVENTLOGIN")
+		}
+		if flags&PreventDel != 0 {
+			args = append(args, "PREVENTDEL")
+		}
+		if flags&PreventShowFolders != 0 {
+			args = append(args, "PREVENTSHOWFOLDERS")
+		}
+	}
+
+	return cli.QueryNV("BLOCKACCOUNT", args...)
+}
+
 // CheckAccountPassword verifies if the provided password matches the Account's password.
 //
 // Parameters:
@@ -1074,6 +1150,22 @@ func (cli *Cli) SetAccountType(account string, accType AccountType) error {
 		return fmt.Errorf("account name and account type are required")
 	}
 	return cli.QueryNV("SETACCOUNTTYPE", account, accType.String())
+}
+
+// UnblockAccount removes all blocking restrictions from an existing Account.
+//
+// Parameters:
+//   - account: the Account name. The name can include the Domain name.
+//
+// This method executes the UNBLOCKACCOUNT CLI command.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) UnblockAccount(account string) error {
+	if account == "" {
+		return fmt.Errorf("account name is required")
+	}
+	return cli.QueryNV("UNBLOCKACCOUNT", account)
 }
 
 // UpdateAccountInfo updates the Account "info" fields.

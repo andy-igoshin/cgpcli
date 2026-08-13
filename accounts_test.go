@@ -679,3 +679,150 @@ func TestAccountFinalStub(t *testing.T) {
 		}
 	})
 }
+
+func TestAccountBlockUnblockLifecycle(t *testing.T) {
+	cli := getTestCli(t)
+
+	// Для всех методов используется полный адрес аккаунта в виде строки
+	fullAddress := "block-test-user@test.domain.name"
+
+	// 1. Подготовка: Создаем чистый аккаунт для теста
+	// func (cli *Cli) CreateAccount(account string, settings map[string]any, accType AccountType, storage string, legacy bool) error
+	settings := map[string]any{"RealName": "Test Lifecycle"}
+	err := cli.CreateAccount(fullAddress, settings, MultiMailbox, "", false)
+	if err != nil {
+		t.Fatalf("failed to create test account: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = cli.DeleteAccount(fullAddress)
+	})
+
+	// 2. Тест: Блокировка аккаунта
+	// func (cli *Cli) BlockAccount(account string, mode BlockMode, flags BlockFlags) error
+	t.Run("Block Account", func(t *testing.T) {
+		err := cli.BlockAccount(fullAddress, BlockFull, PreventNone)
+		if err != nil {
+			t.Fatalf("BlockAccount failed: %v", err)
+		}
+
+		// Проверяем статус через настройки аккаунта
+		settings, err := cli.GetAccountSettings(fullAddress)
+		if err != nil {
+			t.Fatalf("failed to read settings after block: %v", err)
+		}
+
+		blocked, ok := settings["Blocked"].(int64)
+		if ok && blocked != 1 {
+			t.Errorf("expected account Blocked to be 1 after block, got '%v'", settings["Blocked"])
+		}
+	})
+
+	// 3. Тест: Разблокировка аккаунта
+	t.Run("Unblock Account", func(t *testing.T) {
+		err := cli.UnblockAccount(fullAddress)
+		if err != nil {
+			t.Fatalf("UnblockAccount failed: %v", err)
+		}
+
+		settings, err := cli.GetAccountSettings(fullAddress)
+		if err != nil {
+			t.Fatalf("failed to read settings after unblock: %v", err)
+		}
+
+		blocked, ok := settings["Blocked"].(int64)
+		if ok && blocked != 0 {
+			t.Errorf("expected account Blocked not to be 0 after unblock, got '%v'", settings["Blocked"])
+		}
+	})
+}
+
+func TestAccountBlockPartialLifecycle(t *testing.T) {
+	cli := getTestCli(t)
+
+	fullAddress := "part-block-test@test.domain.name"
+
+	// 1. Подготовка: Создаем чистый аккаунт
+	settings := map[string]any{"RealName": "Test Partial Block"}
+	err := cli.CreateAccount(fullAddress, settings, MultiMailbox, "", false)
+	if err != nil {
+		t.Fatalf("failed to create test account: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = cli.DeleteAccount(fullAddress)
+	})
+
+	// 2. Тест: Частичная блокировка — Запрет авторизации (PreventLogin)
+	t.Run("Partial Block - Prevent Login", func(t *testing.T) {
+		err := cli.BlockAccount(fullAddress, BlockPart, PreventLogin)
+		if err != nil {
+			t.Fatalf("BlockAccount with PreventLogin failed: %v", err)
+		}
+		// Гарантируем разблокировку в конце подтеста, чтобы не аффектить следующие шаги
+		defer func() { _ = cli.UnblockAccount(fullAddress) }()
+
+		settings, err := cli.GetAccountSettings(fullAddress)
+		if err != nil {
+			t.Fatalf("failed to read settings: %v", err)
+		}
+
+		// Проверяем тип блокировки (BlockPart -> 2)
+		if blocked, ok := settings["Blocked"].(int64); !ok || blocked != 2 {
+			t.Errorf("expected Blocked to be 2 for partial block, got %v", settings["Blocked"])
+		}
+
+		// Проверяем конкретный булев флаг ограничения
+		if preventLogin, ok := settings["PreventLogin"].(bool); !ok || !preventLogin {
+			t.Errorf("expected PreventLogin to be true, got %v", settings["PreventLogin"])
+		}
+	})
+
+	// 3. Тест: Частичная блокировка — Запрет удаления (PreventDel)
+	t.Run("Partial Block - Prevent Del", func(t *testing.T) {
+		err := cli.BlockAccount(fullAddress, BlockPart, PreventDel)
+		if err != nil {
+			t.Fatalf("BlockAccount with PreventDel failed: %v", err)
+		}
+		defer func() { _ = cli.UnblockAccount(fullAddress) }()
+
+		settings, err := cli.GetAccountSettings(fullAddress)
+		if err != nil {
+			t.Fatalf("failed to read settings: %v", err)
+		}
+
+		if blocked, ok := settings["Blocked"].(int64); !ok || blocked != 2 {
+			t.Errorf("expected Blocked to be 2 for partial block, got %v", settings["Blocked"])
+		}
+
+		// По аналогии с PreventLogin, CGP должен вернуть PreventDel: true
+		if preventDel, ok := settings["PreventDel"].(bool); !ok || !preventDel {
+			t.Errorf("expected PreventDel to be true, got %v", settings["PreventDel"])
+		}
+	})
+
+	// 4. Тест: Частичная блокировка — Комбинация флагов (PreventLogin | PreventShowFolders)
+	t.Run("Partial Block - Combined Flags", func(t *testing.T) {
+		combinedFlags := PreventLogin | PreventShowFolders
+		err := cli.BlockAccount(fullAddress, BlockPart, combinedFlags)
+		if err != nil {
+			t.Fatalf("BlockAccount with combined flags failed: %v", err)
+		}
+		defer func() { _ = cli.UnblockAccount(fullAddress) }()
+
+		settings, err := cli.GetAccountSettings(fullAddress)
+		if err != nil {
+			t.Fatalf("failed to read settings: %v", err)
+		}
+
+		if blocked, ok := settings["Blocked"].(int64); !ok || blocked != 2 {
+			t.Errorf("expected Blocked to be 2, got %v", settings["Blocked"])
+		}
+
+		if preventLogin, ok := settings["PreventLogin"].(bool); !ok || !preventLogin {
+			t.Errorf("expected PreventLogin to be true, got %v", settings["PreventLogin"])
+		}
+
+		if preventShow, ok := settings["PreventShowFolders"].(bool); !ok || !preventShow {
+			t.Errorf("expected PreventShowFolders to be true, got %v", settings["PreventShowFolders"])
+		}
+	})
+}
