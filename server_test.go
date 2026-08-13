@@ -142,7 +142,7 @@ func TestServer_SystemSettings_RoundTrip(t *testing.T) {
 		{"Signal", cli.GetSignalSettings, cli.SetSignalSettings},
 		{"MediaServer", cli.GetMediaServerSettings, cli.SetMediaServerSettings},
 		{"ServerIntercept", cli.GetServerIntercept, cli.SetServerIntercept},
-		{"SMTPSendProfiles", cli.GetSMTPSendProfiles, cli.SetSMTPSendProfiles},
+		// {"SMTPSendProfiles", cli.GetSMTPSendProfiles, cli.SetSMTPSendProfiles}, // отсутствует в 6.5
 	}
 
 	for _, tt := range localMaps {
