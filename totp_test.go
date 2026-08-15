@@ -54,7 +54,22 @@ func TestAccountTOTPManagement(t *testing.T) {
 		}
 	})
 
-	// 4. Валидация входных параметров (быстрые проверки без вызова CLI)
+	// 4. Сценарий 2: Установка секрета -> Сброс через ResetTotpSecret
+	t.Run("Set secret and reset via ResetTotpSecret", func(t *testing.T) {
+		// Устанавливаем секрет повторно
+		_, err := cli.ProvisionTotpSecret(fullAccount)
+		if err != nil {
+			t.Fatalf("SetTotpSecret with valid secret failed: %v", err)
+		}
+
+		// Вызываем явную команду сброса (RESETTOTPSECRET account)
+		err = cli.ResetTotpSecret(fullAccount)
+		if err != nil {
+			t.Fatalf("ResetTotpSecret failed: %v", err)
+		}
+	})
+
+	// 5. Валидация входных параметров (быстрые проверки без вызова CLI)
 	t.Run("Input validation", func(t *testing.T) {
 		if err := cli.SetTotpSecret("", testSecret); err == nil {
 			t.Error("expected error for empty account in SetTotpSecret, got nil")
