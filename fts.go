@@ -13,8 +13,8 @@
 package cgpcli
 
 import (
-        "fmt"
-        "strings"
+	"fmt"
+	"strings"
 )
 
 // BuildAccountSearchIndex triggers the creation or rebuilding of an Account's Search Index.
