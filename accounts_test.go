@@ -727,6 +727,8 @@ func TestAccountBlockPartialLifecycle(t *testing.T) {
 	cli := getTestCli(t)
 	fullAccount := "testuser1@test.domain.name"
 
+	_ = cli.UnblockAccount(fullAccount)
+
 	// 2. Тест: Частичная блокировка — Запрет авторизации (PreventLogin)
 	t.Run("Partial Block - Prevent Login", func(t *testing.T) {
 		err := cli.BlockAccount(fullAccount, BlockPart, PreventLogin)
