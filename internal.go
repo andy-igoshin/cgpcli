@@ -27,11 +27,22 @@ func (cli *Cli) getMapAny(cmd string, args ...any) (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
-	m, ok := res.(map[string]any)
-	if !ok {
+
+	if res == nil {
+		return make(map[string]any), nil
+	}
+
+	switch v := res.(type) {
+	case map[string]any:
+		return v, nil
+	case string:
+		if v == "" || v == "OK" {
+			return make(map[string]any), nil
+		}
+		return nil, fmt.Errorf("%s: expected map, got non-empty string %q", cmd, v)
+	default:
 		return nil, fmt.Errorf("%s: expected map, got %T", cmd, res)
 	}
-	return m, nil
 }
 
 // getMapString — получение словаря (map[string]string) от сервера.
