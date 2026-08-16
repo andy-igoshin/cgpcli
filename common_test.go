@@ -29,6 +29,11 @@ func getTestCli(t *testing.T) *Cli {
 	if err != nil {
 		t.Fatalf("Connection failed: %v", err)
 	}
+
+	t.Cleanup(func() {
+		_ = cli.Close()
+	})
+
 	return cli
 }
 
