@@ -100,6 +100,7 @@ func (cli *Cli) Close() (err error) {
 		return nil
 	}
 
+	cli.conn.SetWriteDeadline(time.Now().Add(cmdTimeout))
 	cli.writer.Write(cmdQUIT)
 	if err = cli.writer.Flush(); err != nil {
 		cli.close()
@@ -257,10 +258,17 @@ func (cli *Cli) Send(cmd string, args ...any) (err error) {
 
 	_, err = cli.writer.Write(cli.buf.Bytes())
 	if err != nil {
-		return
+		cli.close()
+		return fmt.Errorf("write error: %w", err)
 	}
 
-	return cli.writer.Flush()
+	err = cli.writer.Flush()
+	if err != nil {
+		cli.close()
+		return fmt.Errorf("flush error: %w", err)
+	}
+
+	return nil
 }
 
 // SetDebug enables or disables raw protocol logging to os.Stderr.
@@ -274,9 +282,10 @@ func (cli *Cli) SetDebug(debug bool) {
 
 func (cli *Cli) close() {
 	if cli.conn != nil {
-		cli.conn.Close()
+		_ = cli.conn.Close()
 		cli.conn = nil
 	}
+	cli.isConnected = false
 }
 
 func (cli *Cli) connect() (err error) {
@@ -287,8 +296,18 @@ func (cli *Cli) connect() (err error) {
 		return
 	}
 
-	cli.reader = bufio.NewReaderSize(cli.conn, cgpLineSize)
-	cli.writer = bufio.NewWriter(cli.conn)
+	if cli.reader == nil {
+		cli.reader = bufio.NewReaderSize(cli.conn, cgpLineSize)
+	} else {
+		cli.reader.Reset(cli.conn)
+	}
+
+	if cli.writer == nil {
+		cli.writer = bufio.NewWriter(cli.conn)
+	} else {
+		cli.writer.Reset(cli.conn)
+	}
+
 	cli.buf.Grow(cgpLineSize)
 
 	err = cli.parseResponse()
@@ -370,6 +389,10 @@ func (cli *Cli) connect() (err error) {
 			return
 		}
 		id := cli.respData[idStart:]
+		if idEnd := bytes.IndexByte(id, '>'); idEnd != -1 {
+			id = id[:idEnd+1]
+		}
+
 		hash := md5.Sum(append(id, cli.password...))
 		digest := hex.EncodeToString(hash[:])
 
@@ -453,7 +476,8 @@ func (cli *Cli) parseResponse() (err error) {
 
 	line, err := cli.reader.ReadSlice('\n')
 	if err != nil {
-		return fmt.Errorf("can't read line: %s", err)
+		cli.close()
+		return fmt.Errorf("can't read line: %w", err)
 	}
 
 	line = bytes.TrimRight(line, "\r\n")
@@ -463,6 +487,8 @@ func (cli *Cli) parseResponse() (err error) {
 		os.Stderr.Write(line)
 		os.Stderr.Write([]byte("\n"))
 	}
+
+	cli.lastAccess = time.Now()
 
 	idx := bytes.IndexByte(line, ' ')
 	if idx == -1 {
@@ -480,7 +506,6 @@ func (cli *Cli) parseResponse() (err error) {
 
 	cli.respCode = CliCode(code)
 	cli.respData = line[idx+1:]
-	cli.lastAccess = time.Now()
 
 	return nil
 }
