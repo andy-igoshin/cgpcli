@@ -141,6 +141,44 @@ func TestWebInterface_Integration(t *testing.T) {
 		}
 	})
 
+	// 5.4 Тест WebAuth сессий (ListAccountWebAuthSessions, GetAccountWebAuthSession, KillAccountWebAuthSession)
+	t.Run("WebAuthSessions_FullCycle", func(t *testing.T) {
+		cli.SetDebug(true)
+		// 1. Проверяем получение списка WebAuth сессий (без activeonly и с activeonly)
+		sessions, err := cli.ListAccountWebAuthSessions(testAcc, false)
+		if err != nil {
+			t.Fatalf("ListAccountWebAuthSessions (activeonly=false) failed: %v", err)
+		}
+
+		activeSessions, err := cli.ListAccountWebAuthSessions(testAcc, true)
+		if err != nil {
+			t.Fatalf("ListAccountWebAuthSessions (activeonly=true) failed: %v", err)
+		}
+
+		t.Logf("WebAuth sessions count: all=%d, active=%d", len(sessions), len(activeSessions))
+
+		// 2. Проверяем GetAccountWebAuthSession с несуществующим ID.
+		// Команда должна успешно отправиться, а сервер вернет ошибку отсутствия сессии.
+		const bogusAuthID = "non-existent-webauth-id"
+		_, err = cli.GetAccountWebAuthSession(testAcc, bogusAuthID)
+		if err == nil {
+			t.Errorf("GetAccountWebAuthSession should fail for non-existent auth ID")
+		} else {
+			t.Logf("GetAccountWebAuthSession call executed as expected: %v", err)
+		}
+
+		// 3. Проверяем KillAccountWebAuthSession с несуществующим ID.
+		ret, err := cli.KillAccountWebAuthSession(testAcc, bogusAuthID)
+		if err == nil && ret == 0 {
+			t.Logf("KillAccountWebAuthSession call executed as expected: %v", ret)
+		} else {
+			t.Errorf("KillAccountWebAuthSession should fail for non-existent auth ID: %v", err)
+		}
+
+		cli.SetDebug(false)
+
+	})
+
 	// 6. Тест удаления сессии (KillSession)
 	t.Run("KillSession", func(t *testing.T) {
 		err := cli.KillSession(sessionID, "")

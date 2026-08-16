@@ -194,6 +194,27 @@ func (cli *Cli) FindAccountSession(account, addr, origAddr, protocol, transport,
 	return cli.getString("FINDACCOUNTSESSION", args...)
 }
 
+// GetAccountWebAuthSession retrieves the Web Auth session data for the specified Account.
+//
+// Parameters:
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - auth: the Web Auth Session ID.
+//
+// This data contains the session dataset for Web Auth authentication.
+//
+// This method executes the GETACCOUNTWEBAUTHSESSION CLI command.
+//
+// Returns:
+//   - map[string]any: a map containing the session dataset.
+//   - error: an error if the command fails.
+func (cli *Cli) GetAccountWebAuthSession(account, auth string) (map[string]any, error) {
+	if account == "" || auth == "" {
+		return nil, fmt.Errorf("account name and auth are required")
+	}
+	return cli.getMapAny("GETACCOUNTWEBAUTHSESSION", account, "ID", auth)
+}
+
 // GetSession retrieves Session data.
 //
 // Parameters:
@@ -216,6 +237,26 @@ func (cli *Cli) GetSession(sessionID, domain string) (map[string]any, error) {
 	} else {
 		return cli.getMapAny(cmd, sessionID)
 	}
+}
+
+// KillAccountWebAuthSession terminate a Web Auth session for the specified Account.
+//
+// Parameters:
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - auth: the Web Auth Session ID.
+//
+// Note: This command also terminates related XIMSS sessions.
+//
+// This method executes the KILLACCOUNTWEBAUTHSESSION CLI command.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) KillAccountWebAuthSession(account, auth string) (int64, error) {
+	if account == "" || auth == "" {
+		return 0, fmt.Errorf("account name and auth are required")
+	}
+	return cli.getInt("KILLACCOUNTWEBAUTHSESSION", account, "ID", auth)
 }
 
 // KillSession terminates a Session.
@@ -279,6 +320,29 @@ func (cli *Cli) ListAccountSessions(account, addr, origAddr, protocol, transport
 		args = append(args, "CLIENT", client)
 	}
 	return cli.getSliceString("LISTACCOUNTSESSIONS", args...)
+}
+
+// ListAccountWebAuthSessions retrieve all existing Web Auth sessions for the specified Account.
+//
+// Parameters:
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - activeonly: only WebAuth session IDs that have active sessions are returned.
+//
+// This method executes the LISTACCOUNTWEBAUTHSESSIONS CLI command.
+//
+// Returns:
+//   - []string: an array of strings, where each string is the WebAuth Session ID.
+//   - error: an error if the command fails.
+func (cli *Cli) ListAccountWebAuthSessions(account string, activeonly bool) ([]string, error) {
+	if account == "" {
+		return nil, fmt.Errorf("account name is required")
+	}
+	if activeonly {
+		return cli.getSliceString("LISTACCOUNTWEBAUTHSESSIONS", account, "ACTIVEONLY")
+	} else {
+		return cli.getSliceString("LISTACCOUNTWEBAUTHSESSIONS", account)
+	}
 }
 
 // ListLiteSessions retrieves all LITE sessions.
