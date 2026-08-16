@@ -356,6 +356,30 @@ func (cli *Cli) GetAccountAccessModes(account string) ([]string, error) {
 	}
 }
 
+// GetAccountAirsyncDevices retrieves a dictionary of AirSync (ActiveSync) devices
+// associated with the specified Account.
+//
+// Parameters:
+//   - account: the Account name. The name can include the Domain name.
+//
+// This method executes the GETACCOUNTAIRSYNCDEVICES CLI command.
+//
+// Returns:
+//   - map[string]any: a map where each key represents a unique AirSync device ID,
+//     and the value is a dictionary containing device metadata, including:
+//       - Date: (string) last synchronization date and time.
+//       - LastAddress: (string) IP address of the last sync request.
+//       - User-Agent: (string) client software/device identifier.
+//       - doAccountWipe: (string/bool) flag indicating if an account-level wipe was requested.
+//       - doWipe: (string/bool) flag indicating if a full device wipe was requested.
+//   - error: an error if the command fails.
+func (cli *Cli) GetAccountAirsyncDevices(account string) (map[string]any, error) {
+	if account == "" {
+		return nil, fmt.Errorf("account name is required")
+	}
+	return cli.getMapAny("GETACCOUNTAIRSYNCDEVICES", account)
+}
+
 // GetAccountAliases retrieves the list of Account aliases.
 //
 // Parameters:

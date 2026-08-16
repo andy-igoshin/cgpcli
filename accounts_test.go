@@ -802,3 +802,15 @@ func TestAccountBlockPartialLifecycle(t *testing.T) {
 		}
 	})
 }
+
+func TestGetAccountAirsyncDevices(t *testing.T) {
+	cli := getTestCli(t)
+	fullAddress := "testuser1@test.domain.name"
+
+	t.Run("GetAccountAirsyncDevices", func(t *testing.T) {
+		_, err := cli.GetAccountAirsyncDevices(fullAddress)
+		if err != nil {
+			t.Fatalf("GetAccountAirsyncDevices failed: %v", err)
+		}
+	})
+}
