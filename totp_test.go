@@ -6,22 +6,7 @@ import (
 
 func TestAccountTOTPManagement(t *testing.T) {
 	cli := getTestCli(t)
-
-	domain := "test.domain.name"
-	accountName := "totp-test-user"
-	fullAccount := accountName + "@" + domain
-
-	// 1. Подготовка: Создаем тестовый аккаунт
-	settings := map[string]any{"RealName": "TOTP Test User"}
-	err := cli.CreateAccount(fullAccount, settings, MultiMailbox, "", false)
-	if err != nil {
-		t.Fatalf("failed to create test account for TOTP: %v", err)
-	}
-	t.Cleanup(func() {
-		_ = cli.DeleteAccount(fullAccount)
-	})
-
-	// Тестовый секрет в Base32 (стандартный тестовый ключ RFC 6238 / Google Authenticator)
+	fullAccount := "testuser1@test.domain.name"
 	testSecret := "JBSWY3DPEHPK3PXP"
 
 	// 2. Сценарий 1: Установка секрета -> Сброс путем передачи пустой строки ""
