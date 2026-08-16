@@ -367,11 +367,6 @@ func (cli *Cli) GetAccountAccessModes(account string) ([]string, error) {
 // Returns:
 //   - map[string]any: a map where each key represents a unique AirSync device ID,
 //     and the value is a dictionary containing device metadata, including:
-//       - Date: (string) last synchronization date and time.
-//       - LastAddress: (string) IP address of the last sync request.
-//       - User-Agent: (string) client software/device identifier.
-//       - doAccountWipe: (string/bool) flag indicating if an account-level wipe was requested.
-//       - doWipe: (string/bool) flag indicating if a full device wipe was requested.
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountAirsyncDevices(account string) (map[string]any, error) {
 	if account == "" {
