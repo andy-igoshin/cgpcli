@@ -61,15 +61,19 @@ func (cli *Cli) getSliceAny(cmd string, args ...any) ([]any, error) {
 		return nil, err
 	}
 
-	s, ok := res.([]any)
-	if !ok {
-		if res == nil {
+	switch v := res.(type) {
+	case []any:
+		return v, nil
+	case string:
+		if v == "" || v == "OK" {
 			return []any{}, nil
 		}
+		return nil, fmt.Errorf("%s: expected []any, got string %q", cmd, v)
+	case nil:
+		return []any{}, nil
+	default:
 		return nil, fmt.Errorf("%s: expected []any, got %T", cmd, res)
 	}
-
-	return s, nil
 }
 
 // getSliceByte — получение слайса ([]byte) от сервера.
