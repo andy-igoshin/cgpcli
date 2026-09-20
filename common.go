@@ -59,14 +59,14 @@ type CliCode int
 
 const (
 	CodeOk       CliCode = 200
-	CodeOkInline         = 201
-	CodePassword         = 300 // Server expects a password
-	CodeGenErr           = 500
-	CodeGenErr1          = 501
-	CodeGenErr12         = 512
-	CodeGenErr25         = 525
-	CodeGenErr99         = 599
-	CodeStrange          = 10000
+	CodeOkInline CliCode = 201
+	CodePassword CliCode = 300 // Server expects a password
+	CodeGenErr   CliCode = 500
+	CodeGenErr1  CliCode = 501
+	CodeGenErr12 CliCode = 512
+	CodeGenErr25 CliCode = 525
+	CodeGenErr99 CliCode = 599
+	CodeStrange  CliCode = 10000
 )
 
 const defaultPort = "106"
