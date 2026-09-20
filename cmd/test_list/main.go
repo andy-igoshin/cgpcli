@@ -40,7 +40,7 @@ func main() {
 	cgpcli.PrettyPrint(res)
 
 	// 5. Демонстрация работы с типизированными данными
-	fmt.Printf("\n--- Summary (Total: %d, Cookie: '%s') ---\n", res.Total, res.Cookie)
+	fmt.Printf("\n--- Summary (Count: %d, Cookie: '%s') ---\n", len(res.Objects), res.Cookie)
 
 	keys := make([]string, 0, len(res.Objects))
 	for k := range res.Objects {
@@ -51,12 +51,10 @@ func main() {
 	for _, name := range keys {
 		obj := res.Objects[name]
 
-		typeLabel := obj.Type.String()
-
 		if len(obj.Targets) > 0 {
-			fmt.Printf("[%s] %-15s -> %v\n", typeLabel, obj.Name, obj.Targets)
+			fmt.Printf("[%v] %-15s -> %v\n", obj.Type, obj.Name, obj.Targets)
 		} else {
-			fmt.Printf("[%s] %-15s\n", typeLabel, obj.Name)
+			fmt.Printf("[%v] %-15s\n", obj.Type, obj.Name)
 		}
 	}
 }
