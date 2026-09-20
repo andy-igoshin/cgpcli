@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export GOPATH="${HOME}/src/cgpcli"
+export GOPATH="${HOME}/src/cgpcli/.gopath"
 
 # если на целевой ОС не совпадает glibc, то собираем без зависимостей.
 # результирующий файл, возможно, получится медленнее и большего размера.
