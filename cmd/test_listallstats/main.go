@@ -36,7 +36,6 @@ func main() {
 	}
 
 	count := len(stats)
-	recommended := ((count / 512) + 1) * 512
 
 	fmt.Println(strings.Repeat("-", 40))
 	fmt.Printf("SUMMARY:\n")
