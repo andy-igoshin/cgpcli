@@ -173,10 +173,8 @@ func (cli *Cli) SetGroup(group string, settings map[string]any, members []string
 	}
 
 	fullData := make(map[string]any)
-	if settings != nil {
-		for k, v := range settings {
-			fullData[k] = v
-		}
+	for k, v := range settings {
+		fullData[k] = v
 	}
 
 	if members != nil {
