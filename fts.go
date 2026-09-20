@@ -214,7 +214,7 @@ func (cli *Cli) SearchInIndex(account string, search string, utf8 bool, options 
 	if utf8 {
 		args = append(args, "UTF8")
 	}
-	if options != nil && len(options) > 0 {
+	if len(options) > 0 {
 		args = append(args, "OPTIONS", options)
 	}
 
