@@ -269,6 +269,14 @@ func toStringSlice(cmd string, v any) ([]string, error) {
 	return res, nil
 }
 
+// toStringValue — безопасное приведение к строке без возврата ошибки.
+func toStringValue(v any) string {
+	if s, ok := v.(string); ok {
+		return s
+	}
+	return ""
+}
+
 func toTime(v any) time.Time {
 	if t, ok := v.(time.Time); ok {
 		return t
