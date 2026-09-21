@@ -15,6 +15,7 @@ package cgpcli
 import (
 	"fmt"
 	"strings"
+	"time"
 )
 
 // AccountType represents the storage and management type of a CommuniGate Pro account.
@@ -89,6 +90,15 @@ const (
 	// PreventShowFolders prevents showing delegated folders of this account to other users.
 	PreventShowFolders
 )
+
+// DeletionInfo описывает информацию о выраженном к удалению или удаленном сообщении.
+type DeletionInfo struct {
+	ReturnPath string
+	From       string
+	Date       time.Time
+	Subject    string
+	UID        int64
+}
 
 // BlockAccount blocks an existing Account using full or partial restrictions.
 //
@@ -813,6 +823,43 @@ func (cli *Cli) KillAccountSessions(account string) error {
 	return cli.QueryNV("KILLACCOUNTSESSIONS", account)
 }
 
+// ListDeletions retrieves a list of messages in the Deletions Mailbox.
+//
+// Parameters:
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
+//
+// This method executes the LISTDELETIONS CLI command.
+//
+// Returns:
+//   - []*DeletionInfo: a slice of structures containing the deleted message info.
+//   - error: an error if the command fails or parsing fails.
+func (cli *Cli) ListDeletions(account string) ([]*DeletionInfo, error) {
+	raw, err := cli.getSliceAny("LISTDELETIONS", Atom(account))
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]*DeletionInfo, 0, len(raw))
+	for _, item := range raw {
+		itemMap, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+
+		info := &DeletionInfo{
+			ReturnPath: toStringValue(itemMap["Return-Path"]),
+			From:       toStringValue(itemMap["From"]),
+			Date:       toTime(itemMap["Date"]),
+			Subject:    toStringValue(itemMap["Subject"]),
+			UID:        toInt64(itemMap["UID"]),
+		}
+		res = append(res, info)
+	}
+
+	return res, nil
+}
+
 // ModifyAccountTelnums changes the telephone numbers assigned to the Account.
 //
 // Parameters:
@@ -861,6 +908,22 @@ func (cli *Cli) RenameAccount(oldName, newName, storage string) error {
 	} else {
 		return cli.QueryNV(cmd, oldName, "INTO", newName)
 	}
+}
+
+// RestoreDeletion restores a message from the Deletions Mailbox to the Account's Restored Mailbox.
+//
+// Parameters:
+//   - account: the Account name.
+//     The asterisk (*) symbol can be used to specify the current authenticated Account.
+//   - uid: the UID of the message to restore from the Deletions Mailbox.
+//
+// This method executes the RESTOREDELETION CLI command.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) RestoreDeletion(account string, uid int64) error {
+	_, err := cli.Query("RESTOREDELETION", account, uid)
+	return err
 }
 
 // SetAccountACL modifies the Access Control List (ACL) for Account Access Rights.

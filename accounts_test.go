@@ -816,3 +816,124 @@ func TestGetAccountAirsyncDevices(t *testing.T) {
 		}
 	})
 }
+
+func TestAccountDeletionsLifecycle(t *testing.T) {
+	cli := getTestCli(t)
+	defer cli.Close()
+
+	testAcc := fmt.Sprintf("del-%d@test.domain.name", time.Now().Unix())
+	if err := cli.CreateAccount(testAcc, nil, TypeDefault, "", false); err != nil {
+		t.Fatalf("CreateAccount failed: %v", err)
+	}
+	defer cli.DeleteAccount(testAcc)
+
+	t.Run("ListDeletions_Empty", func(t *testing.T) {
+		deletions, err := cli.ListDeletions(testAcc)
+		if err != nil {
+			t.Fatalf("ListDeletions failed on empty account: %v", err)
+		}
+		if deletions == nil {
+			t.Fatal("Expected non-nil slice from ListDeletions, got nil")
+		}
+		if len(deletions) != 0 {
+			t.Errorf("Expected 0 deletions for new account, got %d", len(deletions))
+		}
+	})
+
+	t.Run("ListDeletions_CurrentAccountAsterisk", func(t *testing.T) {
+		deletions, err := cli.ListDeletions("*")
+		if err != nil {
+			t.Fatalf("ListDeletions('*') failed: %v", err)
+		}
+		if deletions == nil {
+			t.Fatal("Expected non-nil slice from ListDeletions('*'), got nil")
+		}
+		t.Logf("ListDeletions('*') returned %d records", len(deletions))
+	})
+
+	t.Run("RestoreDeletion_NonExistentUID", func(t *testing.T) {
+		// Попытка восстановления заведомо несуществующего UID
+		// CGP возвращает ошибку выполнения команды, если сообщение с таким UID не найдено в Deletions
+		nonExistentUID := int64(99999999)
+		err := cli.RestoreDeletion(testAcc, nonExistentUID)
+		if err == nil {
+			t.Errorf("Expected error when restoring non-existent UID %d, got nil", nonExistentUID)
+		} else {
+			t.Logf("RestoreDeletion returned expected error for missing UID: %v", err)
+		}
+	})
+}
+
+// Юнит-тест парсинга ответа от сервера на базе Unmarshal без обращения к живому серверу
+func TestListDeletionsComplexParsing(t *testing.T) {
+	// Имитация ответа CGP для команды LISTDELETIONS
+	rawResponse := `(
+		{
+			Date = "15-Jan-2026_12:30:00";
+			From = "sender@domain.tld";
+			"Return-Path" = "<bounce@domain.tld>";
+			Subject = "Test Deleted Mail";
+			UID = 100500;
+		},
+		{
+			Date = "16-Jan-2026_10:00:00";
+			From = "admin@domain.tld";
+			Subject = "System Notification";
+			UID = 100501;
+		}
+	)`
+
+	var parsed any
+	if err := Unmarshal([]byte(rawResponse), &parsed); err != nil {
+		t.Fatalf("Unmarshal failed: %v", err)
+	}
+
+	rawSlice, ok := parsed.([]any)
+	if !ok {
+		t.Fatalf("Expected []any, got %T", parsed)
+	}
+
+	items := make([]*DeletionInfo, 0, len(rawSlice))
+	for _, raw := range rawSlice {
+		itemMap, ok := raw.(map[string]any)
+		if !ok {
+			continue
+		}
+
+		info := &DeletionInfo{
+			ReturnPath: toStringValue(itemMap["Return-Path"]),
+			From:       toStringValue(itemMap["From"]),
+			Date:       toTime(itemMap["Date"]),
+			Subject:    toStringValue(itemMap["Subject"]),
+			UID:        toInt64(itemMap["UID"]),
+		}
+		items = append(items, info)
+	}
+
+	if len(items) != 2 {
+		t.Fatalf("Expected 2 items, got %d", len(items))
+	}
+
+	t.Run("CheckFirstItem", func(t *testing.T) {
+		item := items[0]
+		if item.UID != 100500 {
+			t.Errorf("UID mismatch: want 100500, got %d", item.UID)
+		}
+		if item.ReturnPath != "<bounce@domain.tld>" {
+			t.Errorf("ReturnPath mismatch: want '<bounce@domain.tld>', got %q", item.ReturnPath)
+		}
+		if item.Subject != "Test Deleted Mail" {
+			t.Errorf("Subject mismatch: want 'Test Deleted Mail', got %q", item.Subject)
+		}
+	})
+
+	t.Run("CheckSecondItemMissingOptionalField", func(t *testing.T) {
+		item := items[1]
+		if item.UID != 100501 {
+			t.Errorf("UID mismatch: want 100501, got %d", item.UID)
+		}
+		if item.ReturnPath != "" {
+			t.Errorf("ReturnPath expected to be empty, got %q", item.ReturnPath)
+		}
+	})
+}
