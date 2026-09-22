@@ -922,8 +922,7 @@ func (cli *Cli) RenameAccount(oldName, newName, storage string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) RestoreDeletion(account string, uid int64) error {
-	_, err := cli.Query("RESTOREDELETION", account, uid)
-	return err
+	return cli.QueryNV("RESTOREDELETION", account, uid)
 }
 
 // SetAccountACL modifies the Access Control List (ACL) for Account Access Rights.
