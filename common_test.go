@@ -112,7 +112,7 @@ func TestNew_login_stls(t *testing.T) {
 		t.Errorf("specify environment variables CGPUSER and CGPPPASS")
 	}
 
-	cli, err := New("127.0.0.1", cgpuser, cgppass, Plain, true)
+	cli, err := New("127.0.0.1", cgpuser, cgppass, Plain, true, WithTLSInsecureSkipVerify(true))
 	if err != nil {
 		t.Errorf("%s", err)
 	}
