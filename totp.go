@@ -14,7 +14,6 @@ package cgpcli
 import (
 	"crypto/rand"
 	"encoding/base32"
-	"errors"
 	"fmt"
 )
 
@@ -54,7 +53,7 @@ func GenerateTotpSecret() (string, error) {
 //   - error: an error if entropy generation fails or if the CLI command fails.
 func (cli *Cli) ProvisionTotpSecret(account string) (string, error) {
 	if account == "" {
-		return "", errors.New("account name is required")
+		return "", fmt.Errorf("account name is required")
 	}
 
 	secret, err := GenerateTotpSecret()
@@ -79,7 +78,7 @@ func (cli *Cli) ProvisionTotpSecret(account string) (string, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) ResetTotpSecret(account string) error {
 	if account == "" {
-		return errors.New("account name is required")
+		return fmt.Errorf("account name is required")
 	}
 	return cli.QueryNV("RESETTOTPSECRET", Atom(account))
 }
@@ -101,7 +100,7 @@ func (cli *Cli) ResetTotpSecret(account string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetTotpSecret(account, secret string) error {
 	if account == "" {
-		return errors.New("account name is required")
+		return fmt.Errorf("account name is required")
 	}
 
 	const cmd = "SETTOTPSECRET"
