@@ -437,6 +437,25 @@ func (cli *Cli) ReadStockSkinFile(skin, file string) ([]byte, time.Time, error) 
 	return data, ts, nil
 }
 
+// ReloadPluginSkins reloads Skins files of all domains, or a specified domain,
+// from the installed plugins according to the current settings.
+//
+// Parameters:
+//   - domain: an optional Domain name. If empty, Skins files of all domains are reloaded.
+//
+// This method executes the RELOADPLUGINSKINS CLI command.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) ReloadPluginSkins(domain string) error {
+	const cmd = "RELOADPLUGINSKINS"
+	if domain == "" {
+		return cli.QueryNV(cmd)
+	} else {
+		return cli.QueryNV(cmd, "DOMAIN", domain)
+	}
+}
+
 // RenameClusterSkin renames a custom Cluster Skin.
 //
 // Parameters:

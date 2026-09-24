@@ -203,3 +203,28 @@ func TestWebSkins_Comprehensive(t *testing.T) {
 		}
 	})
 }
+
+func TestReloadPluginSkins(t *testing.T) {
+	cli := getTestCli(t)
+	defer cli.Close()
+
+	// ReloadPluginSkins for all domains — may fail if no plugins are loaded
+	t.Run("ReloadAllDomains", func(t *testing.T) {
+		err := cli.ReloadPluginSkins("")
+		if err != nil {
+			t.Logf("ReloadPluginSkins (all domains) returned error (expected without plugins): %v", err)
+		} else {
+			t.Log("ReloadPluginSkins (all domains): success")
+		}
+	})
+
+	// ReloadPluginSkins for a specific domain — may fail if no plugins are loaded
+	t.Run("ReloadSpecificDomain", func(t *testing.T) {
+		err := cli.ReloadPluginSkins("test.domain.name")
+		if err != nil {
+			t.Logf("ReloadPluginSkins (specific domain) returned error (expected without plugins): %v", err)
+		} else {
+			t.Log("ReloadPluginSkins (specific domain): success")
+		}
+	})
+}
