@@ -221,6 +221,10 @@ func (cli *Cli) Query(cmd string, args ...any) (res any, err error) {
 		return
 	}
 
+	if len(cli.respData) == 0 {
+		return nil, nil
+	}
+
 	err = Unmarshal(cli.respData, &res)
 	return
 }
