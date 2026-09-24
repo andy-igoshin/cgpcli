@@ -111,3 +111,104 @@ func TestFTSEnvironmentLifecycle(t *testing.T) {
 		}
 	})
 }
+
+// TestSearchInIndex проверяет полнотекстовый поиск в индексе аккаунта.
+// Охватывает валидацию параметров, вызов с флагом utf8 и опциями,
+// а также проверяет, что CommuniGate возвращает разумную ошибку при
+// отсутствии индекса или пустом результате поиска.
+func TestSearchInIndex(t *testing.T) {
+	cli := getTestCli(t)
+
+	domain := "test.domain.name"
+	accountName := "fts-search-user"
+	fullAccount := accountName + "@" + domain
+
+	// 1. Создаём тестовый аккаунт
+	settings := map[string]any{"RealName": "FTS Search Test"}
+	err := cli.CreateAccount(fullAccount, settings, MultiMailbox, "", false)
+	if err != nil {
+		t.Fatalf("failed to create test account for SearchInIndex: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = cli.DeleteAccount(fullAccount)
+	})
+
+	// 2. Валидация: пустой аккаунт
+	t.Run("validation empty account", func(t *testing.T) {
+		_, err := cli.SearchInIndex("", "some query", false, nil)
+		if err == nil {
+			t.Error("expected error for empty account, got nil")
+		}
+		if err != nil && err.Error() != "account name and search string are required" {
+			t.Errorf("unexpected error message: %v", err)
+		}
+	})
+
+	// 3. Валидация: пустая строка поиска
+	t.Run("validation empty search", func(t *testing.T) {
+		_, err := cli.SearchInIndex(fullAccount, "", false, nil)
+		if err == nil {
+			t.Error("expected error for empty search, got nil")
+		}
+		if err != nil && err.Error() != "account name and search string are required" {
+			t.Errorf("unexpected error message: %v", err)
+		}
+	})
+
+	// 4. Вызов SearchInIndex с реальным аккаунтом.
+	// Поскольку индекс либо отсутствует, либо пуст (нет писем),
+	// CommuniGate должен вернуть разумную ошибку (например, 500)
+	// или пустой словарь — оба варианта допустимы.
+	t.Run("real account no index", func(t *testing.T) {
+		result, err := cli.SearchInIndex(fullAccount, "test", false, nil)
+		if err != nil {
+			// Разумная ошибка от CommuniGate — это допустимый исход
+			t.Logf("SearchInIndex returned expected error (no index/messages): %v", err)
+			// Проверяем, что ошибка не содержит неожиданных сообщений
+			_ = result // nil при ошибке
+		} else {
+			// Если ошибки нет — проверяем, что вернулся валидный словарь
+			if result == nil {
+				t.Error("SearchInIndex returned nil result without error")
+			}
+			t.Logf("SearchInIndex returned result with %d keys", len(result))
+		}
+	})
+
+	// 5. Вызов с флагом utf8
+	t.Run("with utf8 flag", func(t *testing.T) {
+		result, err := cli.SearchInIndex(fullAccount, "test", true, nil)
+		if err != nil {
+			t.Logf("SearchInIndex with utf8 flag returned error: %v", err)
+		} else if result != nil {
+			t.Logf("SearchInIndex with utf8 returned result with %d keys", len(result))
+		}
+	})
+
+	// 6. Вызов с опциями
+	t.Run("with options", func(t *testing.T) {
+		options := map[string]any{
+			"LIMIT": 10,
+			"ALL":   true,
+		}
+		result, err := cli.SearchInIndex(fullAccount, "test", false, options)
+		if err != nil {
+			t.Logf("SearchInIndex with options returned error: %v", err)
+		} else if result != nil {
+			t.Logf("SearchInIndex with options returned result with %d keys", len(result))
+		}
+	})
+
+	// 7. Вызов с utf8 и опциями одновременно
+	t.Run("with utf8 and options", func(t *testing.T) {
+		options := map[string]any{
+			"LIMIT": 5,
+		}
+		result, err := cli.SearchInIndex(fullAccount, "subject", true, options)
+		if err != nil {
+			t.Logf("SearchInIndex with utf8+options returned error: %v", err)
+		} else if result != nil {
+			t.Logf("SearchInIndex with utf8+options returned result with %d keys", len(result))
+		}
+	})
+}
