@@ -31,9 +31,7 @@ func (cli *Cli) GetDomainFreeBusy(domain string) (map[string]any, error) {
 //
 // Parameters:
 //   - domain: an optional Domain name.
-//   - settings: a dictionary used to replace the Domain Free/Busy dictionary.
-//     All old Domain Free/Busy settings are removed. Required parameter,
-//     passing nil returns an error.
+//   - settings: a dictionary used to replace the Domain Free/Busy settings.
 //
 // This method executes the SETDOMAINFREEBUSY CLI command.
 //
