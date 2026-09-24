@@ -41,6 +41,28 @@ const (
 	WebUser
 )
 
+// Option is a functional option for configuring a [Cli] session.
+type Option func(*Cli)
+
+// WithTLSConfig sets a custom TLS configuration for STARTTLS connections.
+// If not provided, a secure default (certificate verification enabled) is used.
+func WithTLSConfig(cfg *tls.Config) Option {
+	return func(cli *Cli) {
+		cli.tlsConfig = cfg
+	}
+}
+
+// WithTLSInsecureSkipVerify controls whether TLS certificate verification is skipped.
+// Use only for testing against servers with self-signed certificates.
+func WithTLSInsecureSkipVerify(skip bool) Option {
+	return func(cli *Cli) {
+		if cli.tlsConfig == nil {
+			cli.tlsConfig = &tls.Config{}
+		}
+		cli.tlsConfig.InsecureSkipVerify = skip
+	}
+}
+
 var (
 	cmdSTLS   = []byte("STLS\n")
 	cmdQUIT   = []byte("QUIT\n")
@@ -80,6 +102,7 @@ type Cli struct {
 	password    string
 	secure      Secure
 	tls         bool
+	tlsConfig   *tls.Config
 	debug       bool
 	conn        net.Conn
 	reader      *bufio.Reader
@@ -157,7 +180,7 @@ func (cli *Cli) Logout() error {
 // Returns:
 //   - *Cli: a pointer to the initialized session.
 //   - error: an error if the command fails.
-func New(host, login, password string, secure Secure, tls bool) (*Cli, error) {
+func New(host, login, password string, secure Secure, tls bool, opts ...Option) (*Cli, error) {
 
 	cli := new(Cli)
 
@@ -166,6 +189,10 @@ func New(host, login, password string, secure Secure, tls bool) (*Cli, error) {
 	cli.password = password
 	cli.secure = secure
 	cli.tls = tls
+
+	for _, opt := range opts {
+		opt(cli)
+	}
 
 	err := cli.connect()
 
@@ -335,10 +362,10 @@ func (cli *Cli) connect() (err error) {
 			return
 		}
 
-		tlsconfig := &tls.Config{
-			InsecureSkipVerify: true,
+		if cli.tlsConfig == nil {
+			cli.tlsConfig = &tls.Config{}
 		}
-		tlsConn := tls.Client(cli.conn, tlsconfig)
+		tlsConn := tls.Client(cli.conn, cli.tlsConfig)
 		if err = tlsConn.Handshake(); err != nil {
 			cli.close()
 			return
