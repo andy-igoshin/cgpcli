@@ -183,6 +183,18 @@ func (cli *Cli) GetClusterNetwork() (map[string]any, error) {
 	return cli.getMapAny("GETCLUSTERNETWORK")
 }
 
+// GetClusterProxyIPs retrieves the Cluster-wide Trusted Proxy
+// IP Addresses.
+//
+// This method executes the GETCLUSTERPROXYIPS CLI command.
+//
+// Returns:
+//   - [IPList]: a parsed list of IP addresses.
+//   - error: an error if the command fails.
+func (cli *Cli) GetClusterProxyIPs() (IPList, error) {
+	return cli.getIPList("GETCLUSTERPROXYIPS")
+}
+
 // GetClusterRouterSettings reads the Cluster-wide Router settings.
 //
 // This method executes the GETCLUSTERROUTERSETTINGS CLI command.
@@ -369,6 +381,17 @@ func (cli *Cli) GetNatSiteIPs() (IPList, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetNetwork() (map[string]any, error) {
 	return cli.getMapAny("GETNETWORK")
+}
+
+// GetProxyIPs retrieves the set of Trusted Proxy IP Addresses.
+//
+// This method executes the GETPROXYIPS CLI command.
+//
+// Returns:
+//   - [IPList]: a parsed list of IP addresses.
+//   - error: an error if the command fails.
+func (cli *Cli) GetProxyIPs() (IPList, error) {
+	return cli.getIPList("GETPROXYIPS")
 }
 
 // GetQueueSettings retrieves the Queue settings.
@@ -724,6 +747,19 @@ func (cli *Cli) SetClusterNetwork(settings map[string]any) error {
 	return cli.QueryNV("SETCLUSTERNETWORK", settings)
 }
 
+// SetClusterProxyIPs updates the Cluster-wide Trusted Proxy IP Addresses.
+//
+// Parameters:
+//   - list: the new set of IP addresses and ranges.
+//
+// This method executes the SETCLUSTERPROXYIPS CLI command.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) SetClusterProxyIPs(list IPList) error {
+	return cli.QueryNV("SETCLUSTERPROXYIPS", list)
+}
+
 // SetClusterRouterSettings updates the Cluster-wide Router settings.
 //
 // Parameters:
@@ -926,6 +962,19 @@ func (cli *Cli) SetNetwork(settings map[string]any) error {
 		return fmt.Errorf("settings dictionary is required")
 	}
 	return cli.QueryNV("SETNETWORK", settings)
+}
+
+// SetProxyIPs updates the set of Trusted Proxy IP Addresses.
+//
+// Parameters:
+//   - list: the new set of IP addresses and ranges.
+//
+// This method executes the SETPROXYIPS CLI command.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) SetProxyIPs(list IPList) error {
+	return cli.QueryNV("SETPROXYIPS", list)
 }
 
 // SetQueueSettings sets the Queue settings.

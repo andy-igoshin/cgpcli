@@ -26,6 +26,7 @@ func TestServer_IPLists_Honest(t *testing.T) {
 		{"Nated", cli.GetNatedIPs, cli.SetNatedIPs},
 		{"NatSite", cli.GetNatSiteIPs, cli.SetNatSiteIPs},
 		{"WhiteHole", cli.GetWhiteHoleIPs, cli.SetWhiteHoleIPs},
+		{"Proxy", cli.GetProxyIPs, cli.SetProxyIPs},
 	}
 
 	for _, tt := range localIPs {
@@ -55,6 +56,7 @@ func TestServer_IPLists_Honest(t *testing.T) {
 		{"ClusterNated", cli.GetClusterNatedIPs, cli.SetClusterNatedIPs},
 		{"ClusterNatSite", cli.GetClusterNatSiteIPs, cli.SetClusterNatSiteIPs},
 		{"ClusterWhiteHole", cli.GetClusterWhiteHoleIPs, cli.SetClusterWhiteHoleIPs},
+		{"ClusterProxy", cli.GetClusterProxyIPs, cli.SetClusterProxyIPs},
 	}
 
 	for _, tt := range clusterIPs {
