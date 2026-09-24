@@ -39,7 +39,7 @@ func (cli *Cli) GetDomainFreeBusy(domain string) (map[string]any, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) SetDomainFreeBusy(domain string, settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary are required")
+		return fmt.Errorf("settings dictionary is required")
 	}
 	return cli.QueryNV("SETDOMAINFREEBUSY", Atom(domain), settings)
 }
