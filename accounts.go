@@ -91,7 +91,7 @@ const (
 	PreventShowFolders
 )
 
-// DeletionInfo описывает информацию о выраженном к удалению или удаленном сообщении.
+// DeletionInfo Contains information about the deleted message.
 type DeletionInfo struct {
 	ReturnPath string
 	From       string
