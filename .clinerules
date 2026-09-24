@@ -10,6 +10,6 @@
    - Примеры запуска:
      - `./build`
      - `./build test`
-     - `./build test-one`
+     - `./build test-one имя-теста`
      - `./build sandbox-test`
-     - `./build sandbox-test-one`
+     - `./build sandbox-test-one имя-теста`
