@@ -57,7 +57,8 @@ elif [ "$1" == "tidy" ]; then
     go mod tidy
 elif [ "$1" == "vet" ]; then
     echo "vet..."
-    go vet
+    go vet ./...
 else
+    go vet ./...
     go build
 fi
