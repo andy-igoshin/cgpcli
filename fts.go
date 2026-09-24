@@ -201,11 +201,8 @@ func (cli *Cli) RemoveDomainSearchIndex(domain string) error {
 //   - map[string]any: a structural dictionary containing search hits modeled after XIMSS specifications.
 //   - error: an error if the syntax is invalid or processing fails.
 func (cli *Cli) SearchInIndex(account string, search string, utf8 bool, options map[string]any) (map[string]any, error) {
-	if account == "" {
-		return nil, fmt.Errorf("account name is required")
-	}
-	if search == "" {
-		return nil, fmt.Errorf("search string is required")
+	if account == "" || search == "" {
+		return nil, fmt.Errorf("account name and search string are required")
 	}
 
 	args := make([]any, 0, 6)
