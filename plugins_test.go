@@ -1,6 +1,7 @@
 package cgpcli
 
 import (
+	"os"
 	"testing"
 )
 
@@ -133,6 +134,65 @@ func TestPlugins(t *testing.T) {
 			t.Logf("UploadPluginFile dry-run (expected): %v", err)
 		} else {
 			t.Log("UploadPluginFile dry-run: unexpectedly succeeded")
+		}
+	})
+}
+
+// TestUploadPluginFilename tests the UploadPluginFilename helper that reads
+// a plugin binary from disk and delegates to UploadPluginFile.
+func TestUploadPluginFilename(t *testing.T) {
+	cli := getTestCli(t)
+	defer cli.Close()
+
+	// 1. Non-existent file should return an error
+	t.Run("NonExistentFile", func(t *testing.T) {
+		err := cli.UploadPluginFilename("/nonexistent/plugin/file.bin", false)
+		if err == nil {
+			t.Error("UploadPluginFilename with non-existent file should return an error")
+		} else {
+			t.Logf("Expected error: %v", err)
+		}
+	})
+
+	// 2. Upload a temporary file with invalid plugin data (expects server error)
+	t.Run("InvalidPluginData", func(t *testing.T) {
+		tmpFile, err := os.CreateTemp("", "cgpcli-test-plugin-*.bin")
+		if err != nil {
+			t.Fatalf("failed to create temp file: %v", err)
+		}
+		defer os.Remove(tmpFile.Name())
+
+		if _, err := tmpFile.Write([]byte("not a valid plugin binary")); err != nil {
+			t.Fatalf("failed to write temp file: %v", err)
+		}
+		tmpFile.Close()
+
+		err = cli.UploadPluginFilename(tmpFile.Name(), false)
+		if err != nil {
+			t.Logf("UploadPluginFilename invalid data (expected): %v", err)
+		} else {
+			t.Log("UploadPluginFilename invalid data: unexpectedly succeeded")
+		}
+	})
+
+	// 3. Upload a temporary file with DRYRUN flag (expects server error for invalid data)
+	t.Run("DryRun", func(t *testing.T) {
+		tmpFile, err := os.CreateTemp("", "cgpcli-test-plugin-dryrun-*.bin")
+		if err != nil {
+			t.Fatalf("failed to create temp file: %v", err)
+		}
+		defer os.Remove(tmpFile.Name())
+
+		if _, err := tmpFile.Write([]byte("dry-run plugin test data")); err != nil {
+			t.Fatalf("failed to write temp file: %v", err)
+		}
+		tmpFile.Close()
+
+		err = cli.UploadPluginFilename(tmpFile.Name(), true)
+		if err != nil {
+			t.Logf("UploadPluginFilename dry-run (expected): %v", err)
+		} else {
+			t.Log("UploadPluginFilename dry-run: unexpectedly succeeded")
 		}
 	})
 }

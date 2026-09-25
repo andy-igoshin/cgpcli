@@ -16,6 +16,7 @@ package cgpcli
 
 import (
 	"fmt"
+	"os"
 )
 
 // GetDomainPluginsSettings retrieves the Domain Plugins settings.
@@ -87,4 +88,24 @@ func (cli *Cli) UploadPluginFile(content []byte, dryrun bool) error {
 	} else {
 		return cli.QueryNV(cmd, content)
 	}
+}
+
+// UploadPluginFilename reads a plugin binary from a file on disk and uploads
+// it to the server.
+//
+// Parameters:
+//   - file: path to the plugin binary file on disk.
+//   - dryrun: if true, no installation will proceed. Only plugin validation
+//     will be performed.
+//
+// This is a convenience wrapper around [Cli.UploadPluginFile].
+//
+// Returns:
+//   - error: an error if reading the file or the upload fails.
+func (cli *Cli) UploadPluginFilename(file string, dryrun bool) error {
+	content, err := os.ReadFile(file)
+	if err != nil {
+		return fmt.Errorf("reading plugin file %q: %w", file, err)
+	}
+	return cli.UploadPluginFile(content, dryrun)
 }
