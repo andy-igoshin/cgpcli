@@ -14,10 +14,6 @@
 //     by separating administrative settings from the member list.
 package cgpcli
 
-import (
-	"fmt"
-)
-
 // GroupResult represents the combined data of a CommuniGate Pro group,
 // separating operational settings from the actual member list.
 type GroupResult struct {
@@ -38,7 +34,7 @@ type GroupResult struct {
 //   - error: an error if the command fails.
 func (cli *Cli) CreateGroup(group string, settings map[string]any) error {
 	if group == "" {
-		return fmt.Errorf("group name is required")
+		return ErrGroupRequired
 	}
 
 	const cmd = "CREATEGROUP"
@@ -60,7 +56,7 @@ func (cli *Cli) CreateGroup(group string, settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteGroup(group string) error {
 	if group == "" {
-		return fmt.Errorf("group name is required")
+		return ErrGroupRequired
 	}
 	return cli.QueryNV("DELETEGROUP", group)
 }
@@ -77,7 +73,7 @@ func (cli *Cli) DeleteGroup(group string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) GetGroup(group string) (*GroupResult, error) {
 	if group == "" {
-		return nil, fmt.Errorf("group name is required")
+		return nil, ErrGroupRequired
 	}
 
 	res, err := cli.getMapAny("GETGROUP", group)
@@ -115,7 +111,7 @@ func (cli *Cli) GetGroup(group string) (*GroupResult, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) IsGroupExists(group string) (bool, error) {
 	if group == "" {
-		return false, fmt.Errorf("group name is required")
+		return false, ErrGroupRequired
 	}
 
 	err := cli.QueryNV("GETGROUP", group)
@@ -150,8 +146,11 @@ func (cli *Cli) ListGroups(domain string) ([]string, error) {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) RenameGroup(oldName, newName string) error {
-	if oldName == "" || newName == "" {
-		return fmt.Errorf("old and new group names are required")
+	if oldName == "" {
+		return ErrOldNameRequired
+	}
+	if newName == "" {
+		return ErrNewNameRequired
 	}
 	return cli.QueryNV("RENAMEGROUP", oldName, "INTO", newName)
 }
@@ -169,7 +168,7 @@ func (cli *Cli) RenameGroup(oldName, newName string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetGroup(group string, settings map[string]any, members []string) error {
 	if group == "" {
-		return fmt.Errorf("group name is required")
+		return ErrGroupRequired
 	}
 
 	fullData := make(map[string]any)

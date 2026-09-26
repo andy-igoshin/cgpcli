@@ -13,7 +13,6 @@
 package cgpcli
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -32,7 +31,7 @@ import (
 //   - error: an error if the command fails.
 func (cli *Cli) BuildAccountSearchIndex(account string) error {
 	if account == "" {
-		return fmt.Errorf("account name is required")
+		return ErrAccountRequired
 	}
 	return cli.QueryNV("BUILDACCOUNTSEARCHINDEX", Atom(account))
 }
@@ -55,7 +54,7 @@ func (cli *Cli) BuildAccountSearchIndex(account string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) BuildDomainSearchIndex(domain string, enableForAll bool) error {
 	if domain == "" {
-		return fmt.Errorf("domain name is required")
+		return ErrDomainRequired
 	}
 
 	const cmd = "BUILDDOMAINSEARCHINDEX"
@@ -79,12 +78,12 @@ func (cli *Cli) BuildDomainSearchIndex(domain string, enableForAll bool) error {
 //   - error: an error if the group is missing (code 552) or command processing fails.
 func (cli *Cli) BuildGroupSearchIndex(group string, enableForAll bool) error {
 	if group == "" {
-		return fmt.Errorf("group name is required")
+		return ErrGroupRequired
 	}
 
 	group0, domain, found := strings.Cut(group, "@")
 	if !found {
-		return fmt.Errorf("group name must contains domain name")
+		return ErrGroupDomainRequired
 	}
 
 	const cmd = "BUILDGROUPSEARCHINDEX"
@@ -107,7 +106,7 @@ func (cli *Cli) BuildGroupSearchIndex(group string, enableForAll bool) error {
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountSearchIndexSize(account string) (int64, error) {
 	if account == "" {
-		return 0, fmt.Errorf("account name is required")
+		return 0, ErrAccountRequired
 	}
 	return cli.getInt("GETACCOUNTSEARCHINDEXSIZE", Atom(account))
 }
@@ -124,7 +123,7 @@ func (cli *Cli) GetAccountSearchIndexSize(account string) (int64, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountSearchIndexState(account string) (string, error) {
 	if account == "" {
-		return "", fmt.Errorf("account name is required")
+		return "", ErrAccountRequired
 	}
 	return cli.getString("GETACCOUNTSEARCHINDEXSTATE", Atom(account))
 }
@@ -141,7 +140,7 @@ func (cli *Cli) GetAccountSearchIndexState(account string) (string, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetDomainSearchIndexState(domain string) (string, error) {
 	if domain == "" {
-		return "", fmt.Errorf("domain name is required")
+		return "", ErrDomainRequired
 	}
 	return cli.getString("GETDOMAINSEARCHINDEXSTATE", Atom(domain))
 }
@@ -161,7 +160,7 @@ func (cli *Cli) GetDomainSearchIndexState(domain string) (string, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) RemoveAccountSearchIndex(account string) error {
 	if account == "" {
-		return fmt.Errorf("account name is required")
+		return ErrAccountRequired
 	}
 	return cli.QueryNV("REMOVEACCOUNTSEARCHINDEX", Atom(account))
 }
@@ -181,7 +180,7 @@ func (cli *Cli) RemoveAccountSearchIndex(account string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) RemoveDomainSearchIndex(domain string) error {
 	if domain == "" {
-		return fmt.Errorf("domain name is required")
+		return ErrDomainRequired
 	}
 	return cli.QueryNV("REMOVEDOMAINSEARCHINDEX", Atom(domain))
 }
@@ -201,8 +200,11 @@ func (cli *Cli) RemoveDomainSearchIndex(domain string) error {
 //   - map[string]any: a structural dictionary containing search hits modeled after XIMSS specifications.
 //   - error: an error if the syntax is invalid or processing fails.
 func (cli *Cli) SearchInIndex(account string, search string, utf8 bool, options map[string]any) (map[string]any, error) {
-	if account == "" || search == "" {
-		return nil, fmt.Errorf("account name and search string are required")
+	if account == "" {
+		return nil, ErrAccountRequired
+	}
+	if search == "" {
+		return nil, ErrSearchStringRequired
 	}
 
 	args := make([]any, 0, 6)

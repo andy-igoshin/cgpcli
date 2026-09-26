@@ -16,10 +16,6 @@
 //     and presence monitoring.
 package cgpcli
 
-import (
-	"fmt"
-)
-
 // Balance manages Account Billing Balances.
 //
 // Parameters:
@@ -35,8 +31,11 @@ import (
 //   - map[string]any: a dictionary with the billing operation results.
 //   - error: an error if the command fails.
 func (cli *Cli) Balance(account string, params map[string]any) (map[string]any, error) {
-	if account == "" || len(params) == 0 {
-		return nil, fmt.Errorf("account name and params are required")
+	if account == "" {
+		return nil, ErrAccountRequired
+	}
+	if len(params) == 0 {
+		return nil, ErrParamsRequired
 	}
 	return cli.getMapAny("BALANCE", Atom(account), params)
 }
@@ -66,8 +65,11 @@ func (cli *Cli) Balance(account string, params map[string]any) (map[string]any, 
 //   - map[string]any: a dictionary with the operation results.
 //   - error: an error if the command fails.
 func (cli *Cli) Dataset(account string, params map[string]any) (map[string]any, error) {
-	if account == "" || len(params) == 0 {
-		return nil, fmt.Errorf("account name and params are required")
+	if account == "" {
+		return nil, ErrAccountRequired
+	}
+	if len(params) == 0 {
+		return nil, ErrParamsRequired
 	}
 	return cli.getMapAny("DATASET", Atom(account), params)
 }
@@ -85,8 +87,11 @@ func (cli *Cli) Dataset(account string, params map[string]any) (map[string]any, 
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) RemoveAccountSubset(account, subset string) error {
-	if account == "" || subset == "" {
-		return fmt.Errorf("account name and subset name are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if subset == "" {
+		return ErrSubsetRequired
 	}
 	return cli.QueryNV("REMOVEACCOUNTSUBSET", Atom(account), "SUBSET", subset)
 }
@@ -106,8 +111,11 @@ func (cli *Cli) RemoveAccountSubset(account, subset string) error {
 //   - map[string]any: a dictionary with the roster operation results.
 //   - error: an error if the command fails.
 func (cli *Cli) Roster(account string, params map[string]any) (map[string]any, error) {
-	if account == "" || len(params) == 0 {
-		return nil, fmt.Errorf("account name and params are required")
+	if account == "" {
+		return nil, ErrAccountRequired
+	}
+	if len(params) == 0 {
+		return nil, ErrParamsRequired
 	}
 	return cli.getMapAny("ROSTER", Atom(account), params)
 }

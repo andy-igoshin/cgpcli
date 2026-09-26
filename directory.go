@@ -44,8 +44,11 @@ type DirAccessRight struct {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) CreateDirectoryUnit(unit, mountPoint string, shared, remote bool) error {
-	if unit == "" || mountPoint == "" {
-		return fmt.Errorf("unit name and mount point are required")
+	if unit == "" {
+		return ErrDirUnitRequired
+	}
+	if mountPoint == "" {
+		return ErrDirMountPointRequired
 	}
 
 	args := make([]any, 0, 4)
@@ -72,7 +75,7 @@ func (cli *Cli) CreateDirectoryUnit(unit, mountPoint string, shared, remote bool
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteDirectoryUnit(unit string, shared bool) error {
 	if unit == "" {
-		return fmt.Errorf("unit name is required")
+		return ErrDirUnitRequired
 	}
 
 	const cmd = "DELETEDIRECTORYUNIT"
@@ -111,7 +114,7 @@ func (cli *Cli) GetDirectoryAccessRights(shared bool) ([]DirAccessRight, error) 
 	for i, item := range res {
 		fields, ok := item.([]any)
 		if !ok || len(fields) < 8 {
-			return nil, fmt.Errorf("%s: rule [%d] has invalid structure", cmd, i)
+			return nil, fmt.Errorf("%s: rule [%d]: %w", cmd, i, ErrDirRuleInvalidStructure)
 		}
 
 		var r DirAccessRight
@@ -158,7 +161,7 @@ func (cli *Cli) GetDirectoryAccessRights(shared bool) ([]DirAccessRight, error) 
 //   - error: an error if the command fails.
 func (cli *Cli) GetDirectoryUnit(unit string, shared bool) (map[string]any, error) {
 	if unit == "" {
-		return nil, fmt.Errorf("unit name is required")
+		return nil, ErrDirUnitRequired
 	}
 
 	const cmd = "GETDIRECTORYUNIT"
@@ -214,8 +217,11 @@ func (cli *Cli) ListDirectoryUnits(shared bool) (map[string]string, error) {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) RelocateDirectoryUnit(unit, mountPoint string, shared bool) error {
-	if unit == "" || mountPoint == "" {
-		return fmt.Errorf("unit name and new mount point are required")
+	if unit == "" {
+		return ErrDirUnitRequired
+	}
+	if mountPoint == "" {
+		return ErrDirMountPointRequired
 	}
 
 	const cmd = "RELOCATEDIRECTORYUNIT"
@@ -238,7 +244,7 @@ func (cli *Cli) RelocateDirectoryUnit(unit, mountPoint string, shared bool) erro
 //   - error: an error if the command fails.
 func (cli *Cli) SetDirectoryAccessRights(shared bool, rights []DirAccessRight) error {
 	if rights == nil {
-		return fmt.Errorf("rights array is required")
+		return ErrDirRightsRequired
 	}
 
 	const cmd = "SETDIRECTORYACCESSRIGHTS"
@@ -269,8 +275,11 @@ func (cli *Cli) SetDirectoryAccessRights(shared bool, rights []DirAccessRight) e
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetDirectoryUnit(unit string, shared bool, settings map[string]any) error {
-	if unit == "" || settings == nil {
-		return fmt.Errorf("unit name and settings dictionary are required")
+	if unit == "" {
+		return ErrDirUnitRequired
+	}
+	if settings == nil {
+		return ErrSettingsRequired
 	}
 
 	const cmd = "SETDIRECTORYUNIT"

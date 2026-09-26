@@ -116,7 +116,7 @@ func (cli *Cli) GetCurrentTime() (time.Time, error) {
 	}
 	t, ok := res.(time.Time)
 	if !ok {
-		return time.Time{}, fmt.Errorf("%s: expected time.Time, got %T", cmd, res)
+		return time.Time{}, fmt.Errorf("%s: %w: expected time.Time, got %T", cmd, ErrUnexpectedType, res)
 	}
 	return t, nil
 }
@@ -133,8 +133,11 @@ func (cli *Cli) GetCurrentTime() (time.Time, error) {
 //   - map[string]any: a dictionary with the specified queue information (nTotal, size, delayedTill, lastError).
 //   - error: an error if the command fails.
 func (cli *Cli) GetMessageQueueInfo(module, queue string) (map[string]any, error) {
-	if module == "" || queue == "" {
-		return nil, fmt.Errorf("module and queue are required")
+	if module == "" {
+		return nil, ErrModuleRequired
+	}
+	if queue == "" {
+		return nil, ErrQueueRequired
 	}
 	return cli.getMapAny("GETMESSAGEQUEUEINFO", module, "QUEUE", queue)
 }
@@ -151,7 +154,7 @@ func (cli *Cli) GetMessageQueueInfo(module, queue string) (map[string]any, error
 //   - error: an error if the command fails.
 func (cli *Cli) GetSystemInfo(what SystemInfoKey) (any, error) {
 	if what == "" {
-		return nil, fmt.Errorf("system info key is required")
+		return nil, ErrSystemInfoKeyRequired
 	}
 	return cli.Query("GETSYSTEMINFO", string(what))
 }
@@ -277,7 +280,7 @@ func (cli *Cli) RejectQueueMessage(id int64, report string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) RejectQueueMessages(sender, report string) error {
 	if sender == "" {
-		return fmt.Errorf("sender is required")
+		return ErrSenderRequired
 	}
 
 	if report != "" {
@@ -300,7 +303,7 @@ func (cli *Cli) RejectQueueMessages(sender, report string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) ReleaseSMTPQueue(queue string) error {
 	if queue == "" {
-		return fmt.Errorf("queue name is required")
+		return ErrQueueRequired
 	}
 	return cli.QueryNV("RELEASESMTPQUEUE", queue)
 }
@@ -316,7 +319,7 @@ func (cli *Cli) ReleaseSMTPQueue(queue string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) ReportFailedLoginAddress(ip net.IP) error {
 	if ip == nil {
-		return fmt.Errorf("IP address is required")
+		return ErrIPAddressRequired
 	}
 	return cli.QueryNV("REPORTFAILEDLOGINADDRESS", ip.String())
 }
@@ -382,7 +385,7 @@ func (cli *Cli) SetTempUnblockableIPs(list *TempIPList) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetTrace(facility TraceFacility, on bool) error {
 	if facility == "" {
-		return fmt.Errorf("trace facility is required")
+		return ErrTraceFacilityRequired
 	}
 
 	val := "OFF"
@@ -404,7 +407,7 @@ func (cli *Cli) SetTrace(facility TraceFacility, on bool) error {
 //   - error: an error if the command fails.
 func (cli *Cli) TempBlacklistIP(ip net.IP, timeout time.Duration) error {
 	if ip == nil {
-		return fmt.Errorf("IP address is required")
+		return ErrIPAddressRequired
 	}
 
 	if timeout <= 0 {
@@ -426,7 +429,7 @@ func (cli *Cli) TempBlacklistIP(ip net.IP, timeout time.Duration) error {
 //   - error: an error if the command fails.
 func (cli *Cli) TempUnblockIP(ip net.IP, timeout time.Duration) error {
 	if ip == nil {
-		return fmt.Errorf("IP address is required")
+		return ErrIPAddressRequired
 	}
 
 	if timeout <= 0 {

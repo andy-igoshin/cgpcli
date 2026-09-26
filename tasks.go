@@ -16,7 +16,6 @@
 package cgpcli
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -32,8 +31,11 @@ import (
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) CreateNamedTask(task, account string) error {
-	if task == "" || account == "" {
-		return fmt.Errorf("task name and account name are required")
+	if task == "" {
+		return ErrTaskNameRequired
+	}
+	if account == "" {
+		return ErrAccountRequired
 	}
 
 	if idx := strings.IndexByte(account, '@'); idx != -1 {
@@ -53,7 +55,7 @@ func (cli *Cli) CreateNamedTask(task, account string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteNamedTask(task string) error {
 	if task == "" {
-		return fmt.Errorf("task name is required")
+		return ErrTaskNameRequired
 	}
 	return cli.QueryNV("DELETENAMEDTASK", task)
 }
@@ -70,7 +72,7 @@ func (cli *Cli) DeleteNamedTask(task string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) GetNamedTask(task string) (map[string]any, error) {
 	if task == "" {
-		return nil, fmt.Errorf("task name is required")
+		return nil, ErrTaskNameRequired
 	}
 	return cli.getMapAny("GETNAMEDTASK", task)
 }
@@ -89,7 +91,7 @@ func (cli *Cli) GetNamedTask(task string) (map[string]any, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) ListAccountNamedTasks(account string) (map[string]any, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	return cli.getMapAny("LISTACCOUNTNAMEDTASKS", account)
 }
@@ -120,8 +122,11 @@ func (cli *Cli) ListDomainNamedTasks(domain string) (map[string]any, error) {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) RenameNamedTask(oldTask, newTask string) error {
-	if oldTask == "" || newTask == "" {
-		return fmt.Errorf("oldName and newName are required")
+	if oldTask == "" {
+		return ErrOldNameRequired
+	}
+	if newTask == "" {
+		return ErrNewNameRequired
 	}
 	return cli.QueryNV("RENAMENAMEDTASK", oldTask, "INTO", newTask)
 }
@@ -137,8 +142,11 @@ func (cli *Cli) RenameNamedTask(oldTask, newTask string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateNamedTask(task string, settings map[string]any) error {
-	if task == "" || len(settings) == 0 {
-		return fmt.Errorf("task name and settings are required")
+	if task == "" {
+		return ErrTaskNameRequired
+	}
+	if len(settings) == 0 {
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("UPDATENAMEDTASK", task, settings)
 }

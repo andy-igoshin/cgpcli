@@ -12,10 +12,6 @@
 //   - Inspection: retrieving the target address of a specific forwarder.
 package cgpcli
 
-import (
-	"fmt"
-)
-
 // CreateForwarder creates new Forwarders.
 //
 // Parameters:
@@ -27,8 +23,11 @@ import (
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) CreateForwarder(forwarder, address string) error {
-	if forwarder == "" || address == "" {
-		return fmt.Errorf("forwarder name and address are required")
+	if forwarder == "" {
+		return ErrForwarderRequired
+	}
+	if address == "" {
+		return ErrAddressRequired
 	}
 	return cli.QueryNV("CREATEFORWARDER", forwarder, "TO", address)
 }
@@ -44,7 +43,7 @@ func (cli *Cli) CreateForwarder(forwarder, address string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteForwarder(forwarder string) error {
 	if forwarder == "" {
-		return fmt.Errorf("forwarder name is required")
+		return ErrForwarderRequired
 	}
 	return cli.QueryNV("DELETEFORWARDER", forwarder)
 }
@@ -61,8 +60,11 @@ func (cli *Cli) DeleteForwarder(forwarder string) error {
 //   - []string: an array with the found Forwarder names.
 //   - error: an error if the command fails.
 func (cli *Cli) FindForwarders(domain, address string) ([]string, error) {
-	if domain == "" || address == "" {
-		return nil, fmt.Errorf("domain and target address are required")
+	if domain == "" {
+		return nil, ErrDomainRequired
+	}
+	if address == "" {
+		return nil, ErrAddressRequired
 	}
 	return cli.getSliceString("FINDFORWARDERS", domain, "TO", address)
 }
@@ -79,7 +81,7 @@ func (cli *Cli) FindForwarders(domain, address string) ([]string, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetForwarder(forwarder string) (string, error) {
 	if forwarder == "" {
-		return "", fmt.Errorf("forwarder name is required")
+		return "", ErrForwarderRequired
 	}
 	return cli.getString("GETFORWARDER", forwarder)
 }
@@ -109,8 +111,11 @@ func (cli *Cli) ListForwarders(domain string) ([]string, error) {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) RenameForwarder(oldName, newName string) error {
-	if oldName == "" || newName == "" {
-		return fmt.Errorf("old and new names are required")
+	if oldName == "" {
+		return ErrOldNameRequired
+	}
+	if newName == "" {
+		return ErrNewNameRequired
 	}
 	return cli.QueryNV("RENAMEFORWARDER", oldName, "INTO", newName)
 }

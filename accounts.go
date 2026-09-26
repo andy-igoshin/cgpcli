@@ -13,7 +13,6 @@
 package cgpcli
 
 import (
-	"fmt"
 	"strings"
 	"time"
 )
@@ -115,12 +114,12 @@ type DeletionInfo struct {
 //   - error: an error if the command fails or if validation constraints are violated.
 func (cli *Cli) BlockAccount(account string, mode BlockMode, flags BlockFlags) error {
 	if account == "" {
-		return fmt.Errorf("account name is required")
+		return ErrAccountRequired
 	}
 
 	modeStr := mode.String()
 	if modeStr == "" {
-		return fmt.Errorf("invalid block mode")
+		return ErrInvalidBlockMode
 	}
 
 	args := make([]any, 0, 6)
@@ -128,7 +127,7 @@ func (cli *Cli) BlockAccount(account string, mode BlockMode, flags BlockFlags) e
 
 	if mode == BlockPart {
 		if flags == 0 {
-			return fmt.Errorf("at least one block flag must be specified for partial blocking")
+			return ErrBlockFlagRequired
 		}
 		if flags&PreventLogin != 0 {
 			args = append(args, "PREVENTLOGIN")
@@ -167,7 +166,7 @@ func (cli *Cli) BlockAccount(account string, mode BlockMode, flags BlockFlags) e
 //   - (false, error) if the password cannot be retrieved or verified.
 func (cli *Cli) CheckAccountPassword(account, password string) (bool, error) {
 	if password == "" {
-		return false, fmt.Errorf("password is required")
+		return false, ErrPasswordRequired
 	}
 	plain, err := cli.GetAccountPlainPassword(account, "")
 	if err != nil {
@@ -193,7 +192,7 @@ func (cli *Cli) CheckAccountPassword(account, password string) (bool, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) CreateAccount(account string, settings map[string]any, accType AccountType, storage string, legacy bool) error {
 	if account == "" {
-		return fmt.Errorf("account name is required")
+		return ErrAccountRequired
 	}
 
 	args := make([]any, 0, 6)
@@ -224,7 +223,7 @@ func (cli *Cli) CreateAccount(account string, settings map[string]any, accType A
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteAccount(account string) error {
 	if account == "" {
-		return fmt.Errorf("account name is required")
+		return ErrAccountRequired
 	}
 	return cli.QueryNV("DELETEACCOUNT", account)
 }
@@ -243,8 +242,11 @@ func (cli *Cli) DeleteAccount(account string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteAccountMailRule(account, rule string) error {
-	if account == "" || rule == "" {
-		return fmt.Errorf("account name and rule name are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if rule == "" {
+		return ErrRuleRequired
 	}
 	return cli.QueryNV("UPDATEACCOUNTMAILRULE", account, "DELETE", rule)
 }
@@ -263,8 +265,11 @@ func (cli *Cli) DeleteAccountMailRule(account, rule string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteAccountSignalRule(account, rule string) error {
-	if account == "" || rule == "" {
-		return fmt.Errorf("account name and rule name are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if rule == "" {
+		return ErrRuleRequired
 	}
 	return cli.QueryNV("UPDATEACCOUNTSIGNALRULE", account, "DELETE", rule)
 }
@@ -285,7 +290,7 @@ func (cli *Cli) DeleteAccountSignalRule(account, rule string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountACL(account, authAccount string) (map[string]any, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 
 	const cmd = "GETACCOUNTACL"
@@ -310,8 +315,11 @@ func (cli *Cli) GetAccountACL(account, authAccount string) (map[string]any, erro
 //   - string: a string with the effective access rights.
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountACLRights(account, authAccount string) (string, error) {
-	if account == "" || authAccount == "" {
-		return "", fmt.Errorf("target account and auth account names are required")
+	if account == "" {
+		return "", ErrAccountRequired
+	}
+	if authAccount == "" {
+		return "", ErrAuthAccountRequired
 	}
 	return cli.getString("GETACCOUNTACLRIGHTS", Atom(account), "AUTH", authAccount)
 }
@@ -340,7 +348,7 @@ func (cli *Cli) GetAccountACLRights(account, authAccount string) (string, error)
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountAccessModes(account string) ([]string, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	settings, err := cli.GetAccountSettings(account)
 	if err != nil {
@@ -380,7 +388,7 @@ func (cli *Cli) GetAccountAccessModes(account string) ([]string, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountAirsyncDevices(account string) (map[string]any, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	return cli.getMapAny("GETACCOUNTAIRSYNCDEVICES", account)
 }
@@ -397,7 +405,7 @@ func (cli *Cli) GetAccountAirsyncDevices(account string) (map[string]any, error)
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountAliases(account string) ([]string, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	return cli.getSliceString("GETACCOUNTALIASES", account)
 }
@@ -418,7 +426,7 @@ func (cli *Cli) GetAccountAliases(account string) ([]string, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountEffectivePrefs(account string) (map[string]any, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	return cli.getMapAny("GETACCOUNTEFFECTIVEPREFS", account)
 }
@@ -440,7 +448,7 @@ func (cli *Cli) GetAccountEffectivePrefs(account string) (map[string]any, error)
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountEffectiveSettings(account string) (map[string]any, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	return cli.getMapAny("GETACCOUNTEFFECTIVESETTINGS", Atom(account))
 }
@@ -465,7 +473,7 @@ func (cli *Cli) GetAccountEffectiveSettings(account string) (map[string]any, err
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountInfo(account string, keys []string) (map[string]any, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 
 	const cmd = "GETACCOUNTINFO"
@@ -492,7 +500,7 @@ func (cli *Cli) GetAccountInfo(account string, keys []string) (map[string]any, e
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountLocation(account string) (string, error) {
 	if account == "" {
-		return "", fmt.Errorf("account name is required")
+		return "", ErrAccountRequired
 	}
 	return cli.getString("GETACCOUNTLOCATION", account)
 }
@@ -509,7 +517,7 @@ func (cli *Cli) GetAccountLocation(account string) (string, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountMailRules(account string) ([]MailRule, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	return cli.getMailRules("GETACCOUNTMAILRULES", account)
 }
@@ -532,8 +540,11 @@ func (cli *Cli) GetAccountMailRules(account string) ([]MailRule, error) {
 //   - any: the specified info element.
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountOneInfo(account, key string) (any, error) {
-	if account == "" || key == "" {
-		return nil, fmt.Errorf("account name and key name are required")
+	if account == "" {
+		return nil, ErrAccountRequired
+	}
+	if key == "" {
+		return nil, ErrKeyRequired
 	}
 	return cli.Query("GETACCOUNTINFO", Atom(account), "Key", key)
 }
@@ -556,8 +567,11 @@ func (cli *Cli) GetAccountOneInfo(account, key string) (any, error) {
 //   - any: the setting value (string, array, dictionary, or nil).
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountOneSetting(account, key string) (any, error) {
-	if account == "" || key == "" {
-		return nil, fmt.Errorf("account name and key name are required")
+	if account == "" {
+		return nil, ErrAccountRequired
+	}
+	if key == "" {
+		return nil, ErrKeyRequired
 	}
 	return cli.Query("GETACCOUNTONESETTING", Atom(account), key)
 }
@@ -580,7 +594,7 @@ func (cli *Cli) GetAccountOneSetting(account, key string) (any, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountPlainPassword(account string, method string) (string, error) {
 	if account == "" {
-		return "", fmt.Errorf("account name is required")
+		return "", ErrAccountRequired
 	}
 
 	const cmd = "GETACCOUNTPLAINPASSWORD"
@@ -609,7 +623,7 @@ func (cli *Cli) GetAccountPlainPassword(account string, method string) (string, 
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountPrefs(account string) (map[string]any, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	return cli.getMapAny("GETACCOUNTPREFS", account)
 }
@@ -632,7 +646,7 @@ func (cli *Cli) GetAccountPrefs(account string) (map[string]any, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountPresence(account string) (any, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	return cli.Query("GETACCOUNTPRESENCE", account)
 }
@@ -651,7 +665,7 @@ func (cli *Cli) GetAccountPresence(account string) (any, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountRIMAPs(account string) (map[string]any, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	return cli.getMapAny("GETACCOUNTRIMAPS", account)
 }
@@ -670,7 +684,7 @@ func (cli *Cli) GetAccountRIMAPs(account string) (map[string]any, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountRPOPs(account string) (map[string]any, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	return cli.getMapAny("GETACCOUNTRPOPS", account)
 }
@@ -690,7 +704,7 @@ func (cli *Cli) GetAccountRPOPs(account string) (map[string]any, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountRSIPs(account string) (map[string]any, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	return cli.getMapAny("GETACCOUNTRSIPS", account)
 }
@@ -711,7 +725,7 @@ func (cli *Cli) GetAccountRSIPs(account string) (map[string]any, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountRights(account string) ([]string, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	return cli.getSliceString("GETACCOUNTRIGHTS", account)
 }
@@ -735,7 +749,7 @@ func (cli *Cli) GetAccountRights(account string) ([]string, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountSettings(account string) (map[string]any, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	return cli.getMapAny("GETACCOUNTSETTINGS", Atom(account))
 }
@@ -754,7 +768,7 @@ func (cli *Cli) GetAccountSettings(account string) (map[string]any, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountSignalRules(account string) ([]SignalRule, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	return cli.getSignalRules("GETACCOUNTSIGNALRULES", account)
 }
@@ -773,7 +787,7 @@ func (cli *Cli) GetAccountSignalRules(account string) ([]SignalRule, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountTelnums(account string) ([]string, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	return cli.getSliceString("GETACCOUNTTELNUMS", account)
 }
@@ -793,7 +807,7 @@ func (cli *Cli) GetAccountTelnums(account string) ([]string, error) {
 //   - (false, error) if the check fails due to communication or permission issues.
 func (cli *Cli) IsAccountExists(account string) (bool, error) {
 	if account == "" {
-		return false, fmt.Errorf("account name is required")
+		return false, ErrAccountRequired
 	}
 
 	location, err := cli.GetAccountLocation(account)
@@ -818,7 +832,7 @@ func (cli *Cli) IsAccountExists(account string) (bool, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) KillAccountSessions(account string) error {
 	if account == "" {
-		return fmt.Errorf("account name is required")
+		return ErrAccountRequired
 	}
 	return cli.QueryNV("KILLACCOUNTSESSIONS", account)
 }
@@ -879,8 +893,11 @@ func (cli *Cli) ListDeletions(account string) ([]*DeletionInfo, error) {
 //   - map[string]any: for the "pop" operation, may contain the "telnum" key with the removed number.
 //   - error: an error if the command fails.
 func (cli *Cli) ModifyAccountTelnums(account string, params map[string]any) (map[string]any, error) {
-	if account == "" || params == nil {
-		return nil, fmt.Errorf("account name and parameters dictionary are required")
+	if account == "" {
+		return nil, ErrAccountRequired
+	}
+	if params == nil {
+		return nil, ErrParamsRequired
 	}
 	return cli.getMapAny("MODIFYACCOUNTTELNUMS", account, params)
 }
@@ -898,8 +915,11 @@ func (cli *Cli) ModifyAccountTelnums(account string, params map[string]any) (map
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) RenameAccount(oldName, newName, storage string) error {
-	if oldName == "" || newName == "" {
-		return fmt.Errorf("both old and new names are required")
+	if oldName == "" {
+		return ErrOldNameRequired
+	}
+	if newName == "" {
+		return ErrNewNameRequired
 	}
 
 	const cmd = "RENAMEACCOUNT"
@@ -946,8 +966,11 @@ func (cli *Cli) RestoreDeletion(account string, uid int64) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetAccountACL(account string, acl map[string]any, authAccount string) error {
-	if account == "" || acl == nil {
-		return fmt.Errorf("account name and acl dictionary are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if acl == nil {
+		return ErrACLRequired
 	}
 
 	const cmd = "SETACCOUNTACL"
@@ -977,7 +1000,7 @@ func (cli *Cli) SetAccountACL(account string, acl map[string]any, authAccount st
 //   - error: an error if the command fails.
 func (cli *Cli) SetAccountAccessModes(account string, modes []string) error {
 	if account == "" {
-		return fmt.Errorf("account name is required")
+		return ErrAccountRequired
 	}
 	var value any
 	switch {
@@ -1011,8 +1034,11 @@ func (cli *Cli) SetAccountAccessModes(account string, modes []string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetAccountAliases(account string, aliases []string) error {
-	if account == "" || aliases == nil {
-		return fmt.Errorf("account name and aliases array are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if aliases == nil {
+		return ErrAliasesRequired
 	}
 	return cli.QueryNV("SETACCOUNTALIASES", account, aliases)
 }
@@ -1034,8 +1060,11 @@ func (cli *Cli) SetAccountAliases(account string, aliases []string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetAccountMailRules(account string, rules []MailRule) error {
-	if account == "" || rules == nil {
-		return fmt.Errorf("account name and rules array are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if rules == nil {
+		return ErrRulesRequired
 	}
 	return setRulesGeneric(cli, "SETACCOUNTMAILRULES", account, rules)
 }
@@ -1060,8 +1089,11 @@ func (cli *Cli) SetAccountMailRules(account string, rules []MailRule) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetAccountPassword(account, password, method, tag string, check bool) error {
-	if account == "" || password == "" {
-		return fmt.Errorf("account name and password are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if password == "" {
+		return ErrPasswordRequired
 	}
 
 	args := make([]any, 0, 8)
@@ -1093,8 +1125,11 @@ func (cli *Cli) SetAccountPassword(account, password, method, tag string, check 
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetAccountPrefs(account string, settings map[string]any) error {
-	if account == "" || settings == nil {
-		return fmt.Errorf("account name and settings dictionary are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if settings == nil {
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETACCOUNTPREFS", account, settings)
 }
@@ -1112,8 +1147,11 @@ func (cli *Cli) SetAccountPrefs(account string, settings map[string]any) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetAccountRIMAPs(account string, records map[string]any) error {
-	if account == "" || records == nil {
-		return fmt.Errorf("account name and records dictionary are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if records == nil {
+		return ErrRecordsRequired
 	}
 	return cli.QueryNV("SETACCOUNTRIMAPS", account, records)
 }
@@ -1131,8 +1169,11 @@ func (cli *Cli) SetAccountRIMAPs(account string, records map[string]any) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetAccountRPOPs(account string, records map[string]any) error {
-	if account == "" || records == nil {
-		return fmt.Errorf("account name and records dictionary are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if records == nil {
+		return ErrRecordsRequired
 	}
 	return cli.QueryNV("SETACCOUNTRPOPS", account, records)
 }
@@ -1150,8 +1191,11 @@ func (cli *Cli) SetAccountRPOPs(account string, records map[string]any) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetAccountRSIPs(account string, records map[string]any) error {
-	if account == "" || records == nil {
-		return fmt.Errorf("account name and records dictionary are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if records == nil {
+		return ErrRecordsRequired
 	}
 	return cli.QueryNV("SETACCOUNTRSIPS", account, records)
 }
@@ -1169,8 +1213,11 @@ func (cli *Cli) SetAccountRSIPs(account string, records map[string]any) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetAccountSettings(account string, settings map[string]any) error {
-	if account == "" || settings == nil {
-		return fmt.Errorf("account name and settings dictionary are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if settings == nil {
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETACCOUNTSETTINGS", account, settings)
 }
@@ -1188,8 +1235,11 @@ func (cli *Cli) SetAccountSettings(account string, settings map[string]any) erro
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetAccountSignalRules(account string, rules []SignalRule) error {
-	if account == "" || rules == nil {
-		return fmt.Errorf("account name and rules array are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if rules == nil {
+		return ErrRulesRequired
 	}
 	return setRulesGeneric(cli, "SETACCOUNTSIGNALRULES", account, rules)
 }
@@ -1207,8 +1257,11 @@ func (cli *Cli) SetAccountSignalRules(account string, rules []SignalRule) error 
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetAccountTelnums(account string, telnums []string) error {
-	if account == "" || telnums == nil {
-		return fmt.Errorf("account name and telnums array are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if telnums == nil {
+		return ErrTelnumsRequired
 	}
 	return cli.QueryNV("SETACCOUNTTELNUMS", account, telnums)
 }
@@ -1227,8 +1280,11 @@ func (cli *Cli) SetAccountTelnums(account string, telnums []string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetAccountType(account string, accType AccountType) error {
-	if account == "" || accType == TypeDefault {
-		return fmt.Errorf("account name and account type are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if accType == TypeDefault {
+		return ErrAccountTypeRequired
 	}
 	return cli.QueryNV("SETACCOUNTTYPE", account, accType.String())
 }
@@ -1244,7 +1300,7 @@ func (cli *Cli) SetAccountType(account string, accType AccountType) error {
 //   - error: an error if the command fails.
 func (cli *Cli) UnblockAccount(account string) error {
 	if account == "" {
-		return fmt.Errorf("account name is required")
+		return ErrAccountRequired
 	}
 	return cli.QueryNV("UNBLOCKACCOUNT", account)
 }
@@ -1264,8 +1320,11 @@ func (cli *Cli) UnblockAccount(account string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateAccountInfo(account string, info map[string]any) error {
-	if account == "" || len(info) == 0 {
-		return fmt.Errorf("account name and info are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if len(info) == 0 {
+		return ErrInfoRequired
 	}
 	return cli.QueryNV("UPDATEACCOUNTINFO", account, info)
 }
@@ -1289,7 +1348,7 @@ func (cli *Cli) UpdateAccountInfo(account string, info map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateAccountMailRule(account string, rule MailRule) error {
 	if account == "" {
-		return fmt.Errorf("account name is required")
+		return ErrAccountRequired
 	}
 	return updateRuleGeneric(cli, "UPDATEACCOUNTMAILRULE", account, rule)
 }
@@ -1310,8 +1369,11 @@ func (cli *Cli) UpdateAccountMailRule(account string, rule MailRule) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateAccountPrefs(account string, settings map[string]any) error {
-	if account == "" || len(settings) == 0 {
-		return fmt.Errorf("account name and settings dictionary are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if len(settings) == 0 {
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("UPDATEACCOUNTPREFS", account, settings)
 }
@@ -1332,8 +1394,11 @@ func (cli *Cli) UpdateAccountPrefs(account string, settings map[string]any) erro
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateAccountSettings(account string, settings map[string]any) error {
-	if account == "" || len(settings) == 0 {
-		return fmt.Errorf("account name and settings dictionary are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if len(settings) == 0 {
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("UPDATEACCOUNTSETTINGS", account, settings)
 }
@@ -1358,7 +1423,7 @@ func (cli *Cli) UpdateAccountSettings(account string, settings map[string]any) e
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateAccountSignalRule(account string, rule SignalRule) error {
 	if account == "" {
-		return fmt.Errorf("account name is required")
+		return ErrAccountRequired
 	}
 	return updateRuleGeneric(cli, "UPDATEACCOUNTSIGNALRULE", account, rule)
 }
@@ -1381,8 +1446,11 @@ func (cli *Cli) UpdateAccountSignalRule(account string, rule SignalRule) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateScheduledTask(account string, task map[string]any) error {
-	if account == "" || len(task) == 0 {
-		return fmt.Errorf("account name and task dictionary are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if len(task) == 0 {
+		return ErrTaskRequired
 	}
 	return cli.QueryNV("UPDATESCHEDULEDTASK", account, task)
 }
@@ -1400,8 +1468,11 @@ func (cli *Cli) UpdateScheduledTask(account string, task map[string]any) error {
 //   - (true, nil) if the identity is verified and allowed.
 //   - (false, error) if the verification fails or the server returns an error.
 func (cli *Cli) VerifyAccountIdentity(account, identity string) (bool, error) {
-	if account == "" || identity == "" {
-		return false, fmt.Errorf("account name and identity are required")
+	if account == "" {
+		return false, ErrAccountRequired
+	}
+	if identity == "" {
+		return false, ErrIdentityRequired
 	}
 	err := cli.QueryNV("VERIFYACCOUNTIDENTITY", account, "FOR", identity)
 	return err == nil, err
@@ -1419,8 +1490,11 @@ func (cli *Cli) VerifyAccountIdentity(account, identity string) (bool, error) {
 //   - (true, nil) if the password is correct.
 //   - (false, error) if the password is incorrect or a server error occurred.
 func (cli *Cli) VerifyAccountPassword(account, password string) (bool, error) {
-	if account == "" || password == "" {
-		return false, fmt.Errorf("account name and password are required")
+	if account == "" {
+		return false, ErrAccountRequired
+	}
+	if password == "" {
+		return false, ErrPasswordRequired
 	}
 	err := cli.QueryNV("VERIFYACCOUNTPASSWORD", account, "PASSWORD", password)
 	return err == nil, err

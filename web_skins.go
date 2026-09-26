@@ -34,7 +34,7 @@ import (
 //   - error: an error if the command fails.
 func (cli *Cli) CreateClusterSkin(skin string) error {
 	if skin == "" {
-		return fmt.Errorf("skin name is required")
+		return ErrSkinRequired
 	}
 	return cli.QueryNV("CREATECLUSTERSKIN", skin)
 }
@@ -69,7 +69,7 @@ func (cli *Cli) CreateDomainSkin(domain, skin string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) CreateServerSkin(skin string) error {
 	if skin == "" {
-		return fmt.Errorf("skin name is required")
+		return ErrSkinRequired
 	}
 	return cli.QueryNV("CREATESERVERSKIN", skin)
 }
@@ -85,7 +85,7 @@ func (cli *Cli) CreateServerSkin(skin string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteClusterSkin(skin string) error {
 	if skin == "" {
-		return fmt.Errorf("skin name is required")
+		return ErrSkinRequired
 	}
 	return cli.QueryNV("DELETECLUSTERSKIN", skin)
 }
@@ -101,8 +101,11 @@ func (cli *Cli) DeleteClusterSkin(skin string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteClusterSkinFile(skin, file string) error {
-	if skin == "" || file == "" {
-		return fmt.Errorf("skin name and file name are required")
+	if skin == "" {
+		return ErrSkinRequired
+	}
+	if file == "" {
+		return ErrFileRequired
 	}
 	return cli.QueryNV("STORECLUSTERSKINFILE", skin, "FILE", file, "DELETE")
 }
@@ -139,7 +142,7 @@ func (cli *Cli) DeleteDomainSkin(domain, skin string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteDomainSkinFile(domain, skin, file string) error {
 	if file == "" {
-		return fmt.Errorf("file name is required")
+		return ErrFileRequired
 	}
 
 	const cmd = "STOREDOMAINSKINFILE"
@@ -161,7 +164,7 @@ func (cli *Cli) DeleteDomainSkinFile(domain, skin, file string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteServerSkin(skin string) error {
 	if skin == "" {
-		return fmt.Errorf("skin name is required")
+		return ErrSkinRequired
 	}
 	return cli.QueryNV("DELETESERVERSKIN", skin)
 }
@@ -177,8 +180,11 @@ func (cli *Cli) DeleteServerSkin(skin string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteServerSkinFile(skin, file string) error {
-	if skin == "" || file == "" {
-		return fmt.Errorf("skin name and file name are required")
+	if skin == "" {
+		return ErrSkinRequired
+	}
+	if file == "" {
+		return ErrFileRequired
 	}
 	return cli.QueryNV("STORESERVERSKINFILE", skin, "FILE", file, "DELETE")
 }
@@ -314,8 +320,11 @@ func (cli *Cli) ListStockSkinFiles(skin string) (map[string]*FileInfo, error) {
 //   - time.Time: the file modification date.
 //   - error: an error if the command fails.
 func (cli *Cli) ReadClusterSkinFile(skin, file string) ([]byte, time.Time, error) {
-	if skin == "" || file == "" {
-		return nil, time.Time{}, fmt.Errorf("skin name and file name are required")
+	if skin == "" {
+		return nil, time.Time{}, ErrSkinRequired
+	}
+	if file == "" {
+		return nil, time.Time{}, ErrFileRequired
 	}
 	return cli.readSkinFile("READCLUSTERSKINFILE", skin, "FILE", file)
 }
@@ -335,7 +344,7 @@ func (cli *Cli) ReadClusterSkinFile(skin, file string) ([]byte, time.Time, error
 //   - error: an error if the command fails.
 func (cli *Cli) ReadDomainSkinFile(domain, skin, file string) ([]byte, time.Time, error) {
 	if file == "" {
-		return nil, time.Time{}, fmt.Errorf("file name is required")
+		return nil, time.Time{}, ErrFileRequired
 	}
 
 	const cmd = "READDOMAINSKINFILE"
@@ -353,13 +362,13 @@ func (cli *Cli) ReadDomainSkinFile(domain, skin, file string) ([]byte, time.Time
 	}
 
 	if len(res) < 2 {
-		return nil, time.Time{}, fmt.Errorf("%s: expected array [data, time], got %T", cmd, res)
+		return nil, time.Time{}, fmt.Errorf("%s: %w", cmd, ErrUnexpectedResponseFormat)
 	}
 
 	data, ok1 := res[0].([]byte)
 	ts, ok2 := res[1].(time.Time)
 	if !ok1 || !ok2 {
-		return nil, time.Time{}, fmt.Errorf("%s: invalid data types in response", cmd)
+		return nil, time.Time{}, fmt.Errorf("%s: %w", cmd, ErrInvalidResponseDataType)
 	}
 
 	return data, ts, nil
@@ -378,8 +387,11 @@ func (cli *Cli) ReadDomainSkinFile(domain, skin, file string) ([]byte, time.Time
 //   - time.Time: the file modification date.
 //   - error: an error if the command fails.
 func (cli *Cli) ReadServerSkinFile(skin, file string) ([]byte, time.Time, error) {
-	if skin == "" || file == "" {
-		return nil, time.Time{}, fmt.Errorf("skin name and file name are required")
+	if skin == "" {
+		return nil, time.Time{}, ErrSkinRequired
+	}
+	if file == "" {
+		return nil, time.Time{}, ErrFileRequired
 	}
 
 	const cmd = "READSERVERSKINFILE"
@@ -389,13 +401,13 @@ func (cli *Cli) ReadServerSkinFile(skin, file string) ([]byte, time.Time, error)
 	}
 
 	if len(res) < 2 {
-		return nil, time.Time{}, fmt.Errorf("%s: expected array, got %T", cmd, res)
+		return nil, time.Time{}, fmt.Errorf("%s: %w", cmd, ErrUnexpectedResponseFormat)
 	}
 
 	data, ok1 := res[0].([]byte)
 	ts, ok2 := res[1].(time.Time)
 	if !ok1 || !ok2 {
-		return nil, time.Time{}, fmt.Errorf("%s: invalid data types in response", cmd)
+		return nil, time.Time{}, fmt.Errorf("%s: %w", cmd, ErrInvalidResponseDataType)
 	}
 
 	return data, ts, nil
@@ -414,8 +426,11 @@ func (cli *Cli) ReadServerSkinFile(skin, file string) ([]byte, time.Time, error)
 //   - time.Time: the file modification date.
 //   - error: an error if the command fails.
 func (cli *Cli) ReadStockSkinFile(skin, file string) ([]byte, time.Time, error) {
-	if skin == "" || file == "" {
-		return nil, time.Time{}, fmt.Errorf("skin name and file name are required")
+	if skin == "" {
+		return nil, time.Time{}, ErrSkinRequired
+	}
+	if file == "" {
+		return nil, time.Time{}, ErrFileRequired
 	}
 
 	const cmd = "READSTOCKSKINFILE"
@@ -425,13 +440,13 @@ func (cli *Cli) ReadStockSkinFile(skin, file string) ([]byte, time.Time, error) 
 	}
 
 	if len(res) < 2 {
-		return nil, time.Time{}, fmt.Errorf("%s: expected array, got %T", cmd, res)
+		return nil, time.Time{}, fmt.Errorf("%s: %w", cmd, ErrUnexpectedResponseFormat)
 	}
 
 	data, ok1 := res[0].([]byte)
 	ts, ok2 := res[1].(time.Time)
 	if !ok1 || !ok2 {
-		return nil, time.Time{}, fmt.Errorf("%s: invalid data types in response", cmd)
+		return nil, time.Time{}, fmt.Errorf("%s: %w", cmd, ErrInvalidResponseDataType)
 	}
 
 	return data, ts, nil
@@ -467,8 +482,11 @@ func (cli *Cli) ReloadPluginSkins(domain string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) RenameClusterSkin(oldSkin, newSkin string) error {
-	if oldSkin == "" || newSkin == "" {
-		return fmt.Errorf("old and new skin names are required")
+	if oldSkin == "" {
+		return ErrOldNameRequired
+	}
+	if newSkin == "" {
+		return ErrNewNameRequired
 	}
 	return cli.QueryNV("RENAMECLUSTERSKIN", oldSkin, "INTO", newSkin)
 }
@@ -485,8 +503,11 @@ func (cli *Cli) RenameClusterSkin(oldSkin, newSkin string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) RenameDomainSkin(domain, oldSkin, newSkin string) error {
-	if oldSkin == "" || newSkin == "" {
-		return fmt.Errorf("old and new skin names are required")
+	if oldSkin == "" {
+		return ErrOldNameRequired
+	}
+	if newSkin == "" {
+		return ErrNewNameRequired
 	}
 
 	const cmd = "RENAMEDOMAINSKIN"
@@ -508,8 +529,11 @@ func (cli *Cli) RenameDomainSkin(domain, oldSkin, newSkin string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) RenameServerSkin(oldSkin, newSkin string) error {
-	if oldSkin == "" || newSkin == "" {
-		return fmt.Errorf("old and new skin names are required")
+	if oldSkin == "" {
+		return ErrOldNameRequired
+	}
+	if newSkin == "" {
+		return ErrNewNameRequired
 	}
 	return cli.QueryNV("RENAMESERVERSKIN", oldSkin, "INTO", newSkin)
 }
@@ -526,8 +550,14 @@ func (cli *Cli) RenameServerSkin(oldSkin, newSkin string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) StoreClusterSkinFile(skin, file string, data []byte) error {
-	if skin == "" || file == "" || data == nil {
-		return fmt.Errorf("skin name, file name and data are required")
+	if skin == "" {
+		return ErrSkinRequired
+	}
+	if file == "" {
+		return ErrFileRequired
+	}
+	if data == nil {
+		return ErrDataRequired
 	}
 	return cli.QueryNV("STORECLUSTERSKINFILE", skin, "FILE", file, "DATA", data)
 }
@@ -545,8 +575,11 @@ func (cli *Cli) StoreClusterSkinFile(skin, file string, data []byte) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) StoreDomainSkinFile(domain, skin, file string, data []byte) error {
-	if file == "" || data == nil {
-		return fmt.Errorf("file name and data are required")
+	if file == "" {
+		return ErrFileRequired
+	}
+	if data == nil {
+		return ErrDataRequired
 	}
 
 	const cmd = "STOREDOMAINSKINFILE"
@@ -569,8 +602,14 @@ func (cli *Cli) StoreDomainSkinFile(domain, skin, file string, data []byte) erro
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) StoreServerSkinFile(skin, file string, data []byte) error {
-	if skin == "" || file == "" || data == nil {
-		return fmt.Errorf("skin name, file name and data are required")
+	if skin == "" {
+		return ErrSkinRequired
+	}
+	if file == "" {
+		return ErrFileRequired
+	}
+	if data == nil {
+		return ErrDataRequired
 	}
 	return cli.QueryNV("STORESERVERSKINFILE", skin, "FILE", file, "DATA", data)
 }
@@ -583,13 +622,13 @@ func (cli *Cli) readSkinFile(cmd string, args ...any) ([]byte, time.Time, error)
 	}
 
 	if len(res) < 2 {
-		return nil, time.Time{}, fmt.Errorf("%s: expected array [data, time], got %T", cmd, res)
+		return nil, time.Time{}, fmt.Errorf("%s: %w", cmd, ErrUnexpectedResponseFormat)
 	}
 
 	data, ok1 := res[0].([]byte)
 	ts, ok2 := res[1].(time.Time)
 	if !ok1 || !ok2 {
-		return nil, time.Time{}, fmt.Errorf("%s: invalid data types in response", cmd)
+		return nil, time.Time{}, fmt.Errorf("%s: %w", cmd, ErrInvalidResponseDataType)
 	}
 
 	return data, ts, nil

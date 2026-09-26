@@ -17,7 +17,6 @@
 package cgpcli
 
 import (
-	"fmt"
 	"io"
 	"strings"
 )
@@ -74,7 +73,7 @@ func (cli *Cli) GetNextStatName(objectID string) (string, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetStatElement(objectID string) (any, error) {
 	if objectID == "" {
-		return nil, fmt.Errorf("objectID is required")
+		return nil, ErrObjectIDRequired
 	}
 	return cli.Query("GETSTATELEMENT", objectID)
 }
@@ -116,10 +115,10 @@ func (cli *Cli) ListAllStats() ([]string, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) SetStatElement(objectID, op string, val int64) error {
 	if objectID == "" {
-		return fmt.Errorf("objectID is required")
+		return ErrObjectIDRequired
 	}
 	if op != "INC" && op != "SET" {
-		return fmt.Errorf("operation must be INC or SET")
+		return ErrOperationIncOrSet
 	}
 	return cli.QueryNV("SETSTATELEMENT", objectID, op, val)
 }

@@ -18,10 +18,6 @@
 //     or updating session-specific metadata with [Cli.UpdateSession].
 package cgpcli
 
-import (
-	"fmt"
-)
-
 // SessionOffset specifies the file position or write mode for session file operations.
 //
 // Values:
@@ -57,7 +53,7 @@ const (
 //   - error: an error if the command fails.
 func (cli *Cli) BlessSession(sessionID string, secret, account string) error {
 	if sessionID == "" {
-		return fmt.Errorf("sessionID is required")
+		return ErrSessionIDRequired
 	}
 
 	args := make([]any, 0, 5)
@@ -85,7 +81,7 @@ func (cli *Cli) BlessSession(sessionID string, secret, account string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) CreateLiteSession(addr, origAddr string) (string, error) {
 	if addr == "" {
-		return "", fmt.Errorf("addr is required")
+		return "", ErrAddrRequired
 	}
 
 	const cmd = "CREATELITESESSION"
@@ -111,8 +107,11 @@ func (cli *Cli) CreateLiteSession(addr, origAddr string) (string, error) {
 //   - string: the WebUser Session ID.
 //   - error: an error if the command fails.
 func (cli *Cli) CreateWebUserSession(account, addr, origAddr, skin string) (string, error) {
-	if account == "" || addr == "" {
-		return "", fmt.Errorf("account name and addr are required")
+	if account == "" {
+		return "", ErrAccountRequired
+	}
+	if addr == "" {
+		return "", ErrAddrRequired
 	}
 
 	const cmd = "CREATEWEBUSERSESSION"
@@ -141,8 +140,11 @@ func (cli *Cli) CreateWebUserSession(account, addr, origAddr, skin string) (stri
 //   - string: the XIMSS Session ID.
 //   - error: an error if the command fails.
 func (cli *Cli) CreateXimssSession(account, addr, origAddr string) (string, error) {
-	if account == "" || addr == "" {
-		return "", fmt.Errorf("account name and addr are required")
+	if account == "" {
+		return "", ErrAccountRequired
+	}
+	if addr == "" {
+		return "", ErrAddrRequired
 	}
 
 	const cmd = "CREATEXIMSSSESSION"
@@ -171,7 +173,7 @@ func (cli *Cli) CreateXimssSession(account, addr, origAddr string) (string, erro
 //   - error: an error if the command fails.
 func (cli *Cli) FindAccountSession(account, addr, origAddr, protocol, transport, client string) (string, error) {
 	if account == "" {
-		return "", fmt.Errorf("account name is required")
+		return "", ErrAccountRequired
 	}
 
 	args := make([]any, 0, 11)
@@ -209,8 +211,11 @@ func (cli *Cli) FindAccountSession(account, addr, origAddr, protocol, transport,
 //   - map[string]any: a map containing the session dataset.
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountWebAuthSession(account, auth string) (map[string]any, error) {
-	if account == "" || auth == "" {
-		return nil, fmt.Errorf("account name and auth are required")
+	if account == "" {
+		return nil, ErrAccountRequired
+	}
+	if auth == "" {
+		return nil, ErrAuthRequired
 	}
 	return cli.getMapAny("GETACCOUNTWEBAUTHSESSION", account, "ID", auth)
 }
@@ -228,7 +233,7 @@ func (cli *Cli) GetAccountWebAuthSession(account, auth string) (map[string]any, 
 //   - error: an error if the command fails.
 func (cli *Cli) GetSession(sessionID, domain string) (map[string]any, error) {
 	if sessionID == "" {
-		return nil, fmt.Errorf("sessionID is required")
+		return nil, ErrSessionIDRequired
 	}
 
 	const cmd = "GETSESSION"
@@ -253,8 +258,11 @@ func (cli *Cli) GetSession(sessionID, domain string) (map[string]any, error) {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) KillAccountWebAuthSession(account, auth string) (int64, error) {
-	if account == "" || auth == "" {
-		return 0, fmt.Errorf("account name and auth are required")
+	if account == "" {
+		return 0, ErrAccountRequired
+	}
+	if auth == "" {
+		return 0, ErrAuthRequired
 	}
 	return cli.getInt("KILLACCOUNTWEBAUTHSESSION", account, "ID", auth)
 }
@@ -271,7 +279,7 @@ func (cli *Cli) KillAccountWebAuthSession(account, auth string) (int64, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) KillSession(sessionID, domain string) error {
 	if sessionID == "" {
-		return fmt.Errorf("sessionID is required")
+		return ErrSessionIDRequired
 	}
 
 	if domain != "" {
@@ -299,7 +307,7 @@ func (cli *Cli) KillSession(sessionID, domain string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) ListAccountSessions(account, addr, origAddr, protocol, transport, client string) ([]string, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 
 	args := make([]any, 0, 11)
@@ -336,7 +344,7 @@ func (cli *Cli) ListAccountSessions(account, addr, origAddr, protocol, transport
 //   - error: an error if the command fails.
 func (cli *Cli) ListAccountWebAuthSessions(account string, activeonly bool) ([]string, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	if activeonly {
 		return cli.getSliceString("LISTACCOUNTWEBAUTHSESSIONS", account, "ACTIVEONLY")
@@ -384,8 +392,14 @@ func (cli *Cli) ListLiteSessions(addr, origAddr string) ([]string, error) {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) StoreSessionFile(sessionID, domain, file, uploadID string, offset SessionOffset) error {
-	if sessionID == "" || file == "" || uploadID == "" {
-		return fmt.Errorf("sessionID, file name and uploadID are required")
+	if sessionID == "" {
+		return ErrSessionIDRequired
+	}
+	if file == "" {
+		return ErrFileRequired
+	}
+	if uploadID == "" {
+		return ErrUploadIDRequired
 	}
 
 	args := make([]any, 0, 11)

@@ -15,10 +15,6 @@
 //     frequency, and storage interaction at the entity level.
 package cgpcli
 
-import (
-	"fmt"
-)
-
 // GetAccountStat retrieves statistics data about the specified Account.
 //
 // Parameters:
@@ -35,7 +31,7 @@ import (
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountStat(account string, key string) (any, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 
 	const cmd = "GETACCOUNTSTAT"
@@ -61,7 +57,7 @@ func (cli *Cli) GetAccountStat(account string, key string) (any, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetDomainStat(domain string, key string) (any, error) {
 	if domain == "" {
-		return nil, fmt.Errorf("domain name is required")
+		return nil, ErrDomainRequired
 	}
 
 	const cmd = "GETDOMAINSTAT"
@@ -86,7 +82,7 @@ func (cli *Cli) GetDomainStat(domain string, key string) (any, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) ResetAccountStat(account string, key string) error {
 	if account == "" {
-		return fmt.Errorf("account name is required")
+		return ErrAccountRequired
 	}
 
 	const cmd = "RESETACCOUNTSTAT"
@@ -111,7 +107,7 @@ func (cli *Cli) ResetAccountStat(account string, key string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) ResetDomainStat(domain string, key string) error {
 	if domain == "" {
-		return fmt.Errorf("domain name is required")
+		return ErrDomainRequired
 	}
 
 	const cmd = "RESETDOMAINSTAT"

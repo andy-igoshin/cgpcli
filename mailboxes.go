@@ -17,10 +17,6 @@
 //     enabling administrative actions on behalf of a specific user.
 package cgpcli
 
-import (
-	"fmt"
-)
-
 // CreateMailbox creates a Mailbox in the specified Account.
 //
 // Parameters:
@@ -35,8 +31,11 @@ import (
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) CreateMailbox(account, mailbox, class, authAccount string) error {
-	if account == "" || mailbox == "" {
-		return fmt.Errorf("account name and mailbox name are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if mailbox == "" {
+		return ErrMailboxRequired
 	}
 
 	args := make([]any, 0, 7)
@@ -64,8 +63,11 @@ func (cli *Cli) CreateMailbox(account, mailbox, class, authAccount string) error
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteMailbox(account, mailbox string, recursive bool, authAccount string) error {
-	if account == "" || mailbox == "" {
-		return fmt.Errorf("account name and mailbox name are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if mailbox == "" {
+		return ErrMailboxRequired
 	}
 
 	keyword := "MAILBOX"
@@ -93,8 +95,11 @@ func (cli *Cli) DeleteMailbox(account, mailbox string, recursive bool, authAccou
 //   - map[string]string: a dictionary with the Mailbox access elements.
 //   - error: an error if the command fails.
 func (cli *Cli) GetMailboxACL(account, mailbox, authAccount string) (map[string]string, error) {
-	if account == "" || mailbox == "" {
-		return nil, fmt.Errorf("account name and mailbox name are required")
+	if account == "" {
+		return nil, ErrAccountRequired
+	}
+	if mailbox == "" {
+		return nil, ErrMailboxRequired
 	}
 
 	const cmd = "GETMAILBOXACL"
@@ -118,7 +123,7 @@ func (cli *Cli) GetMailboxACL(account, mailbox, authAccount string) (map[string]
 //   - error: an error if the command fails.
 func (cli *Cli) GetMailboxAliases(account string) (map[string]string, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	return cli.getMapString("GETMAILBOXALIASES", Atom(account))
 }
@@ -137,8 +142,11 @@ func (cli *Cli) GetMailboxAliases(account string) (map[string]string, error) {
 //   - map[string]any: a dictionary with the Mailbox internal information.
 //   - error: an error if the command fails.
 func (cli *Cli) GetMailboxInfo(account, mailbox, authAccount string) (map[string]any, error) {
-	if account == "" || mailbox == "" {
-		return nil, fmt.Errorf("account and mailbox names are required")
+	if account == "" {
+		return nil, ErrAccountRequired
+	}
+	if mailbox == "" {
+		return nil, ErrMailboxRequired
 	}
 
 	const cmd = "GETMAILBOXINFO"
@@ -163,8 +171,14 @@ func (cli *Cli) GetMailboxInfo(account, mailbox, authAccount string) (map[string
 //   - string: a string with the effective Mailbox access rights.
 //   - error: an error if the command fails.
 func (cli *Cli) GetMailboxRights(account, mailbox, authAccount string) (string, error) {
-	if account == "" || mailbox == "" || authAccount == "" {
-		return "", fmt.Errorf("account, mailbox and authAccount names are required")
+	if account == "" {
+		return "", ErrAccountRequired
+	}
+	if mailbox == "" {
+		return "", ErrMailboxRequired
+	}
+	if authAccount == "" {
+		return "", ErrAuthAccountRequired
 	}
 	return cli.getString("GETMAILBOXRIGHTS", Atom(account), "MAILBOX", mailbox, "AUTH", authAccount)
 }
@@ -182,7 +196,7 @@ func (cli *Cli) GetMailboxRights(account, mailbox, authAccount string) (string, 
 //   - error: an error if the command fails.
 func (cli *Cli) GetMailboxSubscription(account string) ([]string, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	return cli.getSliceString("GETMAILBOXSUBSCRIPTION", Atom(account))
 }
@@ -202,7 +216,7 @@ func (cli *Cli) GetMailboxSubscription(account string) ([]string, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) ListMailboxes(account, filter, authAccount string) (map[string]any, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 
 	args := make([]any, 0, 5)
@@ -231,8 +245,14 @@ func (cli *Cli) ListMailboxes(account, filter, authAccount string) (map[string]a
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) RenameMailbox(account, oldName, newName string, recursive bool, authAccount string) error {
-	if account == "" || oldName == "" || newName == "" {
-		return fmt.Errorf("account, old and new names are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if oldName == "" {
+		return ErrOldNameRequired
+	}
+	if newName == "" {
+		return ErrNewNameRequired
 	}
 
 	const cmd = "RENAMEMAILBOX"
@@ -261,8 +281,14 @@ func (cli *Cli) RenameMailbox(account, oldName, newName string, recursive bool, 
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetMailboxACL(account, mailbox string, acl map[string]string, authAccount string) error {
-	if account == "" || mailbox == "" || acl == nil {
-		return fmt.Errorf("account, mailbox and non-empty acl are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if mailbox == "" {
+		return ErrMailboxRequired
+	}
+	if acl == nil {
+		return ErrACLRequired
 	}
 
 	const cmd = "SETMAILBOXACL"
@@ -285,8 +311,11 @@ func (cli *Cli) SetMailboxACL(account, mailbox string, acl map[string]string, au
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetMailboxAliases(account string, aliases map[string]string) error {
-	if account == "" || aliases == nil {
-		return fmt.Errorf("account name and aliases dictionary are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if aliases == nil {
+		return ErrAliasesRequired
 	}
 	return cli.QueryNV("SETMAILBOXALIASES", Atom(account), aliases)
 }
@@ -305,8 +334,14 @@ func (cli *Cli) SetMailboxAliases(account string, aliases map[string]string) err
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetMailboxClass(account, mailbox, class, authAccount string) error {
-	if account == "" || mailbox == "" || class == "" {
-		return fmt.Errorf("account, mailbox and class are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if mailbox == "" {
+		return ErrMailboxRequired
+	}
+	if class == "" {
+		return ErrClassRequired
 	}
 
 	const cmd = "SETMAILBOXCLASS"
@@ -329,8 +364,11 @@ func (cli *Cli) SetMailboxClass(account, mailbox, class, authAccount string) err
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetMailboxSubscription(account string, subs []string) error {
-	if account == "" || subs == nil {
-		return fmt.Errorf("account name and subs array are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if subs == nil {
+		return ErrSubsRequired
 	}
 	return cli.QueryNV("SETMAILBOXSUBSCRIPTION", Atom(account), subs)
 }

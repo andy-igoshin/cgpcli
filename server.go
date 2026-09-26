@@ -671,7 +671,7 @@ func (cli *Cli) SetClusterDeniedIPs(list IPList) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetClusterIntercept(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETCLUSTERINTERCEPT", settings)
 }
@@ -700,7 +700,7 @@ func (cli *Cli) SetClusterLANIPs(list IPList) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetClusterMailRules(rules []MailRule) error {
 	if rules == nil {
-		return fmt.Errorf("rules array is required")
+		return ErrRulesRequired
 	}
 	return setRulesGeneric(cli, "SETCLUSTERMAILRULES", "", rules)
 }
@@ -742,7 +742,7 @@ func (cli *Cli) SetClusterNatSiteIPs(list IPList) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetClusterNetwork(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETCLUSTERNETWORK", settings)
 }
@@ -771,7 +771,7 @@ func (cli *Cli) SetClusterProxyIPs(list IPList) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetClusterRouterSettings(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETCLUSTERROUTERSETTINGS", settings)
 }
@@ -800,7 +800,7 @@ func (cli *Cli) SetClusterRouterTable(table RouterList) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetClusterSettings(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETCLUSTERSETTINGS", settings)
 }
@@ -816,7 +816,7 @@ func (cli *Cli) SetClusterSettings(settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetClusterSignalRules(rules []SignalRule) error {
 	if rules == nil {
-		return fmt.Errorf("rules array is required")
+		return ErrRulesRequired
 	}
 	return setRulesGeneric(cli, "SETCLUSTERSIGNALRULES", "", rules)
 }
@@ -871,7 +871,7 @@ func (cli *Cli) SetDeniedIPs(list IPList) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetDNRSettings(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETDNRSETTINGS", settings)
 }
@@ -900,7 +900,7 @@ func (cli *Cli) SetLANIPs(list IPList) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetMediaServerSettings(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETMEDIASERVERSETTINGS", settings)
 }
@@ -916,8 +916,11 @@ func (cli *Cli) SetMediaServerSettings(settings map[string]any) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetModule(module string, settings map[string]any) error {
-	if module == "" || settings == nil {
-		return fmt.Errorf("module name and settings dictionary are required")
+	if module == "" {
+		return ErrModuleRequired
+	}
+	if settings == nil {
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETMODULE", module, settings)
 }
@@ -959,7 +962,7 @@ func (cli *Cli) SetNatSiteIPs(list IPList) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetNetwork(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETNETWORK", settings)
 }
@@ -988,7 +991,7 @@ func (cli *Cli) SetProxyIPs(list IPList) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetQueueSettings(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETQUEUESETTINGS", settings)
 }
@@ -1004,7 +1007,7 @@ func (cli *Cli) SetQueueSettings(settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetRouterSettings(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETROUTERSETTINGS", settings)
 }
@@ -1033,7 +1036,7 @@ func (cli *Cli) SetRouterTable(table RouterList) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetServerIntercept(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETSERVERINTERCEPT", settings)
 }
@@ -1049,7 +1052,7 @@ func (cli *Cli) SetServerIntercept(settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetServerMailRules(rules []MailRule) error {
 	if rules == nil {
-		return fmt.Errorf("rules array is required")
+		return ErrRulesRequired
 	}
 	return setRulesGeneric(cli, "SETSERVERMAILRULES", "", rules)
 }
@@ -1065,7 +1068,7 @@ func (cli *Cli) SetServerMailRules(rules []MailRule) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetServerSignalRules(rules []SignalRule) error {
 	if rules == nil {
-		return fmt.Errorf("rules array is required")
+		return ErrRulesRequired
 	}
 	return setRulesGeneric(cli, "SETSERVERSIGNALRULES", "", rules)
 }
@@ -1081,7 +1084,7 @@ func (cli *Cli) SetServerSignalRules(rules []SignalRule) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetSessionSettings(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETSESSIONSETTINGS", settings)
 }
@@ -1097,7 +1100,7 @@ func (cli *Cli) SetSessionSettings(settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetSignalSettings(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETSIGNALSETTINGS", settings)
 }
@@ -1113,7 +1116,7 @@ func (cli *Cli) SetSignalSettings(settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetSMTPSendProfiles(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETSMTPSENDPROFILES", settings)
 }
@@ -1142,7 +1145,7 @@ func (cli *Cli) SetWhiteHoleIPs(list IPList) error {
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateLogSettings(settings map[string]any) error {
 	if len(settings) == 0 {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("UPDATELOGSETTINGS", settings)
 }
@@ -1158,8 +1161,11 @@ func (cli *Cli) UpdateLogSettings(settings map[string]any) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateModule(module string, settings map[string]any) error {
-	if module == "" || len(settings) == 0 {
-		return fmt.Errorf("module name and settings dictionary are required")
+	if module == "" {
+		return ErrModuleRequired
+	}
+	if len(settings) == 0 {
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("UPDATEMODULE", module, settings)
 }
@@ -1175,7 +1181,7 @@ func (cli *Cli) UpdateModule(module string, settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateServerSettings(settings map[string]any) error {
 	if len(settings) == 0 {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("UPDATESERVERSETTINGS", settings)
 }

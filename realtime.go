@@ -17,10 +17,6 @@
 //     inspect the current state of custom signaling logic.
 package cgpcli
 
-import (
-	"fmt"
-)
-
 // CreateClusterPBX creates the Cluster-wide Real-Time Application Environment or its national subset.
 //
 // Parameters:
@@ -32,7 +28,7 @@ import (
 //   - error: an error if the command fails.
 func (cli *Cli) CreateClusterPBX(language string) error {
 	if language == "" {
-		return fmt.Errorf("language is required")
+		return ErrLanguageRequired
 	}
 	return cli.QueryNV("CREATECLUSTERPBX", language)
 }
@@ -49,7 +45,7 @@ func (cli *Cli) CreateClusterPBX(language string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) CreateDomainPBX(domain, language string) error {
 	if domain == "" {
-		return fmt.Errorf("domain is required")
+		return ErrDomainRequired
 	}
 
 	const cmd = "CREATEDOMAINPBX"
@@ -71,7 +67,7 @@ func (cli *Cli) CreateDomainPBX(domain, language string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) CreateServerPBX(language string) error {
 	if language == "" {
-		return fmt.Errorf("language is required")
+		return ErrLanguageRequired
 	}
 	return cli.QueryNV("CREATESERVERPBX", language)
 }
@@ -87,7 +83,7 @@ func (cli *Cli) CreateServerPBX(language string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteClusterPBX(language string) error {
 	if language == "" {
-		return fmt.Errorf("language is required")
+		return ErrLanguageRequired
 	}
 	return cli.QueryNV("DELETECLUSTERPBX", language)
 }
@@ -103,7 +99,7 @@ func (cli *Cli) DeleteClusterPBX(language string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteClusterPBXFile(file string) error {
 	if file == "" {
-		return fmt.Errorf("file is required")
+		return ErrFileRequired
 	}
 	return cli.QueryNV("STORECLUSTERPBXFILE", file, "DELETE")
 }
@@ -119,8 +115,11 @@ func (cli *Cli) DeleteClusterPBXFile(file string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteDomainPBX(domain, language string) error {
-	if domain == "" || language == "" {
-		return fmt.Errorf("domain and language are required")
+	if domain == "" {
+		return ErrDomainRequired
+	}
+	if language == "" {
+		return ErrLanguageRequired
 	}
 	return cli.QueryNV("DELETEDOMAINPBX", domain, "FILE", language)
 }
@@ -136,8 +135,11 @@ func (cli *Cli) DeleteDomainPBX(domain, language string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteDomainPBXFile(domain, file string) error {
-	if domain == "" || file == "" {
-		return fmt.Errorf("domain and file are required")
+	if domain == "" {
+		return ErrDomainRequired
+	}
+	if file == "" {
+		return ErrFileRequired
 	}
 	return cli.QueryNV("STOREDOMAINPBXFILE", domain, "FILE", file, "DELETE")
 }
@@ -153,7 +155,7 @@ func (cli *Cli) DeleteDomainPBXFile(domain, file string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteServerPBX(language string) error {
 	if language == "" {
-		return fmt.Errorf("language is required")
+		return ErrLanguageRequired
 	}
 	return cli.QueryNV("DELETESERVERPBX", language)
 }
@@ -169,7 +171,7 @@ func (cli *Cli) DeleteServerPBX(language string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteServerPBXFile(file string) error {
 	if file == "" {
-		return fmt.Errorf("file is required")
+		return ErrFileRequired
 	}
 	return cli.QueryNV("STORESERVERPBXFILE", file, "DELETE")
 }
@@ -266,7 +268,7 @@ func (cli *Cli) ListStockPBXFiles(language string) (map[string]*FileInfo, error)
 //   - error: an error if the command fails.
 func (cli *Cli) ReadClusterPBXFile(file string) ([]byte, error) {
 	if file == "" {
-		return nil, fmt.Errorf("file is required")
+		return nil, ErrFileRequired
 	}
 	return cli.getSliceByte("READCLUSTERPBXFILE", file)
 }
@@ -283,8 +285,11 @@ func (cli *Cli) ReadClusterPBXFile(file string) ([]byte, error) {
 //   - []byte: a datablock with the file contents.
 //   - error: an error if the command fails.
 func (cli *Cli) ReadDomainPBXFile(domain, file string) ([]byte, error) {
-	if domain == "" || file == "" {
-		return nil, fmt.Errorf("domain and file are required")
+	if domain == "" {
+		return nil, ErrDomainRequired
+	}
+	if file == "" {
+		return nil, ErrFileRequired
 	}
 	return cli.getSliceByte("READDOMAINPBXFILE", domain, "FILE", file)
 }
@@ -301,7 +306,7 @@ func (cli *Cli) ReadDomainPBXFile(domain, file string) ([]byte, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) ReadServerPBXFile(file string) ([]byte, error) {
 	if file == "" {
-		return nil, fmt.Errorf("file is required")
+		return nil, ErrFileRequired
 	}
 	return cli.getSliceByte("READSERVERPBXFILE", file)
 }
@@ -318,7 +323,7 @@ func (cli *Cli) ReadServerPBXFile(file string) ([]byte, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) ReadStockPBXFile(file string) ([]byte, error) {
 	if file == "" {
-		return nil, fmt.Errorf("file is required")
+		return nil, ErrFileRequired
 	}
 	return cli.getSliceByte("READSTOCKPBXFILE", file)
 }
@@ -338,8 +343,11 @@ func (cli *Cli) ReadStockPBXFile(file string) ([]byte, error) {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) StoreClusterPBXFile(file string, data []byte) error {
-	if file == "" || data == nil {
-		return fmt.Errorf("file and data are required")
+	if file == "" {
+		return ErrFileRequired
+	}
+	if data == nil {
+		return ErrDataRequired
 	}
 	return cli.QueryNV("STORECLUSTERPBXFILE", file, "DATA", data)
 }
@@ -359,8 +367,14 @@ func (cli *Cli) StoreClusterPBXFile(file string, data []byte) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) StoreDomainPBXFile(domain, file string, data []byte) error {
-	if domain == "" || file == "" || data == nil {
-		return fmt.Errorf("domain, file and data are required")
+	if domain == "" {
+		return ErrDomainRequired
+	}
+	if file == "" {
+		return ErrFileRequired
+	}
+	if data == nil {
+		return ErrDataRequired
 	}
 	return cli.QueryNV("STOREDOMAINPBXFILE", domain, "FILE", file, "DATA", data)
 }
@@ -380,8 +394,11 @@ func (cli *Cli) StoreDomainPBXFile(domain, file string, data []byte) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) StoreServerPBXFile(file string, data []byte) error {
-	if file == "" || data == nil {
-		return fmt.Errorf("file and data are required")
+	if file == "" {
+		return ErrFileRequired
+	}
+	if data == nil {
+		return ErrDataRequired
 	}
 	return cli.QueryNV("STORESERVERPBXFILE", file, "DATA", data)
 }

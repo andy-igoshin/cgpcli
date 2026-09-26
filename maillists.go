@@ -19,7 +19,6 @@
 package cgpcli
 
 import (
-	"fmt"
 	"strings"
 	"time"
 )
@@ -48,8 +47,11 @@ type SubscriberInfo struct {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) CreateList(list, account string) error {
-	if list == "" || account == "" {
-		return fmt.Errorf("list name and account name are required")
+	if list == "" {
+		return ErrListRequired
+	}
+	if account == "" {
+		return ErrAccountRequired
 	}
 
 	owner := account
@@ -70,7 +72,7 @@ func (cli *Cli) CreateList(list, account string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteList(list string) error {
 	if list == "" {
-		return fmt.Errorf("list name is required")
+		return ErrListRequired
 	}
 	return cli.QueryNV("DELETELIST", list)
 }
@@ -87,7 +89,7 @@ func (cli *Cli) DeleteList(list string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) GetAccountLists(account string) (map[string]int, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 
 	res, err := cli.getMapAny("GETACCOUNTLISTS", account)
@@ -135,7 +137,7 @@ func (cli *Cli) GetDomainLists(domain string) (map[string]int, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetList(list string) (map[string]any, error) {
 	if list == "" {
-		return nil, fmt.Errorf("list name is required")
+		return nil, ErrListRequired
 	}
 	return cli.getMapAny("GETLIST", list)
 }
@@ -152,8 +154,11 @@ func (cli *Cli) GetList(list string) (map[string]any, error) {
 //   - *[SubscriberInfo]: a structure with subscriber information.
 //   - error: an error if the command fails.
 func (cli *Cli) GetSubscriberInfo(list, subscriber string) (*SubscriberInfo, error) {
-	if list == "" || subscriber == "" {
-		return nil, fmt.Errorf("list name and subscriber address are required")
+	if list == "" {
+		return nil, ErrListRequired
+	}
+	if subscriber == "" {
+		return nil, ErrSubscriberRequired
 	}
 
 	res, err := cli.getMapAny("GETSUBSCRIBERINFO", list, "NAME", subscriber)
@@ -176,8 +181,14 @@ func (cli *Cli) GetSubscriberInfo(list, subscriber string) (*SubscriberInfo, err
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) List(list, operation, subscriber string, silently, confirm bool) error {
-	if list == "" || operation == "" || subscriber == "" {
-		return fmt.Errorf("list name, operation and subscriber are required")
+	if list == "" {
+		return ErrListRequired
+	}
+	if operation == "" {
+		return ErrOperationRequired
+	}
+	if subscriber == "" {
+		return ErrSubscriberRequired
 	}
 
 	args := make([]any, 0, 5)
@@ -220,7 +231,7 @@ func (cli *Cli) ListLists(domain string) ([]string, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) ListSubscribers(list, filter string, limit int) ([]string, error) {
 	if list == "" {
-		return nil, fmt.Errorf("list name is required")
+		return nil, ErrListRequired
 	}
 
 	args := make([]any, 0, 4)
@@ -246,8 +257,11 @@ func (cli *Cli) ListSubscribers(list, filter string, limit int) ([]string, error
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) ProcessBounce(list, subscriber string, fatal bool) error {
-	if list == "" || subscriber == "" {
-		return fmt.Errorf("list name and subscriber address are required")
+	if list == "" {
+		return ErrListRequired
+	}
+	if subscriber == "" {
+		return ErrSubscriberRequired
 	}
 
 	const cmd = "PROCESSBOUNCE"
@@ -272,7 +286,7 @@ func (cli *Cli) ProcessBounce(list, subscriber string, fatal bool) error {
 //   - error: an error if the command fails.
 func (cli *Cli) ReadSubscribers(list, filter string, limit int) ([]SubscriberInfo, error) {
 	if list == "" {
-		return nil, fmt.Errorf("list name is required")
+		return nil, ErrListRequired
 	}
 
 	args := make([]any, 0, 4)
@@ -314,8 +328,11 @@ func (cli *Cli) ReadSubscribers(list, filter string, limit int) ([]SubscriberInf
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) RenameList(oldName, newName string) error {
-	if oldName == "" || newName == "" {
-		return fmt.Errorf("old and new list names are required")
+	if oldName == "" {
+		return ErrOldNameRequired
+	}
+	if newName == "" {
+		return ErrNewNameRequired
 	}
 
 	new := newName
@@ -337,8 +354,11 @@ func (cli *Cli) RenameList(oldName, newName string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetPostingMode(list, subscriber string, mode any) error {
-	if list == "" || subscriber == "" {
-		return fmt.Errorf("list name and subscriber address are required")
+	if list == "" {
+		return ErrListRequired
+	}
+	if subscriber == "" {
+		return ErrSubscriberRequired
 	}
 
 	if mode != nil {
@@ -359,8 +379,11 @@ func (cli *Cli) SetPostingMode(list, subscriber string, mode any) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateList(list string, settings map[string]any) error {
-	if list == "" || len(settings) == 0 {
-		return fmt.Errorf("list name and settings are required")
+	if list == "" {
+		return ErrListRequired
+	}
+	if len(settings) == 0 {
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("UPDATELIST", list, settings)
 }

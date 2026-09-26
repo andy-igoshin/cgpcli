@@ -49,8 +49,11 @@ type StorageFileInfo struct {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteStorageFile(account, file, authAccount string) error {
-	if account == "" || file == "" {
-		return fmt.Errorf("account name and file name are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if file == "" {
+		return ErrFileRequired
 	}
 
 	const cmd = "DELETESTORAGEFILE"
@@ -74,7 +77,7 @@ func (cli *Cli) DeleteStorageFile(account, file, authAccount string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) GetFileSubscription(account string) ([]string, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	return cli.getSliceString("GETFILESUBSCRIPTION", Atom(account))
 }
@@ -94,7 +97,7 @@ func (cli *Cli) GetFileSubscription(account string) ([]string, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetStorageFileInfo(account, path, authAccount string) (*StorageFileInfo, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 
 	const cmd = "GETSTORAGEFILEINFO"
@@ -114,7 +117,7 @@ func (cli *Cli) GetStorageFileInfo(account, path, authAccount string) (*StorageF
 
 	arr, ok := res.([]any)
 	if !ok || len(arr) < 2 {
-		return nil, fmt.Errorf("%s: expected array of 2 elements, got %T", cmd, res)
+		return nil, fmt.Errorf("%s: %w: expected array of 2 elements, got %T", cmd, ErrUnexpectedResponseFormat, res)
 	}
 
 	return &StorageFileInfo{
@@ -138,7 +141,7 @@ func (cli *Cli) GetStorageFileInfo(account, path, authAccount string) (*StorageF
 //   - error: an error if the command fails.
 func (cli *Cli) ListStorageFiles(account, path, authAccount string) (map[string]*FileInfo, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 
 	const cmd = "LISTSTORAGEFILES"
@@ -173,8 +176,11 @@ func (cli *Cli) ListStorageFiles(account, path, authAccount string) (map[string]
 //   - *[StorageFileContent]: structure containing data, modification time, and current size.
 //   - error: an error if the command fails.
 func (cli *Cli) ReadStorageFile(account, file string, offset, size int64, authAccount string) (*StorageFileContent, error) {
-	if account == "" || file == "" {
-		return nil, fmt.Errorf("account name and file name are required")
+	if account == "" {
+		return nil, ErrAccountRequired
+	}
+	if file == "" {
+		return nil, ErrFileRequired
 	}
 
 	const cmd = "READSTORAGEFILE"
@@ -199,14 +205,14 @@ func (cli *Cli) ReadStorageFile(account, file string, offset, size int64, authAc
 
 	arr, ok := res.([]any)
 	if !ok || len(arr) < 3 {
-		return nil, fmt.Errorf("%s: expected array, got %T", cmd, res)
+		return nil, fmt.Errorf("%s: %w: expected array, got %T", cmd, ErrUnexpectedResponseFormat, res)
 	}
 
 	var data []byte
 	if arr[0] != nil {
 		data, ok = arr[0].([]byte)
 		if !ok {
-			return nil, fmt.Errorf("%s: expected []byte for DataBlock, got %T", cmd, arr[0])
+			return nil, fmt.Errorf("%s: %w: expected []byte for DataBlock, got %T", cmd, ErrUnexpectedResponseFormat, arr[0])
 		}
 	}
 
@@ -232,8 +238,11 @@ func (cli *Cli) ReadStorageFile(account, file string, offset, size int64, authAc
 //   - []any: an array of XML elements containing the requested attributes.
 //   - error: an error if the command fails.
 func (cli *Cli) ReadStorageFileAttr(account, file string, attrs []string, authAccount string) ([]any, error) {
-	if account == "" || file == "" {
-		return nil, fmt.Errorf("account name and file name are required")
+	if account == "" {
+		return nil, ErrAccountRequired
+	}
+	if file == "" {
+		return nil, ErrFileRequired
 	}
 
 	args := make([]any, 0, 6)
@@ -261,8 +270,14 @@ func (cli *Cli) ReadStorageFileAttr(account, file string, attrs []string, authAc
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) RenameStorageFile(account, oldName, newName, authAccount string) error {
-	if account == "" || oldName == "" || newName == "" {
-		return fmt.Errorf("account name, old and new file names are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if oldName == "" {
+		return ErrOldNameRequired
+	}
+	if newName == "" {
+		return ErrNewNameRequired
 	}
 
 	const cmd = "RENAMESTORAGEFILE"
@@ -285,8 +300,11 @@ func (cli *Cli) RenameStorageFile(account, oldName, newName, authAccount string)
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetFileSubscription(account string, subs []string) error {
-	if account == "" || subs == nil {
-		return fmt.Errorf("account name and subscription are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if subs == nil {
+		return ErrSubscriptionRequired
 	}
 	return cli.QueryNV("SETFILESUBSCRIPTION", Atom(account), subs)
 }
@@ -305,8 +323,14 @@ func (cli *Cli) SetFileSubscription(account string, subs []string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateStorageFileAttr(account, file string, attrs []any, authAccount string) error {
-	if account == "" || file == "" || attrs == nil {
-		return fmt.Errorf("account name, file name and attributes are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if file == "" {
+		return ErrFileRequired
+	}
+	if attrs == nil {
+		return ErrAttrsRequired
 	}
 
 	const cmd = "UPDATESTORAGEFILEATTR"
@@ -332,8 +356,14 @@ func (cli *Cli) UpdateStorageFileAttr(account, file string, attrs []any, authAcc
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) WriteStorageFile(account, file string, offset any, data []byte, authAccount string) error {
-	if account == "" || file == "" || data == nil {
-		return fmt.Errorf("account name, file name and file data are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if file == "" {
+		return ErrFileRequired
+	}
+	if data == nil {
+		return ErrDataRequired
 	}
 
 	args := make([]any, 0, 9)

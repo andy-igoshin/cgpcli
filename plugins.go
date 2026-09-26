@@ -44,7 +44,7 @@ func (cli *Cli) GetDomainPluginsSettings(domain string) (map[string]any, error) 
 //   - error: an error if the command fails.
 func (cli *Cli) RemovePlugin(id string) error {
 	if id == "" {
-		return fmt.Errorf("id is required")
+		return ErrIdRequired
 	}
 	return cli.QueryNV("REMOVEPLUGIN", id)
 }
@@ -61,7 +61,7 @@ func (cli *Cli) RemovePlugin(id string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetDomainPluginsSettings(domain string, settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETDOMAINPLUGINSSETTINGS", Atom(domain), settings)
 }
@@ -79,7 +79,7 @@ func (cli *Cli) SetDomainPluginsSettings(domain string, settings map[string]any)
 //   - error: an error if the command fails.
 func (cli *Cli) UploadPluginFile(content []byte, dryrun bool) error {
 	if len(content) == 0 {
-		return fmt.Errorf("content is required")
+		return ErrContentRequired
 	}
 
 	const cmd = "UPLOADPLUGINFILE"

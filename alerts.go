@@ -10,10 +10,6 @@
 //   - Batch updating alert dictionaries.
 package cgpcli
 
-import (
-	"fmt"
-)
-
 // GetAccountAlerts retrieves the Account Alerts.
 //
 // Parameters:
@@ -29,7 +25,7 @@ import (
 // This method executes the GETACCOUNTALERTS CLI command.
 func (cli *Cli) GetAccountAlerts(account string) (map[string]string, error) {
 	if account == "" {
-		return nil, fmt.Errorf("account name is required")
+		return nil, ErrAccountRequired
 	}
 	return cli.getMapString("GETACCOUNTALERTS", Atom(account))
 }
@@ -89,8 +85,11 @@ func (cli *Cli) GetServerAlerts() (map[string]string, error) {
 //
 // This method executes the POSTACCOUNTALERT CLI command.
 func (cli *Cli) PostAccountAlert(account, alert string) error {
-	if account == "" || alert == "" {
-		return fmt.Errorf("account name and alert text are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if alert == "" {
+		return ErrAlertRequired
 	}
 	return cli.QueryNV("POSTACCOUNTALERT", Atom(account), "ALERT", alert)
 }
@@ -108,7 +107,7 @@ func (cli *Cli) PostAccountAlert(account, alert string) error {
 // This method executes the POSTCLUSTERALERT CLI command.
 func (cli *Cli) PostClusterAlert(alert string) error {
 	if alert == "" {
-		return fmt.Errorf("alert text is required")
+		return ErrAlertRequired
 	}
 	return cli.QueryNV("POSTCLUSTERALERT", alert)
 }
@@ -126,8 +125,11 @@ func (cli *Cli) PostClusterAlert(alert string) error {
 //
 // This method executes the POSTDOMAINALERT CLI command.
 func (cli *Cli) PostDomainAlert(domain, alert string) error {
-	if domain == "" || alert == "" {
-		return fmt.Errorf("domain name and alert text are required")
+	if domain == "" {
+		return ErrDomainRequired
+	}
+	if alert == "" {
+		return ErrAlertRequired
 	}
 	return cli.QueryNV("POSTDOMAINALERT", domain, "ALERT", alert)
 }
@@ -145,7 +147,7 @@ func (cli *Cli) PostDomainAlert(domain, alert string) error {
 // This method executes the POSTSERVERALERT CLI command.
 func (cli *Cli) PostServerAlert(alert string) error {
 	if alert == "" {
-		return fmt.Errorf("alert text is required")
+		return ErrAlertRequired
 	}
 	return cli.QueryNV("POSTSERVERALERT", alert)
 }
@@ -165,8 +167,11 @@ func (cli *Cli) PostServerAlert(alert string) error {
 //
 // This method executes the REMOVEACCOUNTALERT CLI command.
 func (cli *Cli) RemoveAccountAlert(account, timeStamp string) error {
-	if account == "" || timeStamp == "" {
-		return fmt.Errorf("account name and timeStamp are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if timeStamp == "" {
+		return ErrTimestampRequired
 	}
 	return cli.QueryNV("REMOVEACCOUNTALERT", Atom(account), "ALERT", timeStamp)
 }
@@ -185,7 +190,7 @@ func (cli *Cli) RemoveAccountAlert(account, timeStamp string) error {
 // This method executes the REMOVECLUSTERALERT CLI command.
 func (cli *Cli) RemoveClusterAlert(timeStamp string) error {
 	if timeStamp == "" {
-		return fmt.Errorf("timeStamp is required")
+		return ErrTimestampRequired
 	}
 	return cli.QueryNV("REMOVECLUSTERALERT", timeStamp)
 }
@@ -204,8 +209,11 @@ func (cli *Cli) RemoveClusterAlert(timeStamp string) error {
 //
 // This method executes the REMOVEDOMAINALERT CLI command.
 func (cli *Cli) RemoveDomainAlert(domain, timeStamp string) error {
-	if domain == "" || timeStamp == "" {
-		return fmt.Errorf("domain name and timeStamp are required")
+	if domain == "" {
+		return ErrDomainRequired
+	}
+	if timeStamp == "" {
+		return ErrTimestampRequired
 	}
 	return cli.QueryNV("REMOVEDOMAINALERT", domain, "ALERT", timeStamp)
 }
@@ -224,7 +232,7 @@ func (cli *Cli) RemoveDomainAlert(domain, timeStamp string) error {
 // This method executes the REMOVESERVERALERT CLI command.
 func (cli *Cli) RemoveServerAlert(timeStamp string) error {
 	if timeStamp == "" {
-		return fmt.Errorf("timeStamp is required")
+		return ErrTimestampRequired
 	}
 	return cli.QueryNV("REMOVESERVERALERT", timeStamp)
 }
@@ -243,8 +251,11 @@ func (cli *Cli) RemoveServerAlert(timeStamp string) error {
 //
 // This method executes the SETACCOUNTALERTS CLI command.
 func (cli *Cli) SetAccountAlerts(account string, alerts map[string]any) error {
-	if account == "" || alerts == nil {
-		return fmt.Errorf("account name and alerts dictionary are required")
+	if account == "" {
+		return ErrAccountRequired
+	}
+	if alerts == nil {
+		return ErrAlertsRequired
 	}
 	return cli.QueryNV("SETACCOUNTALERTS", Atom(account), alerts)
 }

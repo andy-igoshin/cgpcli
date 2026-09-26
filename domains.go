@@ -57,8 +57,11 @@ type DomainObjectsResult struct {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) CreateAccountStorage(domain, storage string) error {
-	if domain == "" || storage == "" {
-		return fmt.Errorf("domain name and storage path are required")
+	if domain == "" {
+		return ErrDomainRequired
+	}
+	if storage == "" {
+		return ErrStoragePathRequired
 	}
 	return cli.QueryNV("CREATEACCOUNTSTORAGE", domain, "PATH", storage)
 }
@@ -130,7 +133,7 @@ func (cli *Cli) GetAccountTemplate(domain string) (map[string]any, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetDomainAliases(domain string) ([]string, error) {
 	if domain == "" {
-		return nil, fmt.Errorf("domain name is required")
+		return nil, ErrDomainRequired
 	}
 	return cli.getSliceString("GETDOMAINALIASES", domain)
 }
@@ -175,7 +178,7 @@ func (cli *Cli) GetDomainLocation(domain string) (string, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetDomainMailRules(domain string) ([]MailRule, error) {
 	if domain == "" {
-		return nil, fmt.Errorf("domain name is required")
+		return nil, ErrDomainRequired
 	}
 	return cli.getMailRules("GETDOMAINMAILRULES", domain)
 }
@@ -206,7 +209,7 @@ func (cli *Cli) GetDomainSettings(domain string) (map[string]any, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) GetDomainSignalRules(domain string) ([]SignalRule, error) {
 	if domain == "" {
-		return nil, fmt.Errorf("domain name is required")
+		return nil, ErrDomainRequired
 	}
 	return cli.getSignalRules("GETDOMAINSIGNALRULES", domain)
 }
@@ -252,7 +255,7 @@ func (cli *Cli) IsDomainExists(domain string) (bool, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) ListAccountStorage(domain string) ([]string, error) {
 	if domain == "" {
-		return nil, fmt.Errorf("domain name is required")
+		return nil, ErrDomainRequired
 	}
 	return cli.getSliceString("LISTACCOUNTSTORAGE", domain)
 }
@@ -301,7 +304,7 @@ func (cli *Cli) ListAdminDomains(domain string) ([]string, error) {
 //   - error: an error if the command fails.
 func (cli *Cli) ListDomainObjects(domain string, limit int, filter string, what ObjectType, cookie string) (*DomainObjectsResult, error) {
 	if domain == "" {
-		return nil, fmt.Errorf("domain name is required")
+		return nil, ErrDomainRequired
 	}
 
 	const cmd = "LISTDOMAINOBJECTS"
@@ -328,7 +331,7 @@ func (cli *Cli) ListDomainObjects(domain string, limit int, filter string, what 
 	}
 
 	if len(res) < 5 {
-		return nil, fmt.Errorf("%s: unexpected response format", cmd)
+		return nil, fmt.Errorf("%s: %w", cmd, ErrUnexpectedResponseFormat)
 	}
 
 	result := &DomainObjectsResult{Objects: make(map[string]DomainObject)}
@@ -360,7 +363,7 @@ func (cli *Cli) ListDomainObjects(domain string, limit int, filter string, what 
 					obj.Targets, targetErr = toStringSlice(cmd, v)
 				}
 				if targetErr != nil {
-					return nil, fmt.Errorf("%s: invalid target format for %s: %w", cmd, name, targetErr)
+					return nil, fmt.Errorf("%s: %w: %s: %w", cmd, ErrInvalidTargetFormat, name, targetErr)
 				}
 			}
 		}
@@ -383,7 +386,7 @@ func (cli *Cli) ListDomainObjects(domain string, limit int, filter string, what 
 //   - error: an error if the command fails.
 func (cli *Cli) ListDomainTelnums(domain, filter string, limit int) (map[string]string, error) {
 	if domain == "" {
-		return nil, fmt.Errorf("domain name is required")
+		return nil, ErrDomainRequired
 	}
 
 	const cmd = "LISTDOMAINTELNUMS"
@@ -413,7 +416,7 @@ func (cli *Cli) ListDomainTelnums(domain, filter string, limit int) (map[string]
 //   - error: an error if the command fails.
 func (cli *Cli) ResumeDomain(domain string) error {
 	if domain == "" {
-		return fmt.Errorf("domain name is required")
+		return ErrDomainRequired
 	}
 	return cli.QueryNV("RESUMEDOMAIN", domain)
 }
@@ -430,7 +433,7 @@ func (cli *Cli) ResumeDomain(domain string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetAccountDefaultPrefs(domain string, settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETACCOUNTDEFAULTPREFS", Atom(domain), settings)
 }
@@ -447,7 +450,7 @@ func (cli *Cli) SetAccountDefaultPrefs(domain string, settings map[string]any) e
 //   - error: an error if the command fails.
 func (cli *Cli) SetAccountDefaults(domain string, settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETACCOUNTDEFAULTS", Atom(domain), settings)
 }
@@ -464,7 +467,7 @@ func (cli *Cli) SetAccountDefaults(domain string, settings map[string]any) error
 //   - error: an error if the command fails.
 func (cli *Cli) SetAccountTemplate(domain string, settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETACCOUNTTEMPLATE", Atom(domain), settings)
 }
@@ -480,8 +483,11 @@ func (cli *Cli) SetAccountTemplate(domain string, settings map[string]any) error
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetDomainAliases(domain string, aliases []string) error {
-	if domain == "" || aliases == nil {
-		return fmt.Errorf("domain name and aliases array are required")
+	if domain == "" {
+		return ErrDomainRequired
+	}
+	if aliases == nil {
+		return ErrAliasesRequired
 	}
 	return cli.QueryNV("SETDOMAINALIASES", domain, aliases)
 }
@@ -497,8 +503,11 @@ func (cli *Cli) SetDomainAliases(domain string, aliases []string) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetDomainMailRules(domain string, rules []MailRule) error {
-	if domain == "" || rules == nil {
-		return fmt.Errorf("domain name and rules array are required")
+	if domain == "" {
+		return ErrDomainRequired
+	}
+	if rules == nil {
+		return ErrRulesRequired
 	}
 	return setRulesGeneric(cli, "SETDOMAINMAILRULES", domain, rules)
 }
@@ -514,8 +523,11 @@ func (cli *Cli) SetDomainMailRules(domain string, rules []MailRule) error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetDomainSettings(domain string, settings map[string]any) error {
-	if domain == "" || settings == nil {
-		return fmt.Errorf("domain name and settings dictionary are required")
+	if domain == "" {
+		return ErrDomainRequired
+	}
+	if settings == nil {
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETDOMAINSETTINGS", domain, settings)
 }
@@ -531,8 +543,11 @@ func (cli *Cli) SetDomainSettings(domain string, settings map[string]any) error 
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SetDomainSignalRules(domain string, rules []SignalRule) error {
-	if domain == "" || rules == nil {
-		return fmt.Errorf("domain name and rules array are required")
+	if domain == "" {
+		return ErrDomainRequired
+	}
+	if rules == nil {
+		return ErrRulesRequired
 	}
 	return setRulesGeneric(cli, "SETDOMAINSIGNALRULES", domain, rules)
 }
@@ -548,7 +563,7 @@ func (cli *Cli) SetDomainSignalRules(domain string, rules []SignalRule) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SuspendDomain(domain string) error {
 	if domain == "" {
-		return fmt.Errorf("domain name is required")
+		return ErrDomainRequired
 	}
 	return cli.QueryNV("SUSPENDDOMAIN", domain)
 }
@@ -565,7 +580,7 @@ func (cli *Cli) SuspendDomain(domain string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateAccountDefaultPrefs(domain string, settings map[string]any) error {
 	if len(settings) == 0 {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("UPDATEACCOUNTDEFAULTPREFS", Atom(domain), settings)
 }
@@ -582,7 +597,7 @@ func (cli *Cli) UpdateAccountDefaultPrefs(domain string, settings map[string]any
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateAccountDefaults(domain string, settings map[string]any) error {
 	if len(settings) == 0 {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("UPDATEACCOUNTDEFAULTS", Atom(domain), settings)
 }
@@ -599,7 +614,7 @@ func (cli *Cli) UpdateAccountDefaults(domain string, settings map[string]any) er
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateAccountTemplate(domain string, settings map[string]any) error {
 	if len(settings) == 0 {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("UPDATEACCOUNTTEMPLATE", Atom(domain), settings)
 }
@@ -616,7 +631,7 @@ func (cli *Cli) UpdateAccountTemplate(domain string, settings map[string]any) er
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateDomainSettings(domain string, settings map[string]any) error {
 	if len(settings) == 0 {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("UPDATEDOMAINSETTINGS", Atom(domain), settings)
 }

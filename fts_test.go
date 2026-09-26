@@ -1,6 +1,7 @@
 package cgpcli
 
 import (
+	"errors"
 	"strings"
 	"testing"
 )
@@ -139,8 +140,8 @@ func TestSearchInIndex(t *testing.T) {
 		if err == nil {
 			t.Error("expected error for empty account, got nil")
 		}
-		if err != nil && err.Error() != "account name and search string are required" {
-			t.Errorf("unexpected error message: %v", err)
+		if err != nil && !errors.Is(err, ErrAccountRequired) {
+			t.Errorf("unexpected error: %v", err)
 		}
 	})
 
@@ -150,8 +151,8 @@ func TestSearchInIndex(t *testing.T) {
 		if err == nil {
 			t.Error("expected error for empty search, got nil")
 		}
-		if err != nil && err.Error() != "account name and search string are required" {
-			t.Errorf("unexpected error message: %v", err)
+		if err != nil && !errors.Is(err, ErrSearchStringRequired) {
+			t.Errorf("unexpected error: %v", err)
 		}
 	})
 

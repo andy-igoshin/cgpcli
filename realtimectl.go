@@ -17,10 +17,6 @@
 //     at startup, allowing precise control over concurrent applications.
 package cgpcli
 
-import (
-	"fmt"
-)
-
 // KillNode kills an existing PBX Task.
 //
 // Parameters:
@@ -32,7 +28,7 @@ import (
 //   - error: an error if the command fails.
 func (cli *Cli) KillNode(taskID string) error {
 	if taskID == "" {
-		return fmt.Errorf("taskID is required")
+		return ErrTaskIDRequired
 	}
 	return cli.QueryNV("KILLNODE", taskID)
 }
@@ -49,7 +45,7 @@ func (cli *Cli) KillNode(taskID string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) ReadNodeStatus(taskID string) (any, error) {
 	if taskID == "" {
-		return nil, fmt.Errorf("taskID is required")
+		return nil, ErrTaskIDRequired
 	}
 	return cli.Query("READNODESTATUS", taskID)
 }
@@ -66,8 +62,11 @@ func (cli *Cli) ReadNodeStatus(taskID string) (any, error) {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) SendTaskEvent(taskID, event string, param any) error {
-	if taskID == "" || event == "" {
-		return fmt.Errorf("taskID and event name are required")
+	if taskID == "" {
+		return ErrTaskIDRequired
+	}
+	if event == "" {
+		return ErrEventRequired
 	}
 
 	const cmd = "SENDTASKEVENT"
@@ -94,8 +93,11 @@ func (cli *Cli) SendTaskEvent(taskID, event string, param any) error {
 //   - string: a string with the new Task ID.
 //   - error: an error if the command fails.
 func (cli *Cli) StartPBXTask(account, program, entry string, param any) (string, error) {
-	if account == "" || program == "" {
-		return "", fmt.Errorf("account and program name are required")
+	if account == "" {
+		return "", ErrAccountRequired
+	}
+	if program == "" {
+		return "", ErrProgramRequired
 	}
 
 	args := make([]any, 0, 7)

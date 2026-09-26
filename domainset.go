@@ -35,7 +35,7 @@ import (
 //   - error: an error if the command fails.
 func (cli *Cli) CreateDirectoryDomain(domain string, settings map[string]any) error {
 	if domain == "" {
-		return fmt.Errorf("domain name is required")
+		return ErrDomainRequired
 	}
 
 	const cmd = "CREATEDIRECTORYDOMAIN"
@@ -60,7 +60,7 @@ func (cli *Cli) CreateDirectoryDomain(domain string, settings map[string]any) er
 //   - error: an error if the command fails.
 func (cli *Cli) CreateDomain(domain string, settings map[string]any, storage string, shared bool) error {
 	if domain == "" {
-		return fmt.Errorf("domain name is required")
+		return ErrDomainRequired
 	}
 
 	args := make([]any, 0, 5)
@@ -89,7 +89,7 @@ func (cli *Cli) CreateDomain(domain string, settings map[string]any, storage str
 //   - error: an error if the command fails.
 func (cli *Cli) CreateDomainStorage(storage string, shared bool) error {
 	if storage == "" {
-		return fmt.Errorf("storage path is required")
+		return ErrStoragePathRequired
 	}
 
 	const cmd = "CREATEDOMAINSTORAGE"
@@ -112,7 +112,7 @@ func (cli *Cli) CreateDomainStorage(storage string, shared bool) error {
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteDomain(domain string, force bool) error {
 	if domain == "" {
-		return fmt.Errorf("domain name is required")
+		return ErrDomainRequired
 	}
 
 	const cmd = "DELETEDOMAIN"
@@ -327,8 +327,11 @@ func (cli *Cli) ReloadDirectoryDomains() error {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) RenameDomain(oldName, newName string, storage string) error {
-	if oldName == "" || newName == "" {
-		return fmt.Errorf("old and new domain names are required")
+	if oldName == "" {
+		return ErrOldNameRequired
+	}
+	if newName == "" {
+		return ErrNewNameRequired
 	}
 
 	const cmd = "RENAMEDOMAIN"
@@ -350,7 +353,7 @@ func (cli *Cli) RenameDomain(oldName, newName string, storage string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetClusterAccountDefaults(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETCLUSTERACCOUNTDEFAULTS", settings)
 }
@@ -366,7 +369,7 @@ func (cli *Cli) SetClusterAccountDefaults(settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetClusterAccountPrefs(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETCLUSTERACCOUNTPREFS", settings)
 }
@@ -382,7 +385,7 @@ func (cli *Cli) SetClusterAccountPrefs(settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetClusterDirectoryIntegration(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETCLUSTERDIRECTORYINTEGRATION", settings)
 }
@@ -398,7 +401,7 @@ func (cli *Cli) SetClusterDirectoryIntegration(settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetClusterDomainDefaults(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETCLUSTERDOMAINDEFAULTS", settings)
 }
@@ -414,7 +417,7 @@ func (cli *Cli) SetClusterDomainDefaults(settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetClusterTrustedCerts(certs []string) error {
 	if certs == nil {
-		return fmt.Errorf("certs array is required")
+		return ErrCertsRequired
 	}
 	return cli.setTrustedCerts("SETCLUSTERTRUSTEDCERTS", certs)
 }
@@ -430,7 +433,7 @@ func (cli *Cli) SetClusterTrustedCerts(certs []string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetDirectoryIntegration(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETDIRECTORYINTEGRATION", settings)
 }
@@ -446,7 +449,7 @@ func (cli *Cli) SetDirectoryIntegration(settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetDomainDefaults(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETDOMAINDEFAULTS", settings)
 }
@@ -462,7 +465,7 @@ func (cli *Cli) SetDomainDefaults(settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetServerAccountDefaults(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETSERVERACCOUNTDEFAULTS", settings)
 }
@@ -478,7 +481,7 @@ func (cli *Cli) SetServerAccountDefaults(settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetServerAccountPrefs(settings map[string]any) error {
 	if settings == nil {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("SETSERVERACCOUNTPREFS", settings)
 }
@@ -494,7 +497,7 @@ func (cli *Cli) SetServerAccountPrefs(settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) SetServerTrustedCerts(certs []string) error {
 	if certs == nil {
-		return fmt.Errorf("certs array is required")
+		return ErrCertsRequired
 	}
 	return cli.setTrustedCerts("SETSERVERTRUSTEDCERTS", certs)
 }
@@ -510,7 +513,7 @@ func (cli *Cli) SetServerTrustedCerts(certs []string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateClusterAccountDefaults(settings map[string]any) error {
 	if len(settings) == 0 {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("UPDATECLUSTERACCOUNTDEFAULTS", settings)
 }
@@ -526,7 +529,7 @@ func (cli *Cli) UpdateClusterAccountDefaults(settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateClusterAccountPrefs(settings map[string]any) error {
 	if len(settings) == 0 {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("UPDATECLUSTERACCOUNTPREFS", settings)
 }
@@ -542,7 +545,7 @@ func (cli *Cli) UpdateClusterAccountPrefs(settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateClusterDomainDefaults(settings map[string]any) error {
 	if len(settings) == 0 {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("UPDATECLUSTERDOMAINDEFAULTS", settings)
 }
@@ -558,7 +561,7 @@ func (cli *Cli) UpdateClusterDomainDefaults(settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateDomainDefaults(settings map[string]any) error {
 	if len(settings) == 0 {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("UPDATEDOMAINDEFAULTS", settings)
 }
@@ -574,7 +577,7 @@ func (cli *Cli) UpdateDomainDefaults(settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateServerAccountDefaults(settings map[string]any) error {
 	if len(settings) == 0 {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("UPDATESERVERACCOUNTDEFAULTS", settings)
 }
@@ -590,7 +593,7 @@ func (cli *Cli) UpdateServerAccountDefaults(settings map[string]any) error {
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateServerAccountPrefs(settings map[string]any) error {
 	if len(settings) == 0 {
-		return fmt.Errorf("settings dictionary is required")
+		return ErrSettingsRequired
 	}
 	return cli.QueryNV("UPDATESERVERACCOUNTPREFS", settings)
 }

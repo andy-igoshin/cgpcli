@@ -120,7 +120,7 @@ func Unmarshal(data []byte, v any) error {
 
 	rv := reflect.ValueOf(v)
 	if rv.Kind() != reflect.Pointer || rv.IsNil() {
-		return fmt.Errorf("cgpcli: Unmarshal expects non-nil pointer")
+		return ErrNonNilPointerRequired
 	}
 
 	result := d.valueInterface(false)
@@ -139,7 +139,7 @@ func Unmarshal(data []byte, v any) error {
 	} else if val.Type().ConvertibleTo(target.Type()) {
 		target.Set(val.Convert(target.Type()))
 	} else {
-		return fmt.Errorf("cgpcli: cannot assign %T to %v", result, target.Type())
+		return fmt.Errorf("cannot assign %T to %v", result, target.Type())
 	}
 	return nil
 }

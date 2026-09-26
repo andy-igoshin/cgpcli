@@ -18,10 +18,6 @@
 // and logic implemented in CG/PL.
 package cgpcli
 
-import (
-	"fmt"
-)
-
 // RunScript executes a synchronous script (CG/PL) on the server.
 // Unlike PBX tasks, this command blocks until the script completes
 // and returns the result object directly.
@@ -40,8 +36,11 @@ import (
 //   - any: the object returned by the script (string, map, array, etc.).
 //   - error: an error if the command fails.
 func (cli *Cli) RunScript(account, prog, entry string, param map[string]any) (any, error) {
-	if account == "" || prog == "" {
-		return nil, fmt.Errorf("account name and prog name are required")
+	if account == "" {
+		return nil, ErrAccountRequired
+	}
+	if prog == "" {
+		return nil, ErrProgramRequired
 	}
 
 	args := make([]any, 0, 7)

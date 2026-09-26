@@ -11,10 +11,6 @@
 //     "CanCreateAccounts", or "CanManageQueues".
 package cgpcli
 
-import (
-	"fmt"
-)
-
 // SetAccountRights sets the Account Server Access rights.
 //
 // Parameters:
@@ -29,7 +25,7 @@ import (
 //   - error: an error if the command fails.
 func (cli *Cli) SetAccountRights(account string, rights []string) error {
 	if account == "" {
-		return fmt.Errorf("account name is required")
+		return ErrAccountRequired
 	}
 	return cli.QueryNV("SETACCOUNTRIGHTS", account, rights)
 }
