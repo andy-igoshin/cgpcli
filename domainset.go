@@ -50,9 +50,9 @@ func (cli *Cli) CreateDirectoryDomain(domain string, settings map[string]any) er
 //
 // Parameters:
 //   - domain: the Domain name.
-//   - shared: if true, creates a Cluster-wide Domain (Dynamic Cluster only).
-//   - storage: an optional "storage mount point" directory name (without .mnt suffix).
 //   - settings: an optional dictionary of initial Domain settings.
+//   - storage: an optional "storage mount point" directory name (without .mnt suffix).
+//   - shared: an optional flag; if true, creates a Cluster-wide Domain (Dynamic Cluster only).
 //
 // This method executes the CREATEDOMAIN CLI command.
 //
