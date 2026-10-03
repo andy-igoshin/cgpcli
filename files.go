@@ -117,7 +117,7 @@ func (cli *Cli) GetStorageFileInfo(account, path, authAccount string) (*StorageF
 
 	arr, ok := res.([]any)
 	if !ok || len(arr) < 2 {
-		return nil, fmt.Errorf("%s: %w: expected array of 2 elements, got %T", cmd, ErrUnexpectedResponseFormat, res)
+		return nil, fmt.Errorf("%s: %w: expected array of 2 elements, got %T", cmd, ErrUnexpectedType, res)
 	}
 
 	return &StorageFileInfo{
@@ -205,14 +205,14 @@ func (cli *Cli) ReadStorageFile(account, file string, offset, size int64, authAc
 
 	arr, ok := res.([]any)
 	if !ok || len(arr) < 3 {
-		return nil, fmt.Errorf("%s: %w: expected array, got %T", cmd, ErrUnexpectedResponseFormat, res)
+		return nil, fmt.Errorf("%s: %w: expected array, got %T", cmd, ErrUnexpectedType, res)
 	}
 
 	var data []byte
 	if arr[0] != nil {
 		data, ok = arr[0].([]byte)
 		if !ok {
-			return nil, fmt.Errorf("%s: %w: expected []byte for DataBlock, got %T", cmd, ErrUnexpectedResponseFormat, arr[0])
+			return nil, fmt.Errorf("%s: %w: expected []byte for DataBlock, got %T", cmd, ErrUnexpectedType, arr[0])
 		}
 	}
 
