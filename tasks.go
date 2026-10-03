@@ -32,7 +32,7 @@ import (
 //   - error: an error if the command fails.
 func (cli *Cli) CreateNamedTask(task, account string) error {
 	if task == "" {
-		return ErrTaskNameRequired
+		return ErrTaskRequired
 	}
 	if account == "" {
 		return ErrAccountRequired
@@ -55,7 +55,7 @@ func (cli *Cli) CreateNamedTask(task, account string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) DeleteNamedTask(task string) error {
 	if task == "" {
-		return ErrTaskNameRequired
+		return ErrTaskRequired
 	}
 	return cli.QueryNV("DELETENAMEDTASK", task)
 }
@@ -72,7 +72,7 @@ func (cli *Cli) DeleteNamedTask(task string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) GetNamedTask(task string) (map[string]any, error) {
 	if task == "" {
-		return nil, ErrTaskNameRequired
+		return nil, ErrTaskRequired
 	}
 	return cli.getMapAny("GETNAMEDTASK", task)
 }
@@ -143,7 +143,7 @@ func (cli *Cli) RenameNamedTask(oldTask, newTask string) error {
 //   - error: an error if the command fails.
 func (cli *Cli) UpdateNamedTask(task string, settings map[string]any) error {
 	if task == "" {
-		return ErrTaskNameRequired
+		return ErrTaskRequired
 	}
 	if len(settings) == 0 {
 		return ErrSettingsRequired

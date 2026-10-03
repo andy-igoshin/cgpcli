@@ -1450,7 +1450,7 @@ func (cli *Cli) UpdateScheduledTask(account string, task map[string]any) error {
 		return ErrAccountRequired
 	}
 	if len(task) == 0 {
-		return ErrTaskRequired
+		return ErrTaskDataRequired
 	}
 	return cli.QueryNV("UPDATESCHEDULEDTASK", account, task)
 }
