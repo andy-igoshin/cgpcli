@@ -368,7 +368,7 @@ func (cli *Cli) ReadDomainSkinFile(domain, skin, file string) ([]byte, time.Time
 	data, ok1 := res[0].([]byte)
 	ts, ok2 := res[1].(time.Time)
 	if !ok1 || !ok2 {
-		return nil, time.Time{}, fmt.Errorf("%s: %w", cmd, ErrInvalidResponseDataType)
+		return nil, time.Time{}, fmt.Errorf("%s: %w", cmd, ErrUnexpectedType)
 	}
 
 	return data, ts, nil
@@ -407,7 +407,7 @@ func (cli *Cli) ReadServerSkinFile(skin, file string) ([]byte, time.Time, error)
 	data, ok1 := res[0].([]byte)
 	ts, ok2 := res[1].(time.Time)
 	if !ok1 || !ok2 {
-		return nil, time.Time{}, fmt.Errorf("%s: %w", cmd, ErrInvalidResponseDataType)
+		return nil, time.Time{}, fmt.Errorf("%s: %w", cmd, ErrUnexpectedType)
 	}
 
 	return data, ts, nil
@@ -446,7 +446,7 @@ func (cli *Cli) ReadStockSkinFile(skin, file string) ([]byte, time.Time, error) 
 	data, ok1 := res[0].([]byte)
 	ts, ok2 := res[1].(time.Time)
 	if !ok1 || !ok2 {
-		return nil, time.Time{}, fmt.Errorf("%s: %w", cmd, ErrInvalidResponseDataType)
+		return nil, time.Time{}, fmt.Errorf("%s: %w", cmd, ErrUnexpectedType)
 	}
 
 	return data, ts, nil
@@ -628,7 +628,7 @@ func (cli *Cli) readSkinFile(cmd string, args ...any) ([]byte, time.Time, error)
 	data, ok1 := res[0].([]byte)
 	ts, ok2 := res[1].(time.Time)
 	if !ok1 || !ok2 {
-		return nil, time.Time{}, fmt.Errorf("%s: %w", cmd, ErrInvalidResponseDataType)
+		return nil, time.Time{}, fmt.Errorf("%s: %w", cmd, ErrUnexpectedType)
 	}
 
 	return data, ts, nil

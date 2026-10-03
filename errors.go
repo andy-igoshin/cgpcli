@@ -35,7 +35,6 @@ var (
 	ErrIdentityRequired         = errors.New("identity is required")
 	ErrInfoRequired             = errors.New("info dictionary is required")
 	ErrInvalidBlockMode         = errors.New("invalid block mode")
-	ErrInvalidResponseDataType  = errors.New("invalid data types in response")
 	ErrInvalidTargetFormat      = errors.New("invalid target format")
 	ErrIPAddressRequired        = errors.New("IP address is required")
 	ErrKeyRequired              = errors.New("key name is required")
