@@ -67,7 +67,6 @@ var (
 	ErrSubscriptionRequired     = errors.New("subscription is required")
 	ErrSubsetRequired           = errors.New("subset name is required")
 	ErrSystemInfoKeyRequired    = errors.New("system info key is required")
-	ErrTaskIDRequired           = errors.New("taskID is required")
 	ErrTaskNameRequired         = errors.New("task name is required")
 	ErrTaskRequired             = errors.New("task dictionary is required")
 	ErrTelnumsRequired          = errors.New("telnums array is required")

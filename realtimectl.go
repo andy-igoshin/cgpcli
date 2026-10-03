@@ -20,40 +20,40 @@ package cgpcli
 // KillNode kills an existing PBX Task.
 //
 // Parameters:
-//   - taskID: the unique Task ID.
+//   - id: the unique Task ID.
 //
 // This method executes the KILLNODE CLI command.
 //
 // Returns:
 //   - error: an error if the command fails.
-func (cli *Cli) KillNode(taskID string) error {
-	if taskID == "" {
-		return ErrTaskIDRequired
+func (cli *Cli) KillNode(id string) error {
+	if id == "" {
+		return ErrIdRequired
 	}
-	return cli.QueryNV("KILLNODE", taskID)
+	return cli.QueryNV("KILLNODE", id)
 }
 
 // ReadNodeStatus reads the current application status of an existing PBX Task.
 //
 // Parameters:
-//   - taskID: the Task ID.
+//   - id: the Task ID.
 //
 // This method executes the READNODESTATUS CLI command.
 //
 // Returns:
 //   - any: the application status object returned by the task.
 //   - error: an error if the command fails.
-func (cli *Cli) ReadNodeStatus(taskID string) (any, error) {
-	if taskID == "" {
-		return nil, ErrTaskIDRequired
+func (cli *Cli) ReadNodeStatus(id string) (any, error) {
+	if id == "" {
+		return nil, ErrIdRequired
 	}
-	return cli.Query("READNODESTATUS", taskID)
+	return cli.Query("READNODESTATUS", id)
 }
 
 // SendTaskEvent sends an Event to an existing PBX Task.
 //
 // Parameters:
-//   - taskID: the Task ID.
+//   - id: the Task ID.
 //   - event: the name of the Event to send.
 //   - param: an optional event parameter.
 //
@@ -61,9 +61,9 @@ func (cli *Cli) ReadNodeStatus(taskID string) (any, error) {
 //
 // Returns:
 //   - error: an error if the command fails.
-func (cli *Cli) SendTaskEvent(taskID, event string, param any) error {
-	if taskID == "" {
-		return ErrTaskIDRequired
+func (cli *Cli) SendTaskEvent(id, event string, param any) error {
+	if id == "" {
+		return ErrIdRequired
 	}
 	if event == "" {
 		return ErrEventRequired
@@ -71,9 +71,9 @@ func (cli *Cli) SendTaskEvent(taskID, event string, param any) error {
 
 	const cmd = "SENDTASKEVENT"
 	if param != nil {
-		return cli.QueryNV(cmd, taskID, "EVENT", event, "PARAM", param)
+		return cli.QueryNV(cmd, id, "EVENT", event, "PARAM", param)
 	} else {
-		return cli.QueryNV(cmd, taskID, "EVENT", event)
+		return cli.QueryNV(cmd, id, "EVENT", event)
 	}
 }
 
