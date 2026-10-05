@@ -78,14 +78,8 @@ func TestAccountCollections(t *testing.T) {
 
 	t.Run("TelnumsAtomic", func(t *testing.T) {
 		// Атомарное добавление
-		_, err := cli.ModifyAccountTelnums(testAcc, map[string]any{"add": true, "telnum": "701"})
+		_, err := cli.ModifyAccountTelnums(testAcc, map[string]any{"op": "add", "telnum": "701"})
 		if err != nil {
-			// Если сервер вернул "not implemented", это ожидаемое поведение для некоторых конфигураций
-			// Мы не считаем это ошибкой теста, а выводим как предупреждение.
-			if strings.Contains(err.Error(), "not implemented") {
-				t.Log("ModifyAccountTelnums is not implemented on this server/account")
-				return
-			}
 			t.Fatalf("ModifyAccountTelnums failed: %v", err)
 		}
 
@@ -102,7 +96,12 @@ func TestAccountCollections(t *testing.T) {
 				break
 			}
 		}
-		if !found {
+		if found {
+			_, err := cli.ModifyAccountTelnums(testAcc, map[string]any{"op": "del", "telnum": "701"})
+			if err != nil {
+				t.Fatalf("ModifyAccountTelnums failed: %v", err)
+			}
+		} else {
 			t.Errorf("Telnum modification succeeded but number 701 not found in: %v", got)
 		}
 	})
