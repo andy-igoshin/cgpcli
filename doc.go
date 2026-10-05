@@ -37,5 +37,12 @@ The library handles unique CGP constants:
   - #NULL# is mapped to nil.
   - #TPAST and #TFUTURE are mapped to specific time.Time constants
     provided by the library.
+
+# Concurrency
+
+A [Cli] instance maintains internal state (network buffers, active session socket,
+and command sequence state) and is not safe for concurrent access by multiple
+goroutines. Applications performing concurrent operations should allocate separate
+[Cli] sessions or protect shared instances with a mutex or connection pool.
 */
 package cgpcli

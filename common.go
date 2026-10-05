@@ -13,6 +13,7 @@
 //     authentication, with optional TLS (STARTTLS) encryption.
 //   - Efficiency: mandatory use of CommuniGate Pro CLI "INLINE" mode, which, combined with
 //     the library's custom parser, ensures high-performance data processing.
+//   - Concurrency: designed for single-goroutine execution per [Cli] session.
 package cgpcli
 
 import (
@@ -96,6 +97,12 @@ const defaultPort = "106"
 // Cli represents a CommuniGate Pro CLI client session.
 // It handles connection persistence, automatic reconnection, and command marshaling.
 // Use New() to initialize a session.
+//
+// Concurrency:
+// Cli instances are NOT safe for concurrent use by multiple goroutines.
+// If multiple goroutines need to communicate with CommuniGate Pro concurrently,
+// each goroutine must maintain its own Cli instance or serialize calls via
+// external synchronization.
 type Cli struct {
 	host        string
 	login       string
