@@ -46,8 +46,62 @@ const (
 // Option is a functional option for configuring a [Cli] session.
 type Option func(*Cli)
 
+// WithCommandTimeout sets the read/write deadline for a single CLI command.
+// Non-positive values are ignored (the default of 1 minute is kept).
+//
+// Parameters:
+//   - d: the per-command read/write deadline.
+//
+// Returns:
+//   - Option: a functional option that applies the configuration.
+func WithCommandTimeout(d time.Duration) Option {
+	return func(cli *Cli) {
+		if d > 0 {
+			cli.cmdTimeout = d
+		}
+	}
+}
+
+// WithConnectTimeout sets the TCP dial timeout.
+// Non-positive values are ignored (the default of 7 seconds is kept).
+//
+// Parameters:
+//   - d: the TCP dial timeout.
+//
+// Returns:
+//   - Option: a functional option that applies the configuration.
+func WithConnectTimeout(d time.Duration) Option {
+	return func(cli *Cli) {
+		if d > 0 {
+			cli.connTimeout = d
+		}
+	}
+}
+
+// WithIdleTimeout sets the session idle timeout before automatic reconnect.
+// Non-positive values are ignored (default ~5 minutes).
+//
+// Parameters:
+//   - d: the session idle timeout before automatic reconnect.
+//
+// Returns:
+//   - Option: a functional option that applies the configuration.
+func WithIdleTimeout(d time.Duration) Option {
+	return func(cli *Cli) {
+		if d > 0 {
+			cli.idleTimeout = d
+		}
+	}
+}
+
 // WithTLSConfig sets a custom TLS configuration for STARTTLS connections.
 // If not provided, a secure default (certificate verification enabled) is used.
+//
+// Parameters:
+//   - cfg: the TLS configuration to use for STARTTLS connections.
+//
+// Returns:
+//   - Option: a functional option that applies the configuration.
 func WithTLSConfig(cfg *tls.Config) Option {
 	return func(cli *Cli) {
 		cli.tlsConfig = cfg
@@ -56,6 +110,12 @@ func WithTLSConfig(cfg *tls.Config) Option {
 
 // WithTLSInsecureSkipVerify controls whether TLS certificate verification is skipped.
 // Use only for testing against servers with self-signed certificates.
+//
+// Parameters:
+//   - skip: if true, TLS certificate verification is disabled.
+//
+// Returns:
+//   - Option: a functional option that applies the configuration.
 func WithTLSInsecureSkipVerify(skip bool) Option {
 	return func(cli *Cli) {
 		if cli.tlsConfig == nil {
@@ -73,9 +133,10 @@ var (
 
 const (
 	cgpLineSize = 129 * 1024
-	cgpTimeout  = 5*time.Minute - 5*time.Second
-	cmdTimeout  = 1 * time.Minute
-	connTimeout = 7 * time.Second
+
+	defaultCmdTimeout  = 1 * time.Minute
+	defaultConnTimeout = 7 * time.Second
+	defaultIdleTimeout = 5*time.Minute - 5*time.Second
 )
 
 // CliCode represents a numeric response status from the CommuniGate Pro server.
@@ -167,6 +228,11 @@ type Cli struct {
 	lastAccess  time.Time
 	respCode    CliCode
 	respData    []byte
+
+	// Configurable timeouts.
+	cmdTimeout  time.Duration // read/write deadline for a single command.
+	connTimeout time.Duration // TCP dial timeout.
+	idleTimeout time.Duration // session idle timeout before automatic reconnect.
 }
 
 // Close gracefully terminates the CommuniGate Pro CLI session.
@@ -178,7 +244,7 @@ func (cli *Cli) Close() (err error) {
 		return nil
 	}
 
-	cli.conn.SetWriteDeadline(time.Now().Add(cmdTimeout))
+	cli.conn.SetWriteDeadline(time.Now().Add(cli.cmdTimeout))
 	cli.writer.Write(cmdQUIT)
 	if err = cli.writer.Flush(); err != nil {
 		cli.close()
@@ -237,7 +303,11 @@ func (cli *Cli) Logout() error {
 //   - error: an error if the command fails.
 func New(host, login, password string, secure Secure, tls bool, opts ...Option) (*Cli, error) {
 
-	cli := new(Cli)
+	cli := &Cli{
+		cmdTimeout:  defaultCmdTimeout,
+		connTimeout: defaultConnTimeout,
+		idleTimeout: defaultIdleTimeout,
+	}
 
 	cli.host = net.JoinHostPort(host, defaultPort)
 	cli.login = login
@@ -316,7 +386,7 @@ func (cli *Cli) QueryNV(cmd string, args ...any) (err error) {
 // Returns:
 //   - error: an error if the command fails.
 func (cli *Cli) Send(cmd string, args ...any) (err error) {
-	if time.Since(cli.lastAccess) > cgpTimeout || cli.conn == nil {
+	if time.Since(cli.lastAccess) > cli.idleTimeout || cli.conn == nil {
 		cli.close()
 		if err = cli.connect(); err != nil {
 			return
@@ -324,7 +394,7 @@ func (cli *Cli) Send(cmd string, args ...any) (err error) {
 	}
 
 	cli.lastAccess = time.Now()
-	cli.conn.SetWriteDeadline(time.Now().Add(cmdTimeout))
+	cli.conn.SetWriteDeadline(time.Now().Add(cli.cmdTimeout))
 	cli.buf.Reset()
 
 	cli.buf.WriteString(cmd)
@@ -366,6 +436,29 @@ func (cli *Cli) SetDebug(debug bool) {
 	cli.debug = debug
 }
 
+// SetCommandTimeout dynamically changes the per-command deadline. It is
+// intended for use before issuing long-running commands (e.g., large exports).
+// Non-positive values are ignored.
+//
+// Parameters:
+//   - d: the new per-command read/write deadline.
+func (cli *Cli) SetCommandTimeout(d time.Duration) {
+	if d > 0 {
+		cli.cmdTimeout = d
+	}
+}
+
+// SetConnectTimeout dynamically changes the TCP dial timeout used on (re)connect.
+// Non-positive values are ignored.
+//
+// Parameters:
+//   - d: the new TCP dial timeout.
+func (cli *Cli) SetConnectTimeout(d time.Duration) {
+	if d > 0 {
+		cli.connTimeout = d
+	}
+}
+
 func (cli *Cli) close() {
 	if cli.conn != nil {
 		_ = cli.conn.Close()
@@ -377,7 +470,7 @@ func (cli *Cli) close() {
 func (cli *Cli) connect() (err error) {
 
 	// 1. Устанавливаем базовое TCP соединение
-	cli.conn, err = net.DialTimeout("tcp", cli.host, connTimeout)
+	cli.conn, err = net.DialTimeout("tcp", cli.host, cli.connTimeout)
 	if err != nil {
 		return
 	}
@@ -403,7 +496,7 @@ func (cli *Cli) connect() (err error) {
 		return
 	}
 
-	cli.conn.SetWriteDeadline(time.Now().Add(cmdTimeout))
+	cli.conn.SetWriteDeadline(time.Now().Add(cli.cmdTimeout))
 
 	// 2. Обработка STARTTLS (STLS)
 	if cli.tls {
@@ -569,7 +662,7 @@ func parseCode(b []byte) CliCode {
 }
 
 func (cli *Cli) parseResponse() (err error) {
-	cli.conn.SetReadDeadline(time.Now().Add(cmdTimeout))
+	cli.conn.SetReadDeadline(time.Now().Add(cli.cmdTimeout))
 
 	line, err := cli.reader.ReadSlice('\n')
 	if err != nil {

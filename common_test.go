@@ -4,6 +4,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 )
 
 // checkClusterEnabled — вспомогательная функция для определения отсутствия лицензии.
@@ -232,5 +233,103 @@ func TestCli_Logout(t *testing.T) {
 	err = cli.Logout()
 	if err != nil {
 		t.Errorf("Second Logout() call should not return error, got: %v", err)
+	}
+}
+
+func TestWithCommandTimeout(t *testing.T) {
+	cli := new(Cli)
+
+	WithCommandTimeout(30 * time.Second)(cli)
+	if cli.cmdTimeout != 30*time.Second {
+		t.Errorf("WithCommandTimeout: expected 30s, got %v", cli.cmdTimeout)
+	}
+
+	// Non-positive values must be ignored (field unchanged).
+	WithCommandTimeout(0)(cli)
+	if cli.cmdTimeout != 30*time.Second {
+		t.Errorf("WithCommandTimeout(0): expected 30s unchanged, got %v", cli.cmdTimeout)
+	}
+
+	WithCommandTimeout(-time.Second)(cli)
+	if cli.cmdTimeout != 30*time.Second {
+		t.Errorf("WithCommandTimeout(-1s): expected 30s unchanged, got %v", cli.cmdTimeout)
+	}
+}
+
+func TestWithConnectTimeout(t *testing.T) {
+	cli := new(Cli)
+
+	WithConnectTimeout(15 * time.Second)(cli)
+	if cli.connTimeout != 15*time.Second {
+		t.Errorf("WithConnectTimeout: expected 15s, got %v", cli.connTimeout)
+	}
+
+	WithConnectTimeout(0)(cli)
+	if cli.connTimeout != 15*time.Second {
+		t.Errorf("WithConnectTimeout(0): expected 15s unchanged, got %v", cli.connTimeout)
+	}
+
+	WithConnectTimeout(-time.Second)(cli)
+	if cli.connTimeout != 15*time.Second {
+		t.Errorf("WithConnectTimeout(-1s): expected 15s unchanged, got %v", cli.connTimeout)
+	}
+}
+
+func TestWithIdleTimeout(t *testing.T) {
+	cli := new(Cli)
+
+	WithIdleTimeout(10 * time.Minute)(cli)
+	if cli.idleTimeout != 10*time.Minute {
+		t.Errorf("WithIdleTimeout: expected 10m, got %v", cli.idleTimeout)
+	}
+
+	WithIdleTimeout(0)(cli)
+	if cli.idleTimeout != 10*time.Minute {
+		t.Errorf("WithIdleTimeout(0): expected 10m unchanged, got %v", cli.idleTimeout)
+	}
+
+	WithIdleTimeout(-time.Second)(cli)
+	if cli.idleTimeout != 10*time.Minute {
+		t.Errorf("WithIdleTimeout(-1s): expected 10m unchanged, got %v", cli.idleTimeout)
+	}
+}
+
+func TestCli_SetCommandTimeout(t *testing.T) {
+	cli := new(Cli)
+
+	cli.SetCommandTimeout(45 * time.Second)
+	if cli.cmdTimeout != 45*time.Second {
+		t.Errorf("SetCommandTimeout: expected 45s, got %v", cli.cmdTimeout)
+	}
+
+	// Non-positive values must be ignored.
+	cli.SetCommandTimeout(0)
+	if cli.cmdTimeout != 45*time.Second {
+		t.Errorf("SetCommandTimeout(0): expected 45s unchanged, got %v", cli.cmdTimeout)
+	}
+
+	cli.SetCommandTimeout(-time.Second)
+	if cli.cmdTimeout != 45*time.Second {
+		t.Errorf("SetCommandTimeout(-1s): expected 45s unchanged, got %v", cli.cmdTimeout)
+	}
+}
+
+func TestCli_SetConnectTimeout(t *testing.T) {
+	cli := new(Cli)
+
+	cli.SetConnectTimeout(20 * time.Second)
+	if cli.connTimeout != 20*time.Second {
+		t.Errorf("SetConnectTimeout: expected 20s, got %v", cli.connTimeout)
+	}
+
+	// Non-positive values must be ignored.
+	cli.SetConnectTimeout(0)
+	if cli.connTimeout != 20*time.Second {
+		t.Errorf("SetConnectTimeout(0): expected 20s unchanged, got %v", cli.connTimeout)
+	}
+
+	cli.SetConnectTimeout(-time.Second)
+	if cli.connTimeout != 20*time.Second {
+		t.Errorf("SetConnectTimeout(-1s): expected 20s unchanged, got %v", cli.connTimeout)
 	}
 }
