@@ -16,7 +16,7 @@ func (cli *Cli) getInt(cmd string, args ...any) (int64, error) {
 
 	d, ok := res.(int64)
 	if !ok {
-		return 0, fmt.Errorf("%s: response is %T, expected string", cmd, res)
+		return 0, fmt.Errorf("%s: response is %T, expected int64", cmd, res)
 	}
 	return d, nil
 }
