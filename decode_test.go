@@ -2,6 +2,7 @@ package cgpcli
 
 import (
 	"bytes"
+	"math"
 	"net"
 	"reflect"
 	"testing"
@@ -233,4 +234,61 @@ func TestParseIPSBSA(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestParseInt64Boundaries проверяет граничные значения int64 при разборе чисел.
+// Парсер должен корректно принимать MinInt64/MaxInt64 и откатываться к строке
+// при переполнении как для обычных, так и для тегированных (#…) чисел.
+func TestParseInt64Boundaries(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  any
+	}{
+		{"MaxInt64", "9223372036854775807", int64(math.MaxInt64)},
+		{"MinInt64", "-9223372036854775808", int64(math.MinInt64)},
+		{"OverflowPositive", "9223372036854775808", "9223372036854775808"},
+		{"OverflowNegative", "-9223372036854775809", "-9223372036854775809"},
+		{"TaggedMaxInt64", "#9223372036854775807", int64(math.MaxInt64)},
+		{"TaggedMinInt64", "#-9223372036854775808", int64(math.MinInt64)},
+		{"TaggedOverflowPositive", "#9223372036854775808", "#9223372036854775808"},
+		{"TaggedOverflowNegative", "#-9223372036854775809", "#-9223372036854775809"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got any
+			if err := Unmarshal([]byte(tt.input), &got); err != nil {
+				t.Fatalf("Unmarshal(%q) error = %v", tt.input, err)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Unmarshal(%q) = %v (%T), want %v (%T)", tt.input, got, got, tt.want, tt.want)
+			}
+		})
+	}
+}
+
+// FuzzUnmarshal проверяет устойчивость парсера к произвольному (в т.ч. malformed) входу.
+// Инвариант: Unmarshal не должен паниковать ни на каких входных данных.
+func FuzzUnmarshal(f *testing.F) {
+	seeds := []string{
+		`(vsu.ru, ai.vsu.ru)`,
+		`{ RealName = "Ivan"; StorageUsed = 1024; }`,
+		`{ Created = 31-12-2025_13:00:15; MaxAccountSize = unlimited; }`,
+		`[ZGF0YQ==]`,
+		`[cGFydDE=][cGFydDI=]`,
+		`#I[127.0.0.1]:8080`,
+		`#TPAST`,
+		`<root><item id="1"/></root>`,
+		`{ a = { b = (1, 2, { c = 3 }); }; }`,
+		`"Part1" "Part2"`,
+		`#-9223372036854775809`,
+		`"\317\360\350\342\345\362"`,
+	}
+	for _, s := range seeds {
+		f.Add([]byte(s))
+	}
+	f.Fuzz(func(t *testing.T, data []byte) {
+		var v any
+		_ = Unmarshal(data, &v)
+	})
 }
