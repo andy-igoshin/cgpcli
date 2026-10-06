@@ -22,6 +22,7 @@ import (
 	"crypto/md5"
 	"crypto/tls"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -83,14 +84,61 @@ type CliCode int
 const (
 	CodeOk       CliCode = 200
 	CodeOkInline CliCode = 201
-	CodePassword CliCode = 300 // Server expects a password
-	CodeGenErr   CliCode = 500
-	CodeGenErr1  CliCode = 501
-	CodeGenErr12 CliCode = 512
-	CodeGenErr25 CliCode = 525
-	CodeGenErr99 CliCode = 599
+	CodePassword CliCode = 300 // please send the PASS
+	CodeErr500   CliCode = 500 // generic error
+	CodeErr501   CliCode = 501 // generic error
+	CodeErr510   CliCode = 510 // you do not have the required access right
+	CodeErr512   CliCode = 512 // unknown secondary domain name
+	CodeErr513   CliCode = 513 // unknown user account
+	CodeErr515   CliCode = 515 // incorrect password or account name
+	CodeErr516   CliCode = 516 // mailbox not found
+	CodeErr520   CliCode = 520 // account with this name already exists
+	CodeErr521   CliCode = 521 // account alias with this name already exists
+	CodeErr522   CliCode = 522 // mailing list with this name already exists
+	CodeErr523   CliCode = 523 // group with this name already exists
+	CodeErr524   CliCode = 524 // forwarder with this name already exists
+	CodeErr525   CliCode = 525
+	CodeErr532   CliCode = 532 // mailbox with this name already exists
+	CodeErr552   CliCode = 552 // group is not found
+	CodeErr553   CliCode = 553 // forwarder is not found
+	CodeErr599   CliCode = 599 // file is not found
 	CodeStrange  CliCode = 10000
 )
+
+// Sentinel errors for known CGP CLI error responses.
+var (
+	ErrAccessDenied      = errors.New("access denied")
+	ErrDomainUnknown     = errors.New("unknown domain")
+	ErrAccountUnknown    = errors.New("unknown account")
+	ErrAuthFailed        = errors.New("authentication failed")
+	ErrMailboxNotFound   = errors.New("mailbox not found")
+	ErrAccountExists     = errors.New("account already exists")
+	ErrAliasExists       = errors.New("alias already exists")
+	ErrMailListExists    = errors.New("mailing list already exists")
+	ErrGroupExists       = errors.New("group already exists")
+	ErrForwarderExists   = errors.New("forwarder already exists")
+	ErrMailboxExists     = errors.New("mailbox already exists")
+	ErrGroupNotFound     = errors.New("group not found")
+	ErrForwarderNotFound = errors.New("forwarder not found")
+	ErrFileNotFound      = errors.New("file not found")
+)
+
+var cgpErrors = [100]error{
+	10: ErrAccessDenied,      // 510
+	12: ErrDomainUnknown,     // 512
+	13: ErrAccountUnknown,    // 513
+	15: ErrAuthFailed,        // 515
+	16: ErrMailboxNotFound,   // 516
+	20: ErrAccountExists,     // 520
+	21: ErrAliasExists,       // 521
+	22: ErrMailListExists,    // 522
+	23: ErrGroupExists,       // 523
+	24: ErrForwarderExists,   // 524
+	32: ErrMailboxExists,     // 532
+	52: ErrGroupNotFound,     // 552
+	53: ErrForwarderNotFound, // 553
+	99: ErrFileNotFound,      // 599
+}
 
 const defaultPort = "106"
 
@@ -224,7 +272,7 @@ func (cli *Cli) Query(cmd string, args ...any) (res any, err error) {
 		return
 	}
 	if !cli.IsSuccess() {
-		err = fmt.Errorf("CGP Error %d: %s", cli.respCode, string(cli.respData))
+		err = cli.makeCgpError()
 		return
 	}
 
@@ -253,7 +301,7 @@ func (cli *Cli) QueryNV(cmd string, args ...any) (err error) {
 		return
 	}
 	if !cli.IsSuccess() {
-		err = fmt.Errorf("CGP Error %d: %s", cli.respCode, string(cli.respData))
+		err = cli.makeCgpError()
 	}
 	return
 }
@@ -498,6 +546,17 @@ func (cli *Cli) connect() (err error) {
 	return
 }
 
+// makeCgpError builds an error from the last CGP server response.
+// It attaches a sentinel error for known error codes and preserves
+// the original server message for unknown or generic codes.
+func (cli *Cli) makeCgpError() error {
+	idx := int(cli.respCode) - 500
+	if idx >= 0 && idx < len(cgpErrors) && cgpErrors[idx] != nil {
+		return fmt.Errorf("(%d) %s (%w)", cli.respCode, string(cli.respData), cgpErrors[idx])
+	}
+	return fmt.Errorf("(%d) %s", cli.respCode, string(cli.respData))
+}
+
 func parseCode(b []byte) CliCode {
 	code := 0
 	for _, c := range b {
@@ -536,7 +595,7 @@ func (cli *Cli) parseResponse() (err error) {
 	}
 
 	code := parseCode(line)
-	if code < CodeOk || code > CodeGenErr99 {
+	if code < CodeOk || code > CodeErr599 {
 		cli.respCode = CodeStrange
 		cli.respData = line
 		return fmt.Errorf("STRANGE CODE: %d : %s", code, line)
