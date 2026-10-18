@@ -77,4 +77,4 @@ Andrey Igoshin <ai@vsu.ru>
 
 * Repository: <https://git.vsu.ru/ai/rspamd-cgp>
 * CommuniGate Pro Website: <https://communigatepro.ru>
-* Command Line Interface/API: <https://doc.communigatepro.ru/russian/development/CLI.html>
+* Command Line Interface/API: <https://doc.communigatepro.ru/development/CLI.html>
