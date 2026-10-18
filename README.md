@@ -72,3 +72,9 @@ This project is licensed under the BSD 3-Clause License.
 ## Author
 
 Andrey Igoshin <ai@vsu.ru>
+
+### Links
+
+* Repository: <https://git.vsu.ru/ai/rspamd-cgp>
+* CommuniGate Pro Website: <https://communigatepro.ru>
+* Command Line Interface/API: <https://doc.communigatepro.ru/russian/development/CLI.html>
