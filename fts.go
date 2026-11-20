@@ -94,6 +94,52 @@ func (cli *Cli) BuildGroupSearchIndex(group string, enableForAll bool) error {
 	}
 }
 
+// CloseAccountSearchIndex closes the Search Index of a User in memory.
+//
+// Parameters:
+//   - account: the full Account name.
+//
+// Note: Index files on disk are kept, except in the indexing state, when the incomplete
+// on-disk index contents are cleared. Disabling the Search Index of a User or Domain is not
+// required. If the User is already loaded into the process (active session or account cache),
+// the open index is closed. If the User is not in memory, the caller's rights are still checked.
+// In a Dynamic Cluster, the request may be forwarded to the Backend Server that serves this User.
+//
+// This method executes the CLOSEACCOUNTSEARCHINDEX CLI command.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) CloseAccountSearchIndex(account string) error {
+	if account == "" {
+		return ErrAccountRequired
+	}
+	return cli.QueryNV("CLOSEACCOUNTSEARCHINDEX", Atom(account))
+}
+
+// CloseDomainSearchIndex closes the Search Index in memory for Domain Users already loaded
+// into the Server process on the node where the command runs.
+//
+// Parameters:
+//   - domain: the Domain name.
+//
+// Note: Open indexes on other cluster nodes are not closed, and the command is not broadcast
+// to other nodes. For a Shared Domain in a Dynamic Cluster, a request issued on a node that is
+// not the Cluster Controller is forwarded to the Cluster Controller and closes indexes only for
+// Users already loaded into that Controller process. Index files on disk are kept, except in the
+// indexing state, when the incomplete on-disk index contents are cleared. Disabling the Search
+// Index in the User Defaults is not required.
+//
+// This method executes the CLOSEDOMAINSEARCHINDEX CLI command.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) CloseDomainSearchIndex(domain string) error {
+	if domain == "" {
+		return ErrDomainRequired
+	}
+	return cli.QueryNV("CLOSEDOMAINSEARCHINDEX", Atom(domain))
+}
+
 // GetAccountSearchIndexSize retrieves the actual disk space allocated for the Account's Search Index.
 //
 // Parameters:

@@ -113,6 +113,67 @@ func TestFTSEnvironmentLifecycle(t *testing.T) {
 	})
 }
 
+// TestCloseSearchIndex проверяет закрытие Search Index в памяти
+// для аккаунта и домена. Охватывает валидацию параметров и реальные
+// вызовы команд CLOSEACCOUNTSEARCHINDEX и CLOSEDOMAINSEARCHINDEX.
+func TestCloseSearchIndex(t *testing.T) {
+	cli := getTestCli(t)
+
+	domain := "test.domain.name"
+	accountName := "fts-close-user"
+	fullAccount := accountName + "@" + domain
+
+	// 1. Подготовка: создаём тестовый аккаунт
+	settings := map[string]any{"RealName": "FTS Close Test"}
+	err := cli.CreateAccount(fullAccount, settings, MultiMailbox, "", false)
+	if err != nil {
+		t.Fatalf("failed to create test account for CloseSearchIndex: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = cli.DeleteAccount(fullAccount)
+	})
+
+	// 2. Валидация: пустой аккаунт
+	t.Run("validation empty account", func(t *testing.T) {
+		err := cli.CloseAccountSearchIndex("")
+		if err == nil {
+			t.Error("expected error for empty account, got nil")
+		}
+		if err != nil && !errors.Is(err, ErrAccountRequired) {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+
+	// 3. Валидация: пустой домен
+	t.Run("validation empty domain", func(t *testing.T) {
+		err := cli.CloseDomainSearchIndex("")
+		if err == nil {
+			t.Error("expected error for empty domain, got nil")
+		}
+		if err != nil && !errors.Is(err, ErrDomainRequired) {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+
+	// 4. Реальный вызов: закрытие индекса аккаунта.
+	// Индекс может отсутствовать или быть уже закрытым — команда должна
+	// либо завершиться успешно, либо вернуть разумную ошибку от сервера.
+	t.Run("close account index", func(t *testing.T) {
+		err := cli.CloseAccountSearchIndex(fullAccount)
+		if err != nil {
+			t.Logf("CloseAccountSearchIndex returned error: %v", err)
+		}
+	})
+
+	// 5. Реальный вызов: закрытие индексов домена.
+	t.Run("close domain index", func(t *testing.T) {
+		err := cli.CloseDomainSearchIndex(domain)
+		if err != nil {
+			t.Logf("CloseDomainSearchIndex returned error: %v", err)
+		}
+	})
+}
+
 // TestSearchInIndex проверяет полнотекстовый поиск в индексе аккаунта.
 // Охватывает валидацию параметров, вызов с флагом utf8 и опциями,
 // а также проверяет, что CommuniGate возвращает разумную ошибку при
