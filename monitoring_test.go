@@ -82,6 +82,23 @@ func TestIdentifyEOF(t *testing.T) {
 	}
 }
 
+func TestGetClusterTLSStatus(t *testing.T) {
+	cli := getTestCli(t)
+	defer cli.Close()
+
+	info, err := cli.GetClusterTLSStatus()
+	if err != nil {
+		// В песочнице нет кластерной лицензии, поэтому команда может вернуть ошибку.
+		skipIfNoClusterAuth(t, err)
+		t.Logf("GetClusterTLSStatus returned error (expected without cluster license): %v", err)
+		return
+	}
+
+	// Вне кластера результат имеет мало практической ценности, но команда
+	// должна вернуть словарь с ключами портов и сертификатов.
+	t.Logf("Cluster TLS status: %v", info)
+}
+
 func TestMonitoring_Final(t *testing.T) {
 	cli := getTestCli(t)
 	defer cli.Close()

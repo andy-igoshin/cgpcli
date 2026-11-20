@@ -25,6 +25,19 @@ import (
 // Значение 2048 покрывает стандартный набор OID большинства инсталляций без переаллокаций.
 const statsCapacity = 2048
 
+// GetClusterTLSStatus retrieves the Inter-Cluster TLS configuration and, where
+// available, the runtime LOCKER connection status.
+//
+// This method executes the GETCLUSTERTLSSTATUS CLI command.
+//
+// Returns:
+//   - map[string]any: a dictionary with the Inter-Cluster TLS configuration and
+//     runtime LOCKER connection status data.
+//   - error: an error if the command fails.
+func (cli *Cli) GetClusterTLSStatus() (map[string]any, error) {
+	return cli.getMapAny("GETCLUSTERTLSSTATUS")
+}
+
 // GetDialogInfo retrieves the information about a Signal Dialog object.
 //
 // Parameters:
