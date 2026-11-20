@@ -119,3 +119,23 @@ func (cli *Cli) RenameForwarder(oldName, newName string) error {
 	}
 	return cli.QueryNV("RENAMEFORWARDER", oldName, "INTO", newName)
 }
+
+// UpdateForwarder updates Forwarder settings.
+//
+// Parameters:
+//   - forwarder: the name of an existing Forwarder. The name can include the Domain name.
+//   - settings: a dictionary used to update the Forwarder settings. The dictionary must contain the To key with the E-mail address the Forwarder should reroute E-mail messages and Signals to. You can also specify the RealName key for the Forwarder Real Name and the Comment key for an administrative note.
+//
+// This method executes the UPDATEFORWARDER CLI command.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) UpdateForwarder(forwarder string, settings map[string]any) error {
+	if forwarder == "" {
+		return ErrForwarderRequired
+	}
+	if len(settings) == 0 {
+		return ErrSettingsRequired
+	}
+	return cli.QueryNV("UPDATEFORWARDER", forwarder, settings)
+}

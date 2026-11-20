@@ -2,6 +2,7 @@ package cgpcli
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 )
@@ -58,7 +59,26 @@ func TestForwarders(t *testing.T) {
 			t.Errorf("Rename failed: %v", err)
 		}
 
-		// 5. List
+		// 5. Update
+		newTarget := "newbackup@external.com"
+		settings := map[string]any{
+			"To":       newTarget,
+			"RealName": "Backup Forwarder",
+			"Comment":  "updated by test",
+		}
+		if err := cli.UpdateForwarder(renameFull, settings); err != nil {
+			t.Errorf("Update failed: %v", err)
+		}
+
+		res, err = cli.GetForwarder(renameFull)
+		if err != nil {
+			t.Errorf("Get after Update failed: %v", err)
+		}
+		if !strings.Contains(res, newTarget) {
+			t.Errorf("Get after Update: target %q not found in %q", newTarget, res)
+		}
+
+		// 6. List
 		_, err = cli.ListForwarders("")
 		if err != nil {
 			t.Errorf("List failed: %v", err)
@@ -80,7 +100,7 @@ func TestForwarders(t *testing.T) {
 			t.Errorf("Renamed forwarder %s (or %s) not in list %v", renameFull, renameLocal, list)
 		}
 
-		// 6. Delete
+		// 7. Delete
 		if err := cli.DeleteForwarder(renameFull); err != nil {
 			t.Errorf("Delete failed: %v", err)
 		}
