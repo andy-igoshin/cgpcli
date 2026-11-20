@@ -7,7 +7,7 @@ export GOPATH="${HOME}/src/cgpcli/.gopath"
 export CGO_ENABLED=0
 
 if   [ "$1" == "fmt" ]; then
-    go $*
+    go fmt ./...
 elif [ "$1" == "run" ]; then
     . .env
     go run $2 $3 $4 $5
