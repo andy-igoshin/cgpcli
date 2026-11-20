@@ -90,6 +90,23 @@ const (
 	PreventShowFolders
 )
 
+// KillAccountSessionsFlags represents optional flags for the KILLACCOUNTSESSIONS command.
+type KillAccountSessionsFlags int
+
+const (
+	KillAccountSessionsNone KillAccountSessionsFlags = 0
+	// CheckAccountUsage specifies that after the Account's sessions are terminated,
+	// a check is performed to verify that the Account is not in use.
+	// It cannot be combined with OwnerOnly.
+	CheckAccountUsage KillAccountSessionsFlags = 1 << (iota - 1)
+	// IncludeAccountWebAuthSessions terminates all WebAuth sessions of the Account
+	// (both active and inactive) and clears stored login cookies.
+	IncludeAccountWebAuthSessions
+	// OwnerOnly closes only the Account owner's sessions and connections.
+	// Delegate sessions and their open Mailboxes are preserved.
+	OwnerOnly
+)
+
 // DeletionInfo Contains information about the deleted message.
 type DeletionInfo struct {
 	ReturnPath string
@@ -821,20 +838,41 @@ func (cli *Cli) IsAccountExists(account string) (bool, error) {
 //
 // Parameters:
 //   - account: the Account name. The name can include the Domain name.
+//   - flags: a bitmask of optional flags ([CheckAccountUsage],
+//     [IncludeAccountWebAuthSessions], [OwnerOnly]).
 //
 // This command immediately terminates all active connections and sessions
 // associated with the account, including POP, IMAP, FTP, WebUser,
-// AirSync, and others.
+// AirSync, and others. Without [OwnerOnly], the command also closes delegate
+// sessions and connections accessing the Account's Mailboxes.
+//
+// CLEARACCOUNTCACHE is a synonym for this command and accepts the same
+// parameters. Optional parameters must appear in the order shown in the syntax.
 //
 // This method executes the KILLACCOUNTSESSIONS CLI command.
 //
 // Returns:
-//   - error: an error if the command fails.
-func (cli *Cli) KillAccountSessions(account string) error {
+//   - error: an error if the command fails or if validation constraints are violated.
+func (cli *Cli) KillAccountSessions(account string, flags KillAccountSessionsFlags) error {
 	if account == "" {
 		return ErrAccountRequired
 	}
-	return cli.QueryNV("KILLACCOUNTSESSIONS", account)
+	if flags&CheckAccountUsage != 0 && flags&OwnerOnly != 0 {
+		return ErrCheckAccountUsageOwnerOnly
+	}
+
+	args := make([]any, 0, 4)
+	args = append(args, account)
+	if flags&CheckAccountUsage != 0 {
+		args = append(args, "CHECKACCOUNTUSAGE")
+	}
+	if flags&IncludeAccountWebAuthSessions != 0 {
+		args = append(args, "INCLUDEACCOUNTWEBAUTHSESSIONS")
+	}
+	if flags&OwnerOnly != 0 {
+		args = append(args, "OWNERONLY")
+	}
+	return cli.QueryNV("KILLACCOUNTSESSIONS", args...)
 }
 
 // ListDeletions retrieves a list of messages in the Deletions Mailbox.

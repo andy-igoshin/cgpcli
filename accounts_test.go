@@ -197,7 +197,7 @@ func TestAccountStatus(t *testing.T) {
 	})
 
 	t.Run("KillSessions", func(t *testing.T) {
-		err := cli.KillAccountSessions(user)
+		err := cli.KillAccountSessions(user, KillAccountSessionsNone)
 		if err != nil {
 			if strings.Contains(err.Error(), "EOF") {
 				t.Log("KillAccountSessions: own session likely killed")
