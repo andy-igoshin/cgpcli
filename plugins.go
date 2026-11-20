@@ -2,7 +2,7 @@
 //
 // The Plugin Administration section provides functionality for managing plugins
 // in CommuniGate Pro. It allows uploading, removing plugins, and managing
-// Domain-level plugin settings.
+// Domain-level and cluster-wide plugin settings.
 //
 // Key capabilities include:
 //   - Upload: using [Cli.UploadPluginFile] to upload a plugin binary to the
@@ -12,12 +12,31 @@
 //     Domain Plugins settings dictionary.
 //   - Configuration: using [Cli.SetDomainPluginsSettings] to replace the entire
 //     Domain Plugins settings dictionary with a new one.
+//   - Cluster-wide installation: using [Cli.InstallClusterPlugin] to install or
+//     update a cluster-wide plugin.
+//   - Cluster-wide removal: using [Cli.RemoveClusterPlugin] to remove a
+//     cluster-wide plugin by its ID.
+//   - Cluster-wide retrieval: using [Cli.GetClusterPluginsSettings] to fetch the
+//     current cluster-wide plugin settings dictionary.
+//   - Cluster-wide configuration: using [Cli.SetClusterPluginsSettings] to
+//     replace the entire cluster-wide plugin settings dictionary with a new one.
 package cgpcli
 
 import (
 	"fmt"
 	"os"
 )
+
+// GetClusterPluginsSettings retrieves the cluster-wide plugin settings.
+//
+// This method executes the GETCLUSTERPLUGINSSETTINGS CLI command.
+//
+// Returns:
+//   - map[string]any: a dictionary with the cluster-wide plugin settings.
+//   - error: an error if the command fails.
+func (cli *Cli) GetClusterPluginsSettings() (map[string]any, error) {
+	return cli.getMapAny("GETCLUSTERPLUGINSSETTINGS")
+}
 
 // GetDomainPluginsSettings retrieves the Domain Plugins settings.
 //
@@ -31,6 +50,44 @@ import (
 //   - error: an error if the command fails.
 func (cli *Cli) GetDomainPluginsSettings(domain string) (map[string]any, error) {
 	return cli.getMapAny("GETDOMAINPLUGINSSETTINGS", Atom(domain))
+}
+
+// InstallClusterPlugin installs or updates a cluster-wide plugin.
+//
+// Parameters:
+//   - content: data block containing the plugin binary representation.
+//   - dryrun: if true, the package is validated without installing or updating it.
+//
+// This method executes the INSTALLCLUSTERPLUGIN CLI command.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) InstallClusterPlugin(content []byte, dryrun bool) error {
+	if len(content) == 0 {
+		return ErrContentRequired
+	}
+
+	const cmd = "INSTALLCLUSTERPLUGIN"
+	if dryrun {
+		return cli.QueryNV(cmd, content, "DRYRUN")
+	}
+	return cli.QueryNV(cmd, content)
+}
+
+// RemoveClusterPlugin removes the cluster-wide plugin with the specified ID.
+//
+// Parameters:
+//   - id: ID of the plugin to remove.
+//
+// This method executes the REMOVECLUSTERPLUGIN CLI command.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) RemoveClusterPlugin(id string) error {
+	if id == "" {
+		return ErrIdRequired
+	}
+	return cli.QueryNV("REMOVECLUSTERPLUGIN", id)
 }
 
 // RemovePlugin removes an installed plugin with the specified ID.
@@ -47,6 +104,22 @@ func (cli *Cli) RemovePlugin(id string) error {
 		return ErrIdRequired
 	}
 	return cli.QueryNV("REMOVEPLUGIN", id)
+}
+
+// SetClusterPluginsSettings replaces the cluster-wide plugin settings.
+//
+// Parameters:
+//   - settings: a dictionary used to replace the cluster-wide plugin settings.
+//
+// This method executes the SETCLUSTERPLUGINSSETTINGS CLI command.
+//
+// Returns:
+//   - error: an error if the command fails.
+func (cli *Cli) SetClusterPluginsSettings(settings map[string]any) error {
+	if settings == nil {
+		return ErrSettingsRequired
+	}
+	return cli.QueryNV("SETCLUSTERPLUGINSSETTINGS", settings)
 }
 
 // SetDomainPluginsSettings replaces the Domain Plugins settings.

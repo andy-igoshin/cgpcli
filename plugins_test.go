@@ -138,6 +138,102 @@ func TestPlugins(t *testing.T) {
 	})
 }
 
+// TestClusterPlugins tests the cluster-wide plugin methods. The sandbox has no
+// cluster license, so the cluster commands are expected to fail with a
+// "not a dynamic cluster" error; those cases are skipped rather than failed.
+func TestClusterPlugins(t *testing.T) {
+	cli := getTestCli(t)
+	defer cli.Close()
+
+	// 1. GetClusterPluginsSettings — expects error without cluster license.
+	t.Run("GetClusterPluginsSettings", func(t *testing.T) {
+		settings, err := cli.GetClusterPluginsSettings()
+		if err != nil {
+			skipIfNoClusterAuth(t, err)
+			t.Logf("GetClusterPluginsSettings (expected without cluster license): %v", err)
+			return
+		}
+		if settings == nil {
+			t.Error("GetClusterPluginsSettings returned nil map")
+		}
+		t.Logf("Cluster plugin settings keys: %d", len(settings))
+	})
+
+	// 2. SetClusterPluginsSettings with nil settings should return error (client-side).
+	t.Run("SetClusterPluginsSettings_NilSettings", func(t *testing.T) {
+		err := cli.SetClusterPluginsSettings(nil)
+		if err == nil {
+			t.Error("SetClusterPluginsSettings with nil settings should return an error")
+		} else {
+			t.Logf("Expected error: %v", err)
+		}
+	})
+
+	// 3. SetClusterPluginsSettings with empty map — expects error without cluster license.
+	t.Run("SetClusterPluginsSettings", func(t *testing.T) {
+		err := cli.SetClusterPluginsSettings(map[string]any{})
+		if err != nil {
+			skipIfNoClusterAuth(t, err)
+			t.Logf("SetClusterPluginsSettings (expected without cluster license): %v", err)
+			return
+		}
+		t.Log("SetClusterPluginsSettings succeeded")
+	})
+
+	// 4. InstallClusterPlugin with empty content should return error (client-side).
+	t.Run("InstallClusterPlugin_EmptyContent", func(t *testing.T) {
+		err := cli.InstallClusterPlugin([]byte{}, false)
+		if err == nil {
+			t.Error("InstallClusterPlugin with empty content should return an error")
+		} else {
+			t.Logf("Expected error: %v", err)
+		}
+	})
+
+	// 5. InstallClusterPlugin with invalid data — expects error without cluster license.
+	t.Run("InstallClusterPlugin", func(t *testing.T) {
+		err := cli.InstallClusterPlugin([]byte("not a valid plugin binary"), false)
+		if err != nil {
+			skipIfNoClusterAuth(t, err)
+			t.Logf("InstallClusterPlugin (expected without cluster license): %v", err)
+			return
+		}
+		t.Log("InstallClusterPlugin unexpectedly succeeded")
+	})
+
+	// 6. InstallClusterPlugin with DRYRUN flag — expects error without cluster license.
+	t.Run("InstallClusterPlugin_DryRun", func(t *testing.T) {
+		err := cli.InstallClusterPlugin([]byte("dry-run plugin data"), true)
+		if err != nil {
+			skipIfNoClusterAuth(t, err)
+			t.Logf("InstallClusterPlugin dry-run (expected without cluster license): %v", err)
+			return
+		}
+		t.Log("InstallClusterPlugin dry-run unexpectedly succeeded")
+	})
+
+	// 7. RemoveClusterPlugin with empty ID should return error (client-side).
+	t.Run("RemoveClusterPlugin_EmptyID", func(t *testing.T) {
+		err := cli.RemoveClusterPlugin("")
+		if err == nil {
+			t.Error("RemoveClusterPlugin with empty id should return an error")
+		} else {
+			t.Logf("Expected error: %v", err)
+		}
+	})
+
+	// 8. RemoveClusterPlugin with non-existent ID — expects error without cluster license.
+	t.Run("RemoveClusterPlugin_NonExistent", func(t *testing.T) {
+		err := cli.RemoveClusterPlugin("non-existent-plugin-id")
+		if err != nil {
+			skipIfNoClusterAuth(t, err)
+			t.Logf("RemoveClusterPlugin non-existent (expected without cluster license): %v", err)
+			return
+		}
+		t.Log("RemoveClusterPlugin non-existent: no error")
+	})
+}
+
 // TestUploadPluginFilename tests the UploadPluginFilename helper that reads
 // a plugin binary from disk and delegates to UploadPluginFile.
 func TestUploadPluginFilename(t *testing.T) {
